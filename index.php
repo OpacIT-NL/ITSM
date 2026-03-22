@@ -27,7 +27,7 @@
 					<a href="/public"><div class="yoda">Self Service Portaal</div></a><br>
 					<a href="/secure"><div class="yoda">Behandelaarsportaal</div></a><br>
 					<a href="/admin"><div class="yoda">Beheerdersportaal</div></a><br>			
-					<center><sub>Version 0.0.0dev1 ©OpacIT 2026</sub></center><br>
+					<center><sub>Version 0.0.0dev2 ©OpacIT 2026</sub></center><br>
 					
 				</div>
 				</center>
