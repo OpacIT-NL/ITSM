@@ -1,10 +1,9 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Untitled Document</title>
-</head>
+<?php
+session_start();
 
-<body>
-</body>
-</html>
+if (!isset($_SESSION['operatorloggedin'])) {
+	header('Location: login.php');
+	exit;
+}
+
+?>
