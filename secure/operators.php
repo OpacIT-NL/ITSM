@@ -12,8 +12,20 @@ require_once(__DIR__ . '/../my.php');
 $sql = "SELECT id, firstname, lastname, email, phone, username, allowlogin 
         FROM itsm_ob_operators 
         ORDER BY lastname ASC";
-
 $result = mysqli_query($con, $sql);
+
+// Authorization check
+$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$result2 = mysqli_prepare($con, $sql2);
+mysqli_stmt_bind_param($result2, "s", $logged_in_user);
+mysqli_stmt_execute($result2);
+mysqli_stmt_bind_result($result2, $operators);
+mysqli_stmt_fetch($result2);
+mysqli_stmt_close($result2);
+if ($operators == 0) {
+    header("Location: ob-menu.php");
+    exit();
+}
 
 if (!$result) {
     die("Query failed: " . mysqli_error($con));
@@ -24,17 +36,17 @@ if (!$result) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
-		<center><h1>Operators</h1></center>
+		<center><h1>Behandelaars</h1></center>
 	</td>
 </tr>
 <tr>
 	<td>
-		<table border="1" width="50%" style="width: 100%; height: 100%; vertical-align: top">
+		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
 			<tr>
-				<td style="vertical-align: top;">
+				<td class=results style="vertical-align: top;">
 					<p align=right><a href="new_operator.php">Nieuwe Behandelaar</a></p>
 					
-					<table border="1" style="width: 100%;">
+					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
             <th style="text-align: start;">Voornaam</th>

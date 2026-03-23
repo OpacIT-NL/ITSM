@@ -9,6 +9,18 @@ if (!isset($_SESSION['operatorloggedin'])) {
 $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
+// Authorization check
+$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$result2 = mysqli_prepare($con, $sql2);
+mysqli_stmt_bind_param($result2, "s", $logged_in_user);
+mysqli_stmt_execute($result2);
+mysqli_stmt_bind_result($result2, $operators);
+mysqli_stmt_fetch($result2);
+mysqli_stmt_close($result2);
+if ($operators == 0) {
+    header("Location: ob-menu.php");
+    exit();
+}
 // Validate ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     die("Invalid ID");
@@ -23,6 +35,18 @@ $boolFields = [
     'operators','buildings','customers','suppliers','groups','events','ubm',
     'reporting','isadmin'
 ];
+if (isset($_POST['delete'])) {
+
+    $stmt = mysqli_prepare($con, "DELETE FROM itsm_ob_operators WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+
+    if (!mysqli_stmt_execute($stmt)) {
+        die("Delete failed: " . mysqli_stmt_error($stmt));
+    }
+
+    echo "Operator deleted successfully! <a href='operators.php'>Back to list</a>";
+    exit;
+}
 
 // Handle form submit
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -119,6 +143,8 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $operator = mysqli_fetch_assoc($result);
 
+
+
 if (!$operator) {
     die("Operator not found");
 }
@@ -133,7 +159,7 @@ if (!$operator) {
 </tr>
 <tr>
 	<td>
-		<table border="1" width="50%" style="width: 100%; height: 100%; vertical-align: top">
+		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
 			<tr>
 				<td style="vertical-align: top;">
 					
@@ -143,19 +169,19 @@ if (!$operator) {
     <label>First Name:
         <input type="text" name="firstname" value="<?= htmlspecialchars($operator['firstname']) ?>">
     </label>
-
+<br>
     <label>Last Name:
         <input type="text" name="lastname" value="<?= htmlspecialchars($operator['lastname']) ?>">
     </label>
-
+<br>
     <label>Email:
         <input type="email" name="email" value="<?= htmlspecialchars($operator['email']) ?>">
     </label>
-
+<br>
     <label>Phone:
         <input type="text" name="phone" value="<?= htmlspecialchars($operator['phone']) ?>">
     </label>
-
+<br>
     <label>Username:
         <input type="text" name="username" value="<?= htmlspecialchars($operator['username']) ?>">
     </label>
@@ -163,13 +189,15 @@ if (!$operator) {
     <hr>
 
     <!-- Boolean fields -->
+						<h3>Permissions</h3>
+						<div class=checkbox-grid>
     <?php foreach ($boolFields as $field): ?>
         <label>
             <input type="checkbox" name="<?= $field ?>" <?= $operator[$field] ? 'checked' : '' ?>>
             <?= ucfirst($field) ?>
         </label>
     <?php endforeach; ?>
-
+						</div>
     <hr>
 
     <!-- Password (optional safe handling) -->
@@ -179,6 +207,11 @@ if (!$operator) {
 
     <br><br>
     <button type="submit">Save</button>
+						<button type="submit" name="delete" 
+        onclick="return confirm('Are you sure you want to delete this operator?');"
+        style="background:red;color:white;margin-left:10px;">
+    Delete Operator
+</button>
 
 </form>
 				</td>

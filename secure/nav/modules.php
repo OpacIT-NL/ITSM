@@ -5,10 +5,10 @@
 </tr>
 <tr>
 	<td>
-		<table border="1" style="width: 100%; height: 100%; vertical-align: top">
+		<table class=main border="0" style="width: 100%; height: 100%; vertical-align: top">
 			<tr>
 				<td style="vertical-align: top; width: 240px;">
-					<table border="1" width="240px" cellpadding="0" cellspacing="0" style="vertical-align: top">
+					<table class=modules border="0" width="240px" cellpadding="0" cellspacing="0" style="vertical-align: top">
 						<tr>
 							<td width="1%" align="center" style="vertical-align: top">
 								<a href="./ob-menu.php">
@@ -18,9 +18,9 @@
 						</tr>
 						<tr>
 							<td width="1%" align="center" style="vertical-align: top">
-								<!--<a href="./inc-menu.php">
+								<a href="./inc-menu.php">
 									Incident Management
-								</a>-->
+								</a>
 							</td>
 						</tr>
 						<tr>
