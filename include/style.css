@@ -59,15 +59,21 @@
   	transition: background-color 0.2s;
 }
 
-.itsmmainmenu {
-	  	width: 400px;
-  	padding: 15px;
- 	margin-top: 20px;
+a:link {
+	  	display: inline-flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 400px;
+  	height: 64px;
   	background-color: #3274d6;
-	/*background-color: #427C41;*/
-  	border: 0;
-  	cursor: pointer;
-  	font-weight: bold;
+	text-decoration: none;
   	color: #ffffff;
-  	transition: background-color 0.2s;
+	flex-direction: column;
+	gap: 60px; 
+}
+
+a:hover {
+		  color: #ffffff;
+  text-decoration: none;
+  background-color: #111111;
 }
