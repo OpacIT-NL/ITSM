@@ -9,14 +9,14 @@
 </head>
 <body marginwidth="0" marginheight="0" padding="0">
 	
-	<table border="1" cellpadding="0" cellspacing="0" style="width: 100%; height: 100vh; ">
+	<table border="0" cellpadding="0" cellspacing="0" style="width: 100%; height: 100vh; ">
 		<tr style="height: 50px; background-color: rgba(0,0,0,0.57); color: white;">
 			<td></td>
 			<td align="right">
 				<div class=nav>
-				<table border="1">
+				<table border="0">
 					<tr>
-						<td>Logged in user: <?php echo $_SESSION['name'];?> | </td>
+						<td>Ingelogde behandelaar: <?php echo $_SESSION['name'];?> | </td>
 						<td><a href="./logout.php">Logout<i class="fa-solid fa-right-from-bracket"></i></a></td>
 					</tr>
 				</table>
@@ -25,12 +25,12 @@
 		</tr>
 		<tr>
 			<td width="64px" style="vertical-align: top">
-				<table cellpadding="0" cellspacing="0" border="1" width="64px" style="vertical-align: top; background-color: rgba(0,0,0,0.57); color: white; height: 100vh;">
+				<table cellpadding="0" cellspacing="0" border="0" width="64px" style="vertical-align: top; background-color: rgba(0,0,0,0.57); color: white; height: 100vh;">
 					<tr style="height: 50px;">
 						<td style="vertical-align: top">
 							<div class=nav>
 							<div class=sidebar>
-								<table border="1" width="100%" cellpadding="0" cellspacing="0">
+								<table border="0" width="100%" cellpadding="0" cellspacing="0">
 									<tr>
 										<td>
 											<div class=homebutton>
@@ -58,6 +58,6 @@
 				</table>
 			</td>
 			<td style="vertical-align: top">
-				<table border="1" width="100%" style="width: 100%; height: 100vh; vertical-align: top; background-color: white">
+				<table class=main border="0" width="100%" style="width: 100%; height: 100vh; background-color: white">
 					
 				
