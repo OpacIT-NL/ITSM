@@ -1,0 +1,76 @@
+
+/* CSS Document */
+body {	
+	background-image: url('/content/images/back.jpeg'); 
+	background-position: center; 
+	background-repeat: no-repeat; 
+	background-size: cover;
+	font-family: Verdana;
+	vertical-align: top;
+}
+
+
+.nav a:link {
+	box-shadow: 0px 0px 0px 0px #3dc21b;
+	background-color: rgba(255,255,255,0.0);
+	display:inline-block;
+	cursor:pointer;
+	color: #ffffff;
+	font-family:Verdana;
+	font-size:17px;
+	padding:5px 5px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #477041;
+}
+.nav a:visited {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* mouse over link */
+.nav a:hover {
+  color: #111111;
+  text-decoration: none;
+  background-color: #ffffff;
+}
+
+.sidebar a:link {
+	  	display: flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 50px;
+  	height: 50px;
+  	background-color: #3274d6;
+  	color: #ffffff;
+}
+
+.homebutton a:link {
+	  	display: flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 50px;
+  	height: 50px;
+  	background-color: #810DAD;
+  	color: #ffffff;
+}
+
+.quicklinkshome a {
+	  	display: inline-flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 120px;
+  	height: 120px;
+  	background-color: #3274d6;
+  	color: #ffffff;
+	flex-direction: column;
+	gap: 25px; 
+}
+.quicklinkshome a:hover {
+  color: #111111;
+  text-decoration: none;
+  background-color: #ffffff;
+}
+.maintable {
+	height: 100vh;
+	width: 100%;
+}
