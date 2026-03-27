@@ -11,10 +11,15 @@ if (!isset($_SESSION['operatorloggedin'])) {
 $logged_in_user = $_SESSION['name'];
 
 // Fetch category
-$sql = "SELECT id, name, type 
-        FROM itsm_core_category 
-        ORDER BY id ASC";
-$result = mysqli_query($con, $sql);
+$type = (string)$_GET['type'];
+if ($type !== '') {
+    $stmt = $con->prepare("SELECT * FROM itsm_core_category WHERE type = ?");
+    $stmt->bind_param("s", $type);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $result = mysqli_query($con, "SELECT * FROM itsm_core_category");
+}
 
 // Fetch user permissions
 $sql2 = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
@@ -42,7 +47,28 @@ if ($operators == 0) {
 			<tr>
 				<td class=results style="vertical-align: top;">
 					<p style="width: 15%; text-align: right"><a href="new_cat.php">Nieuwe Categorie</a></p>
-					
+<form method="GET">
+    <label for="type">Filter op soort:</label>
+    <select name="type" id="type" onchange="this.form.submit()">
+        <option value="">Alle soorten</option>
+
+        <option value="INCIDENT" <?= ($_GET['type'] ?? '') === 'INCIDENT' ? 'selected' : '' ?>>
+            INCIDENT
+        </option>
+
+        <option value="CHANGE" <?= ($_GET['type'] ?? '') === 'CHANGE' ? 'selected' : '' ?>>
+            CHANGE
+        </option>
+
+        <option value="PROBLEM" <?= ($_GET['type'] ?? '') === 'PROBLEM' ? 'selected' : '' ?>>
+            PROBLEM
+        </option>
+
+        <option value="EVENT" <?= ($_GET['type'] ?? '') === 'EVENT' ? 'selected' : '' ?>>
+            EVENT
+        </option>
+    </select>
+</form>
 					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
