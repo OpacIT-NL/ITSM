@@ -31,7 +31,7 @@ if ($operators == 0) {
 						<tr><td colspan=4><h1>Algemene Instellingen</h1></td></tr>
 						<tr>
 							<td>
-    								<a href="set-cat.php">
+    								<a href="set-ls-cat.php">
 										Categorie<br>/Subcategorie
 									</a>
 							</td>

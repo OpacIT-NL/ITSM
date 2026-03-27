@@ -44,7 +44,7 @@ if (!$result) {
 		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
 			<tr>
 				<td class=results style="vertical-align: top;">
-					<p align=right><a href="new_operator.php">Nieuwe Behandelaar</a></p>
+					<p style="width: 15%; text-align: right"><a href="new_operator.php">Nieuwe Behandelaar</a></p>
 					
 					<table border="0" class=results style="width: 100%;">
     <thead>
