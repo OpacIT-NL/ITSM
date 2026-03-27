@@ -72,6 +72,19 @@ a:link {
 	gap: 60px; 
 }
 
+a:visited {
+	  	display: inline-flex;
+  	justify-content: center;
+  	align-items: center;
+  	width: 400px;
+  	height: 64px;
+  	background-color: #3274d6;
+	text-decoration: none;
+  	color: #ffffff;
+	flex-direction: column;
+	gap: 60px; 
+}
+
 a:hover {
 		  color: #ffffff;
   text-decoration: none;
