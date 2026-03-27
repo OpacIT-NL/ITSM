@@ -4,9 +4,9 @@ body {
 	background-image: url('/content/images/back.jpeg'); 
 	background-position: center; 
 	background-repeat: no-repeat; 
-	background-size: cover;
+	background-size: auto;
 	font-family: Verdana;
-	vertical-align: top;
+	vertical-align: middle;
 }
 
 
