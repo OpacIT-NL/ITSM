@@ -11,16 +11,16 @@
 					<table class=modules border="0" width="240px" cellpadding="0" cellspacing="0" style="vertical-align: top">
 						<tr>
 							<td width="1%" align="center" style="vertical-align: top">
-								<a href="./category-menu.php">
-									Categori
+								<a href="./set-general.php">
+									Algemene instellingen
 								</a>
 							</td>
 						</tr>
 						<tr>
 							<td width="1%" align="center" style="vertical-align: top">
-								<a href="./inc-menu.php">
-									Incident Management
-								</a>
+								<!--<a href="./inc-menu.php">
+									Statussen
+								</a>-->
 							</td>
 						</tr>
 						<tr>
