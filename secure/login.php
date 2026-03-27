@@ -8,16 +8,20 @@
 	<body>
 		<div class="login">
 			<h1>ITSM Behandelaar</h1>
-			<h1>Login</h1>
+
+			<h1>Inloggen</h1>
+						<?php if (isset($_GET['expired'])): ?>
+    <p style="color: red;"><center style="color: red;">Je sessie is verlopen. Log opnieuw in.</center></p>
+<?php endif; ?>
 			<form action="authenticate.php" method="post">
 				<label for="username">
 					<i class="fas fa-user"></i>
 				</label>
-				<input type="text" name="username" placeholder="Username" id="username" required>
+				<input type="text" name="username" placeholder="Gebruikersnaam" id="username" required>
 				<label for="password">
 					<i class="fas fa-lock"></i>
 				</label>
-				<input type="password" name="password" placeholder="Password" id="password" required>
+				<input type="password" name="password" placeholder="Wachtwoord" id="password" required>
 				<input type="submit" value="Login">
 			</form>
 		</div>

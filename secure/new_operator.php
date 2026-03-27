@@ -6,6 +6,13 @@ if (!isset($_SESSION['operatorloggedin'])) {
 	header('Location: login.php');
 	exit;
 }
+// Absolute expiration check
+if (isset($_SESSION['expires_at']) && time() > $_SESSION['expires_at']) {
+    session_unset();
+    session_destroy();
+    header("Location: login.php?expired=1");
+    exit;
+}
 $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
@@ -116,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
+		<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
 		<center><h1>Nieuwe behandelaar</h1></center>
 	</td>
 </tr>

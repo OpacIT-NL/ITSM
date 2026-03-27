@@ -33,9 +33,51 @@ if ($operators == 0) {
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/settings.php'); ?>
-<!--Content here -->
-
-</tr>
+				<td style="vertical-align: top">
+					<table class=module border="0">
+						<tr><td colspan=4><h1>Algemene Instellingen</h1></td></tr>
+						<tr>
+							<td>
+    								<a href="set-ls-cat.php">
+										Categorie<br>/Subcategorie
+									</a>
+							</td>
+							<td>
+    								<a href="set-status.php">
+										Statussen
+									</a>
+							</td>
+							<td>
+    								<!--<a href="operators.php">
+										Behandelaars
+									</a>-->
+							</td>
+							<td>
+    								<!--<a href="operatorgroups.php">
+										Behandelaarsgroepen
+									</a>-->
+							</td>
+						</tr>
+						<tr>
+							<td>
+    								<!--<a href="suppliers.php">
+										Leveranciers
+									</a>-->
+							</td>
+							<td>
+    								<!--<a href="buildings.php">
+										Gebouwen
+									</a>-->
+							</td>
+							<td>
+    								<!--<a href="customers.php">
+										Organisaties
+									</a>-->
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
 		</table>
 	</td>
 </tr>
