@@ -154,7 +154,7 @@ if (!$operator) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
-		<center><h1>Edit Operator: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
+		<center><h1>Behandelaar bewerken: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
 	</td>
 </tr>
 <tr>
@@ -166,30 +166,30 @@ if (!$operator) {
 					<form method="post">
 
     <!-- Basic fields -->
-    <label>First Name:
+    <label>Voornaam:
         <input type="text" name="firstname" value="<?= htmlspecialchars($operator['firstname']) ?>">
     </label>
 <br>
-    <label>Last Name:
+    <label>Achternaam:
         <input type="text" name="lastname" value="<?= htmlspecialchars($operator['lastname']) ?>">
     </label>
 <br>
-    <label>Email:
+    <label>E-mail:
         <input type="email" name="email" value="<?= htmlspecialchars($operator['email']) ?>">
     </label>
 <br>
-    <label>Phone:
+    <label>Telefoonnummer:
         <input type="text" name="phone" value="<?= htmlspecialchars($operator['phone']) ?>">
     </label>
 <br>
-    <label>Username:
+    <label>Gebruikersnaam:
         <input type="text" name="username" value="<?= htmlspecialchars($operator['username']) ?>">
     </label>
 
     <hr>
 
     <!-- Boolean fields -->
-						<h3>Permissions</h3>
+						<h3>Rechten</h3>
 						<div class=checkbox-grid>
     <?php foreach ($boolFields as $field): ?>
         <label>
@@ -201,16 +201,16 @@ if (!$operator) {
     <hr>
 
     <!-- Password (optional safe handling) -->
-    <label>New Password (leave empty to keep current):
+    <label>Nieuw wachtwoord (laat leeg om niet te bewerken):
         <input type="password" name="password">
     </label>
 
     <br><br>
-    <button type="submit">Save</button>
+    <button type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
-        onclick="return confirm('Are you sure you want to delete this operator?');"
+        onclick="return confirm('Weet je zeker dat je deze behandelaar wil verwijderen?');"
         style="background:red;color:white;margin-left:10px;">
-    Delete Operator
+    Verwijder behandelaar
 </button>
 
 </form>
