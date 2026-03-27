@@ -154,6 +154,7 @@ if (!$operator) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
+				<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
 		<center><h1>Behandelaar bewerken: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
 	</td>
 </tr>

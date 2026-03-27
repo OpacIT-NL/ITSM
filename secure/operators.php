@@ -36,6 +36,7 @@ if (!$result) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
+		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
 		<center><h1>Behandelaars</h1></center>
 	</td>
 </tr>

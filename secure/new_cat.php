@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <tr height="50px">
 	<td style="vertical-align: top;">
+		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
 		<center><h1>Nieuwe categorie</h1></center>
 	</td>
 </tr>

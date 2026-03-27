@@ -116,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
+		<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
 		<center><h1>Nieuwe behandelaar</h1></center>
 	</td>
 </tr>
