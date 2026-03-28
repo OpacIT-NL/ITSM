@@ -43,7 +43,7 @@ if ($operators == 0) {
 									</a>
 							</td>
 							<td>
-    								<a href="set-status.php">
+    								<a href="set-ls-status.php">
 										Statussen
 									</a>
 							</td>

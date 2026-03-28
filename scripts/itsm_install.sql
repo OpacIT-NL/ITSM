@@ -28,6 +28,26 @@ CREATE TABLE `itsm_core_subcategory` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_ob_buildings` (
+  `id` int(11) NOT NULL,
+  `customer` int(11) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `postalcode` varchar(255) NOT NULL,
+  `city` varchar(255) NOT NULL,
+  `idvp` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_ob_customers` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `primarybuilding` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `postalcode` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `primaryemail` varchar(255) DEFAULT NULL,
+  `primaryphone` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_ob_operatorgroups` (
   `id` int(11) NOT NULL,
   `groupname` varchar(255) NOT NULL
@@ -68,6 +88,38 @@ CREATE TABLE `itsm_ob_opgrouplinks` (
   `operatorid` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_ob_persongrouplinks` (
+  `id` int(11) NOT NULL,
+  `person` int(11) NOT NULL,
+  `persongroup` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_ob_persongroups` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_ob_persons` (
+  `id` int(11) NOT NULL,
+  `customerid` int(11) NOT NULL,
+  `firstname` varchar(255) NOT NULL,
+  `lastname` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(15) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `allowssp` int(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_ob_suppliers` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `postalcode` varchar(255) DEFAULT NULL,
+  `city` varchar(255) DEFAULT NULL,
+  `primaryemail` varchar(255) DEFAULT NULL,
+  `primaryphone` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 
 ALTER TABLE `itsm_core_category`
   ADD PRIMARY KEY (`id`);
@@ -76,6 +128,12 @@ ALTER TABLE `itsm_core_status`
   ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `itsm_core_subcategory`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_ob_buildings`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_ob_customers`
   ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `itsm_ob_operatorgroups`
@@ -87,6 +145,18 @@ ALTER TABLE `itsm_ob_operators`
 ALTER TABLE `itsm_ob_opgrouplinks`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `itsm_ob_persongrouplinks`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_ob_persongroups`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_ob_persons`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_ob_suppliers`
+  ADD PRIMARY KEY (`id`);
+
 
 ALTER TABLE `itsm_core_category`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
@@ -97,6 +167,12 @@ ALTER TABLE `itsm_core_status`
 ALTER TABLE `itsm_core_subcategory`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_ob_buildings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ob_customers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_ob_operatorgroups`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -104,6 +180,18 @@ ALTER TABLE `itsm_ob_operators`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_ob_opgrouplinks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ob_persongrouplinks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ob_persongroups`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ob_persons`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ob_suppliers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 

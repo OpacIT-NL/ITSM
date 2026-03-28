@@ -6,6 +6,21 @@
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
 	</head>
 	<body>
+			<table border=0 width="100%">
+		<tr height="100">
+			<td>
+				<center>
+					<table border=0>
+						<tr>
+							<td width="100%"></td>
+						</tr>
+					</table>
+				</center>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<center>
 		<div class="login">
 			<h1>ITSM Behandelaar</h1>
 
@@ -25,5 +40,11 @@
 				<input type="submit" value="Login">
 			</form>
 		</div>
+					</center>
+			</td>
+		</tr>
+		<tr></tr>
+	</table>
+	
 	</body>
 </html>

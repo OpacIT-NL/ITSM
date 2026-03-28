@@ -26,7 +26,7 @@
 					<h1>OpacIT ITSM</h1><br>
 					<a href="/public">Self Service Portaal</a><br><br><br>
 					<a href="/secure">Behandelaarsportaal</a><br><br><hr>
-					<center><sub>Version 0.0.2dev20260327<br>©OpacIT 2026</sub></center><br>
+					<center><sub>Version 0.0.2dev20260328<br>©OpacIT 2026</sub></center><br>
 					
 				</div>
 				</center>
