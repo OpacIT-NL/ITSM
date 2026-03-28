@@ -18,6 +18,23 @@ username =
 password = 
 dbname = 
 ```
+The folder structure should look like this:
+```
+folder above webroot, like /var/www
+
+/var/www
+|-config/
+  |-sql.ini
+|-itsm/
+  |-content/
+  |-include/
+  |-public/
+  |-scripts/
+  |-secure/
+  |-README.md
+  |-index.php
+  |-my.php
+```
 
 3. Fill in the details in the ini file.
 
