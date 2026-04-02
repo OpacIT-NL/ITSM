@@ -39,6 +39,7 @@ CREATE TABLE `itsm_ob_buildings` (
 
 CREATE TABLE `itsm_ob_customers` (
   `id` int(11) NOT NULL,
+  `din` varchar(6) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `primarybuilding` varchar(255) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
