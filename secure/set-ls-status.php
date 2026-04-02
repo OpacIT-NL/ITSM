@@ -18,12 +18,12 @@ $logged_in_user = $_SESSION['name'];
 // Fetch category
 $type = (string)$_GET['type'];
 if ($type !== '') {
-    $stmt = $con->prepare("SELECT * FROM itsm_core_status WHERE type = ?");
+    $stmt = $con->prepare("SELECT * FROM itsm_core_status WHERE type = ? ORDER BY `itsm_core_status`.`name` ASC");
     $stmt->bind_param("s", $type);
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    $result = mysqli_query($con, "SELECT * FROM itsm_core_status");
+    $result = mysqli_query($con, "SELECT * FROM itsm_core_status ORDER BY `itsm_core_status`.`type` ASC, `itsm_core_status`.`name` ASC");
 }
 
 // Fetch user permissions
