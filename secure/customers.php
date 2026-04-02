@@ -18,7 +18,7 @@ require_once(__DIR__ . '/../my.php');
 // Query
 $sql = "SELECT *
         FROM itsm_ob_customers 
-        ORDER BY name ASC";
+        ORDER BY din ASC";
 $result = mysqli_query($con, $sql);
 
 // Authorization check
