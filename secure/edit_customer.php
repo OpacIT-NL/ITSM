@@ -99,6 +99,12 @@ $stmt2 = $con->prepare("SELECT * FROM itsm_ob_buildings WHERE customer = ?");
     $stmt2->execute();
     $result3 = $stmt2->get_result();
 
+$stmt4 = $con->prepare("SELECT * FROM itsm_ob_buildings WHERE customer = ?");
+    $stmt4->bind_param("i", $id);
+    $stmt4->execute();
+    $result5 = $stmt4->get_result();
+
+
 $stmt3 = $con->prepare("SELECT p.id, p.customerid, p.firstname, p.lastname
 FROM itsm_ob_persons p
 LEFT JOIN itsm_ob_customers c 
@@ -108,6 +114,8 @@ ORDER BY p.firstname, p.lastname;");
     $stmt3->bind_param("i", $id);
     $stmt3->execute();
     $result4 = $stmt3->get_result();
+
+
 
 if (!$result) {
     die("Customer not found");
@@ -131,7 +139,7 @@ if (!$result) {
 					
 					<form method="post">
 
-    <!-- Basic fields -->
+    <!-- Basic fields --><h3>Algemeen</h3>
     <label>DIN:
         <input type="text" name="din" value="<?= htmlspecialchars($row2['din']) ?>" readonly>
     </label>
@@ -139,7 +147,7 @@ if (!$result) {
 	<label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
     </label>
-<br>
+<br>Primair gebouw: 
 	<?
 $selectedId = $row2['primarybuilding'] ?? null;
 
@@ -160,7 +168,7 @@ while ($row4 = $result3->fetch_assoc()) {
 
 echo '</select>';
 ?>
-						<br>
+						<br> <hr> <h3>Postadres</h3>
 	<label>Adres:
         <input type="text" name="address" value="<?= htmlspecialchars($row2['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
     </label>
@@ -172,7 +180,7 @@ echo '</select>';
 	<label>Plaats:
         <input type="text" name="city" value="<?= htmlspecialchars($row2['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
     </label>
-<br>
+<br><hr><h3>Contactgegevens</h3>
 	<label>Primair E-mailadres:
         <input type="text" name="primaryemail" value="<?= htmlspecialchars($row2['primaryemail'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
     </label>
@@ -197,6 +205,7 @@ echo '</select>';
     <thead>
         <tr>
 			<th style="text-align: start;">Naam</th>
+			<th style="text-align: start;">Actie</th>
         </tr>
     </thead>
     <tbody>
@@ -207,6 +216,35 @@ echo '</select>';
             <td>
                 <a class="btn" href="edit_person.php?id=<?= $row5['id'] ?>">
                     Open Persoon
+                </a>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+
+    </tbody>
+</table></center>
+					<center><h1>Gebouwen</h1>
+<table border="0" class=results style="width: 100%;">
+    <thead>
+        <tr>
+			<th style="text-align: start;">Adres</th>
+			<th style="text-align: start;">Postcode</th>
+			<th style="text-align: start;">Plaats</th>
+			<th style="text-align: start;">IDV-P</th>
+			<th style="text-align: start;">Actie</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    <?php while ($row7 = mysqli_fetch_assoc($result5)): ?>
+        <tr>
+			<td><?= htmlspecialchars($row7['address']) ?></td>
+            <td><?= htmlspecialchars($row7['postalcode']) ?></td>
+            <td><?= htmlspecialchars($row7['city']) ?></td>
+			<td><?= htmlspecialchars($row7['idvp']) ?></td>
+            <td>
+                <a class="btn" href="edit_building.php?id=<?= $row7['id'] ?>">
+                    Open Gebouw
                 </a>
             </td>
         </tr>
