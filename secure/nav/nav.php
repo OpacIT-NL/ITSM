@@ -42,7 +42,7 @@
 											</div>
 										</td>
 									</tr>
-									<tr>
+									<!--<tr>
 										<td>
 											<center>
 												<a href="/secure/index.php">
@@ -50,7 +50,7 @@
 												</a>
 											</center>
 										</td>
-									</tr>
+									</tr>-->
 								</table>
 							</div></div>
 						</td>
