@@ -17,7 +17,7 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Authorization check
-$sql2 = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT customers FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
@@ -33,33 +33,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Prepare insert
     $stmt = mysqli_prepare($con, "
-        INSERT INTO itsm_core_category (
-            name, type
+        INSERT INTO itsm_ob_customers (
+            din, name, primarybuilding, address, postalcode, city, primaryemail, primaryphone
         ) VALUES (
-            ?,?
+            ?,?,?,?,?,?,?,?
         )
     ");
 
     mysqli_stmt_bind_param(
         $stmt,
-        "ss",
+        "ssssssss",
+        $_POST['din'],
         $_POST['name'],
-        $_POST['type']
+		$_POST['primarybuilding'],
+		$_POST['address'],
+		$_POST['postalcode'],
+		$_POST['city'],
+		$_POST['primaryemail'],
+		$_POST['primaryphone']
     );
 
     if (!mysqli_stmt_execute($stmt)) {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Categorie aangemaakt! <a href='set-ls-cat.php'>Ga terug</a>";
+    echo "Klant aangemaakt! <a href='customers.php'>Ga terug</a>";
     exit;
 }
+
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <tr height="50px">
 	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
-		<center><h1>Nieuwe categorie</h1></center>
+		<p class="results" style="width: 15%; text-align: right"><a href="customers.php">Ga terug</a></p>
+		<center><h1>Nieuwe klant</h1></center>
 	</td>
 </tr>
 <tr>
@@ -72,22 +79,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Basic fields -->
     <div class="group">
-        <label>Naam:
+        <label>Debiteur Identificatie Nummer (DIN):
+            <input type="text" name="din" required>
+        </label>
+<br>
+		<label>Naam:
             <input type="text" name="name" required>
         </label>
 <br>
-        <label for="type">Type:</label>
-        <select id="type" name="type">
-            <option value="" disabled selected hidden>Selecteer een type</option>
-            <option value="CHANGE">Wijziging</option>
-            <option value="INCIDENT">Incident</option>
-            <option value="PROBLEM">Problem</option>
-            <option value="EVENT">Event</option>
-        </select>
+		<label>Adres:
+            <input type="text" name="address">
+        </label>
+<br>
+		<label>Postcode:
+            <input type="text" name="postalcode">
+        </label>
+<br>
+		<label>Plaats:
+            <input type="text" name="city">
+        </label>
+<br>
+		<label>Primair e-mailadres:
+            <input type="text" name="primaryemail">
+        </label>
+<br>
+		<label>Primair telefoonnummer:
+            <input type="text" name="primaryphone">
+        </label>
+<br>
+
 <br>
 
     <br>
-    <button type="submit">Maak categorie</button>
+    <button type="submit">Maak klant</button>
 </form>
 				</td>
 				<td>

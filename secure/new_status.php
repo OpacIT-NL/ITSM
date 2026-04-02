@@ -28,38 +28,46 @@ if ($isadmin == 0) {
     header("Location: index.php");
     exit();
 }
-
+$boolFields = [
+    'ready' => 'Gereed',
+    'closed' => 'Afgemeld'
+];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+$boolValues = [];
+    foreach ($boolFields as $field => $label) {
+        $boolValues[$field] = isset($_POST[$field]) ? 1 : 0;
+    }
     // Prepare insert
     $stmt = mysqli_prepare($con, "
-        INSERT INTO itsm_core_category (
-            name, type
+        INSERT INTO itsm_core_status (
+            name, type, ready, closed
         ) VALUES (
-            ?,?
+            ?,?,?,?
         )
     ");
 
     mysqli_stmt_bind_param(
         $stmt,
-        "ss",
+        "ssii",
         $_POST['name'],
-        $_POST['type']
+        $_POST['type'],
+		$boolValues['ready'],
+        $boolValues['closed']
     );
 
     if (!mysqli_stmt_execute($stmt)) {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Categorie aangemaakt! <a href='set-ls-cat.php'>Ga terug</a>";
+    echo "Status aangemaakt! <a href='set-ls-status.php'>Ga terug</a>";
     exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <tr height="50px">
 	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
-		<center><h1>Nieuwe categorie</h1></center>
+		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-status.php">Ga terug</a></p>
+		<center><h1>Nieuwe status</h1></center>
 	</td>
 </tr>
 <tr>
@@ -85,9 +93,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <option value="EVENT">Event</option>
         </select>
 <br>
+<div class="group">
+<div class=checkbox-grid>
+        <?php foreach ($boolFields as $field => $label): ?>
+            <label>
+                <input type="checkbox" name="<?= $field ?>">
+                <?= $label ?>
+            </label>
+        <?php endforeach; ?>
+		</div>
+    </div>
 
     <br>
-    <button type="submit">Maak categorie</button>
+    <button type="submit">Maak status</button>
 </form>
 				</td>
 				<td>

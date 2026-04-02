@@ -80,7 +80,7 @@ mysqli_stmt_close($stmt);
 							<td>
 								<?php if ($customers == 1): ?>
     								<a href="customers.php">
-										Organisaties
+										Klanten
 									</a>
 								<?php endif; ?>	
 							</td>

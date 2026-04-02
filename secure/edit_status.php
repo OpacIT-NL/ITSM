@@ -34,17 +34,20 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 }
 
 $id = (int)$_GET['id'];
-
+$boolFields = [
+    'ready' => 'Gereed',
+    'closed' => 'Afgemeld'
+];
 if (isset($_POST['delete'])) {
 
-    $stmt = mysqli_prepare($con, "DELETE FROM itsm_core_category WHERE id = ?");
+    $stmt = mysqli_prepare($con, "DELETE FROM itsm_core_status WHERE id = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
 
     if (!mysqli_stmt_execute($stmt)) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Categorie verwijderd. <a href='set-ls-cat.php'>Ga terug</a>";
+    echo "Status verwijderd. <a href='set-ls-status.php'>Ga terug</a>";
     exit;
 }
 
@@ -52,17 +55,27 @@ if (isset($_POST['delete'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Convert checkboxes to 0/1
+	$boolValues = [];
+    foreach ($boolFields as $field => $label) {
+        $boolValues[$field] = isset($_POST[$field]) ? 1 : 0;
+    }
 
     $stmt = mysqli_prepare($con, "
-        UPDATE itsm_core_category SET
-            name=?
+        UPDATE itsm_core_status SET
+            name=?,
+            type=?,
+			ready=?,
+			closed=?
         WHERE id=?
     ");
 
     mysqli_stmt_bind_param(
         $stmt,
-        "si",
+        "ssiii",
         $_POST['name'],
+        $_POST['type'],
+		$boolValues['ready'],
+        $boolValues['closed'],
         $id
     );
 
@@ -70,21 +83,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Categorie aangepast! <a href='set-ls-cat.php'>Ga terug</a>";
+    echo "Status aangepast! <a href='set-ls-status.php'>Ga terug</a>";
     exit;
 }
 
 // Fetch operator
-$stmt = $con->prepare("SELECT * FROM itsm_core_category WHERE id = ?");
+$stmt = $con->prepare("SELECT * FROM itsm_core_status WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
 $row2 = $result->fetch_assoc();
 
-$stmt2 = $con->prepare("SELECT * FROM itsm_core_subcategory WHERE parent = ?");
-    $stmt2->bind_param("i", $id);
-    $stmt2->execute();
-    $result3 = $stmt2->get_result();
 
 if (!$result) {
     die("Operator not found");
@@ -95,9 +104,9 @@ if (!$result) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
+		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-status.php">Ga terug</a></p>
 
-		<center><h1>Categorie Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
+		<center><h1>Status Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
 	</td>
 </tr>
 <tr>
@@ -113,41 +122,32 @@ if (!$result) {
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
     </label>
 <br>
+						    <label>Type:
+        <input type="text" name="type" value="<?= htmlspecialchars($row2['type']) ?>" readonly>
+    </label>
+<br>
+						<hr>
+<div class="group">
+<div class=checkbox-grid>
+        <?php foreach ($boolFields as $field => $label): ?>
+            <label>
+                <input type="checkbox" name="<?= $field ?>">
+                <?= $label ?>
+            </label>
+        <?php endforeach; ?>
+		</div>
+    </div>
 
     <br><br>
     <button type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
-        onclick="return confirm('Weet je zeker dat je deze categorie wil verwijderen?');"
+        onclick="return confirm('Weet je zeker dat je deze status wil verwijderen?');"
         style="background:red;color:white;margin-left:10px;">
-    Verwijder categorie
+    Verwijder status
 </button>
 
 </form>
-<br>
-<center><h1>Subcategoriën</h1>
-	<p class="results" style="width: 15%; text-align: right"><a href="new_subcat.php?id=<?= $id ?>">Nieuwe Subcategorie</a></p>
-<table border="0" class=results style="width: 50%;">
-    <thead>
-        <tr>
-            <th style="text-align: start;">Subcategorie</th>
-            <th style="text-align: start;">Actie</th>
-        </tr>
-    </thead>
-    <tbody>
 
-    <?php while ($row = mysqli_fetch_assoc($result3)): ?>
-        <tr>
-            <td><?= htmlspecialchars($row['name']) ?></td>
-            <td>
-                <a class="btn" href="edit_subcat.php?id=<?= $row['id'] ?>">
-                    Open Subcategorie
-                </a>
-            </td>
-        </tr>
-    <?php endwhile; ?>
-
-    </tbody>
-</table></center>
 				</td>
 				<td>
 					<table>

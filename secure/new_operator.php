@@ -30,24 +30,24 @@ if ($operators == 0) {
 }
 // Boolean fields with display names
 $boolFields = [
-    'allowlogin' => 'Allow Login',
-    'firstlineincidents' => 'First Line Incident Operator',
-    'secondlineincidents' => 'Second Line Incident Operator',
-    'reqforchange' => 'Request for Change',
-    'simplechange' => 'Simple Change',
-    'extchange' => 'Extended Change',
-    'problems' => 'Problem Management',
-    'operations' => 'Operations',
-    'assets' => 'Assets',
-    'persons' => 'Persons',
-    'operators' => 'Operators',
-    'buildings' => 'Buildings',
-    'customers' => 'Customers',
-    'suppliers' => 'Suppliers',
-    'groups' => 'Groups',
+    'allowlogin' => 'Mag inloggen',
+    'firstlineincidents' => 'Eerstelijns incidenten',
+    'secondlineincidents' => 'Tweedelijns incidenten',
+    'reqforchange' => 'Wijzigingsaanvragen',
+    'simplechange' => 'Eenvoudige Wijzigingen',
+    'extchange' => 'Uitgebreide Wijzigingen',
+    'problems' => 'Probleem beheer',
+    'operations' => 'Operationele taken',
+    'assets' => 'Middelenbeheer',
+    'persons' => 'Personen',
+    'operators' => 'Behandelaren',
+    'buildings' => 'Gebouwen',
+    'customers' => 'Klanten',
+    'suppliers' => 'Leveranciers',
+    'groups' => 'Groepen',
     'events' => 'Events',
-    'ubm' => 'UBM',
-    'reporting' => 'Reporting',
+    'ubm' => 'Projecten / UBM',
+    'reporting' => 'Rapportages',
     'isadmin' => 'Administrator'
 ];
 
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate password
     if (empty($_POST['password'])) {
-        die("Password is required");
+        die("Wachtwoord is verplicht!");
     }
 
     $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Operator created successfully! <a href='operators.php'>Back to list</a>";
+    echo "Behandelaar aangemaakt! <a href='operators.php'>Ga terug</a>";
     exit;
 }
 ?>
@@ -137,36 +137,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Basic fields -->
     <div class="group">
-        <h3>Basic Information</h3>
+        <h3>Basis informatie</h3>
 
-        <label>First Name:
+        <label>Voornaam:
             <input type="text" name="firstname" required>
         </label>
 <br>
-        <label>Last Name:
+        <label>Achternaam:
             <input type="text" name="lastname" required>
         </label>
 <br>
-        <label>Email:
+        <label>E-mail:
             <input type="email" name="email" required>
         </label>
 <br>
-        <label>Phone:
+        <label>Telefoonnummer:
             <input type="text" name="phone">
         </label>
 <br>
-        <label>Username:
+        <label>Gebruikersnaam:
             <input type="text" name="username" required>
         </label>
 <br>
-        <label>Password:
+        <label>Wachtwoord:
             <input type="password" name="password" required>
         </label>
     </div>
 
     <!-- Permissions -->
     <div class="group">
-        <h3>Permissions</h3>
+        <h3>Rollen</h3>
 <div class=checkbox-grid>
         <?php foreach ($boolFields as $field => $label): ?>
             <label>
@@ -178,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <br>
-    <button type="submit">Create Operator</button>
+    <button type="submit">Maak behandelaar</button>
 </form>
 				</td>
 				<td>
