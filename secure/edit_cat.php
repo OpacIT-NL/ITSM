@@ -17,7 +17,7 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
@@ -25,7 +25,7 @@ mysqli_stmt_bind_result($result2, $operators);
 mysqli_stmt_fetch($result2);
 mysqli_stmt_close($result2);
 if ($operators == 0) {
-    header("Location: ob-menu.php");
+    header("Location: index.php");
     exit();
 }
 // Validate ID
