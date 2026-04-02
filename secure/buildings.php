@@ -16,8 +16,9 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Query
-$sql = "SELECT *
-        FROM itsm_ob_buildings
+$sql = "SELECT b.*, c.din, c.name
+        FROM itsm_ob_buildings b
+		LEFT JOIN itsm_ob_customers c ON c.id = b.customer
         ORDER BY id ASC";
 $result = mysqli_query($con, $sql);
 
@@ -37,13 +38,7 @@ if ($operators == 0) {
 if (!$result) {
     die("Query failed: " . mysqli_error($con));
 }
-$stmt3 = $con->prepare("SELECT c.id, c.din, c.name
-FROM itsm_ob_customers c
-LEFT JOIN itsm_ob_buildings b
-    ON c.id = b.customer");
-    $stmt3->execute();
-    $result4 = $stmt3->get_result();
-$row3 = mysqli_fetch_assoc($result4)
+
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
@@ -78,7 +73,7 @@ $row3 = mysqli_fetch_assoc($result4)
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
             <td><?= htmlspecialchars($row['id']) ?></td>
-            <td><?= htmlspecialchars($row3['din'] . ' - ' . $row3['name']) ?></td>
+            <td><?= htmlspecialchars($row['din'] . ' - ' . $row['name']) ?></td>
 			<td><?= htmlspecialchars($row['address']) ?></td>
             <td><?= htmlspecialchars($row['postalcode']) ?></td>
             <td><?= htmlspecialchars($row['city']) ?></td>
