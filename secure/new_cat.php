@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Category created succesfully <a href='set-ls-cat.php'>Back to list</a>";
+    echo "Categorie aangemaakt! <a href='set-ls-cat.php'>Ga terug</a>";
     exit;
 }
 ?>
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Basic fields -->
     <div class="group">
-        <label>Name:
+        <label>Naam:
             <input type="text" name="name" required>
         </label>
 <br>
