@@ -55,17 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $stmt = mysqli_prepare($con, "
         UPDATE itsm_core_category SET
-            name=?,
-            type=?,
+            name=?
         WHERE id=?
     ");
 
     mysqli_stmt_bind_param(
         $stmt,
-        "ss",
+        "si",
         $_POST['name'],
-        $_POST['type'],
-
         $id
     );
 
