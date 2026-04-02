@@ -17,7 +17,7 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Authorization check
-$sql2 = "SELECT customers FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT suppliers FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
