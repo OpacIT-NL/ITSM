@@ -113,6 +113,7 @@ CREATE TABLE `itsm_ob_persons` (
 
 CREATE TABLE `itsm_ob_suppliers` (
   `id` int(11) NOT NULL,
+  `cin` varchar(6) NOT NULL,
   `name` varchar(255) NOT NULL,
   `address` varchar(255) DEFAULT NULL,
   `postalcode` varchar(255) DEFAULT NULL,
