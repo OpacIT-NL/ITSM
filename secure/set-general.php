@@ -16,7 +16,7 @@ if (isset($_SESSION['expires_at']) && time() > $_SESSION['expires_at']) {
     exit;
 }
 $logged_in_user = $_SESSION['name'];
-
+require_once(__DIR__ . '/../version.php');
 // Fetch user permissions
 $sql2 = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
@@ -75,7 +75,10 @@ if ($operators == 0) {
 									</a>-->
 							</td>
 						</tr>
+						
 					</table>
+					<br>
+					Current Version: <?= htmlspecialchars($version) ?>
 				</td>
 			</tr>
 		</table>
