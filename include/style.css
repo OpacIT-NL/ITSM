@@ -1,17 +1,13 @@
-/* Full-page background */
 .login-page {
     margin: 0;
     height: 100vh;
     background: url("/content/images/back.jpeg") no-repeat center center/cover;
     font-family: Verdana;
-
-    /* Flexbox centering */
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Login box */
 .login-box {
     background: rgba(255, 255, 255, 0.9);
     padding: 80px 100px;
@@ -23,7 +19,6 @@
     gap: 30px;
 }
 
-/* Links styling */
 .login-link {
     display: block;
     background-color: #2b6cd1;
@@ -38,7 +33,6 @@
     background-color: #1f4bb0;
 }
 
-/* HR styling */
 hr {
     border: 0;
     border-top: 1px solid #ccc;
