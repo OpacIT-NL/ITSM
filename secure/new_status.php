@@ -59,31 +59,25 @@ $boolValues = [];
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Status aangemaakt! <a href='set-ls-status.php'>Ga terug</a>";
+    header('Location: set-ls-status.php');
     exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-status.php">Ga terug</a></p>
+<div class="content">
+<a href="set-ls-status.php">Ga terug</a>
 		<center><h1>Nieuwe status</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
+	<div class="form-wrapper">
+    <div class="form-card">
 					
-					<form method="post">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    <div class="form-group">
         <label>Naam:
             <input type="text" name="name" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label for="type">Type:</label>
         <select id="type" name="type">
             <option value="" disabled selected hidden>Selecteer een type</option>
@@ -91,9 +85,9 @@ $boolValues = [];
             <option value="INCIDENT">Incident</option>
             <option value="PROBLEM">Problem</option>
             <option value="EVENT">Event</option>
-        </select>
+        </select></div>
 <br>
-<div class="group">
+<div class="form-group">
 <div class=checkbox-grid>
         <?php foreach ($boolFields as $field => $label): ?>
             <label>
@@ -104,20 +98,9 @@ $boolValues = [];
 		</div>
     </div>
 
-    <br>
-    <button type="submit">Maak status</button>
+    <br><div class="form-actions">
+    <button type="submit" class="btn-primary">Maak status</button></div>
 </form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+				</div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 

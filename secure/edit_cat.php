@@ -92,41 +92,36 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
+<div class="content">
+<a href="set-ls-cat.php">Ga terug</a></p>
 
 		<center><h1>Categorie Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
-
+<div class="form-wrapper">
+	<div class="form-card">
+					<form method="post" class="form-grid">
+<div class="form-group">
     <!-- Basic fields -->
     <label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
     </label>
 <br>
-
+						</div>
+<div class="form-actions">
     <br><br>
-    <button type="submit">Opslaan</button>
+    <button class="btn-primary" type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze categorie wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder categorie
 </button>
-
-</form>
+						</div>
+		</form></div></div>
 <br>
-<center><h1>Subcategoriën</h1>
-	<p class="results" style="width: 15%; text-align: right"><a href="new_subcat.php?id=<?= $id ?>">Nieuwe Subcategorie</a></p>
-<table border="0" class=results style="width: 50%;">
+<center><h1>Subcategoriën</h1></center>
+	<a href="new_subcat.php?id=<?= $id ?>">Nieuwe Subcategorie</a>
+<div class="results">
+	
+<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
             <th style="text-align: start;">Subcategorie</th>
@@ -138,7 +133,7 @@ if (!$result) {
     <?php while ($row = mysqli_fetch_assoc($result3)): ?>
         <tr>
             <td><?= htmlspecialchars($row['name']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_subcat.php?id=<?= $row['id'] ?>">
                     Open Subcategorie
                 </a>
@@ -147,19 +142,8 @@ if (!$result) {
     <?php endwhile; ?>
 
     </tbody>
-</table></center>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</table>
+	</div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

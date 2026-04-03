@@ -95,49 +95,29 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-				<p class="results" style="width: 15%; text-align: right"><a href="edit_cat.php?id=<?= $parent ?>">Ga terug</a></p>
+<div class="content">
+<a href="edit_cat.php?id=<?= $parent ?>">Ga terug</a>
 		<center><h1>Subcategorie Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
-
+		<div class="form-wrapper">
+    <div class="form-card">				
+					<form method="post"  class="form-grid">
+<div class="form-group">
     <!-- Basic fields -->
     <label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
     </label>
 <br>
-
-    <br><br>
-    <button type="submit">Opslaan</button>
+</div>
+    <div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze subcategorie wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+         class="btn-danger">
     Verwijder subcategorie
-</button>
+</button></div>
 
 </form>
-<br>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 
