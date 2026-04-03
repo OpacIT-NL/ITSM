@@ -38,8 +38,8 @@ ALTER TABLE `itsm_core_status`
 ALTER TABLE `itsm_core_subcategory`
   ADD PRIMARY KEY (`id`);
 
-
-
+ALTER TABLE `itsm_ob_suppliers` ADD `cin` VARCHAR(6) NOT NULL AFTER `id`; 
+ALTER TABLE `itsm_ob_customers` ADD `din` VARCHAR(6) NOT NULL AFTER `id`; 
 
 ALTER TABLE `itsm_core_category`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;

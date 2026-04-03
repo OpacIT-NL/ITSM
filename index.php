@@ -5,7 +5,7 @@
 <title>OpacIT ITSM</title>
 <link href="include/style.css" rel="stylesheet" type="text/css">
 </head>
-
+<?php require_once(__DIR__ . '/version.php'); ?>
 <body background="content/images/back.jpeg">
 	<table border=0 width="100%">
 		<tr height="100">
@@ -26,7 +26,7 @@
 					<h1>OpacIT ITSM</h1><br>
 					<a href="/public">Self Service Portaal</a><br><br><br>
 					<a href="/secure">Behandelaarsportaal</a><br><br><hr>
-					<center><sub>Version 0.0.2dev20260402<br>©OpacIT 2026</sub></center><br>
+					<center><sub><?= htmlspecialchars($version) ?><br>©OpacIT 2026</sub></center><br>
 					
 				</div>
 				</center>
