@@ -1,6 +1,7 @@
 
 <?php
 session_start();
+session_regenerate_id(true);
 require_once(__DIR__ . '/../my.php');
 if ($con->connect_error) {
     exit('Failed to connect to MySQL: ' . $con->connect_error);
@@ -21,6 +22,7 @@ if ($stmt->num_rows > 0) {
 		$_SESSION['operatorloggedin'] = TRUE;
 		$_SESSION['name'] = $_POST['username'];
 		$_SESSION['id'] = $id;
+		$_SESSION['expires_at'] = time() + (12 * 60 * 60);
 		header('Location: index.php');
 	} else {
 		echo 'Gebruikersnaam/wachtwoord incorrect. <a href="login.php">Ga terug</a>';

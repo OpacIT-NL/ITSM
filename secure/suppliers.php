@@ -16,13 +16,13 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Query
-$sql = "SELECT id, firstname, lastname, email, phone, username, allowlogin 
-        FROM itsm_ob_operators 
-        ORDER BY lastname ASC";
+$sql = "SELECT *
+        FROM itsm_ob_suppliers 
+        ORDER BY cin ASC";
 $result = mysqli_query($con, $sql);
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT suppliers FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
@@ -44,25 +44,23 @@ if (!$result) {
 <tr height="50px">
 	<td style="vertical-align: top;">
 		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
-		<center><h1>Behandelaars</h1></center>
+		<center><h1>Leveranciers</h1></center>
 	</td>
 </tr>
 <tr>
 	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
+		<center><table border="0" width="50%" style="width: 75%; height: 100%; vertical-align: top">
 			<tr>
 				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_operator.php">Nieuwe Behandelaar</a></p>
+					<p style="width: 15%; text-align: right"><a href="new_supplier.php">Nieuwe Leverancier</a></p>
 					
 					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
-            <th style="text-align: start;">Voornaam</th>
-            <th style="text-align: start;">Achternaam</th>
+            <th style="text-align: start;">CIN</th>
+            <th style="text-align: start;">Naam</th>
             <th style="text-align: start;">E-mail</th>
             <th style="text-align: start;">Telefoonnummer</th>
-            <th style="text-align: start;">Gebruikersnaam</th>
-            <th style="text-align: start;">Login toegestaan</th>
             <th style="text-align: start;">Actie</th>
         </tr>
     </thead>
@@ -70,19 +68,13 @@ if (!$result) {
 
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
-            <td><?= htmlspecialchars($row['firstname']) ?></td>
-            <td><?= htmlspecialchars($row['lastname']) ?></td>
-            <td><?= htmlspecialchars($row['email']) ?></td>
-            <td><?= htmlspecialchars($row['phone']) ?></td>
-            <td><?= htmlspecialchars($row['username']) ?></td>
+            <td><?= htmlspecialchars($row['cin']) ?></td>
+            <td><?= htmlspecialchars($row['name']) ?></td>
+            <td><?= htmlspecialchars($row['primaryemail']) ?></td>
+            <td><?= htmlspecialchars($row['primaryphone']) ?></td>
             <td>
-                <?= $row['allowlogin'] == 1 
-                    ? '<span class="check">✔</span>' 
-                    : '<span class="cross">✖</span>' ?>
-            </td>
-            <td>
-                <a class="btn" href="edit_operator.php?id=<?= $row['id'] ?>">
-                    Open Behandelaar
+                <a class="btn" href="edit_supplier.php?id=<?= $row['id'] ?>">
+                    Open Leverancier
                 </a>
             </td>
         </tr>
@@ -99,7 +91,7 @@ if (!$result) {
 					</table>
 				</td>
 			</tr>
-		</table>
+		</table></center>
 	</td>
 </tr>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

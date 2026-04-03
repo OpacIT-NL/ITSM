@@ -16,13 +16,14 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Query
-$sql = "SELECT id, firstname, lastname, email, phone, username, allowlogin 
-        FROM itsm_ob_operators 
-        ORDER BY lastname ASC";
+$sql = "SELECT p.*, c.din, c.name
+        FROM itsm_ob_persons p 
+		LEFT JOIN itsm_ob_customers c ON c.id = p.customerid
+        ORDER BY c.din ASC, p.lastname ASC";
 $result = mysqli_query($con, $sql);
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT persons FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
@@ -44,7 +45,7 @@ if (!$result) {
 <tr height="50px">
 	<td style="vertical-align: top;">
 		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
-		<center><h1>Behandelaars</h1></center>
+		<center><h1>Personen</h1></center>
 	</td>
 </tr>
 <tr>
@@ -52,16 +53,16 @@ if (!$result) {
 		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
 			<tr>
 				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_operator.php">Nieuwe Behandelaar</a></p>
+					<p style="width: 15%; text-align: right"><a href="new_person.php">Nieuw Persoon</a></p>
 					
 					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
+			<th style="text-align: start;">Klant</th>
             <th style="text-align: start;">Voornaam</th>
             <th style="text-align: start;">Achternaam</th>
             <th style="text-align: start;">E-mail</th>
             <th style="text-align: start;">Telefoonnummer</th>
-            <th style="text-align: start;">Gebruikersnaam</th>
             <th style="text-align: start;">Login toegestaan</th>
             <th style="text-align: start;">Actie</th>
         </tr>
@@ -70,19 +71,19 @@ if (!$result) {
 
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
+			<td><?= htmlspecialchars($row['din'] . ' - ' . $row['name']) ?></td>
             <td><?= htmlspecialchars($row['firstname']) ?></td>
             <td><?= htmlspecialchars($row['lastname']) ?></td>
             <td><?= htmlspecialchars($row['email']) ?></td>
             <td><?= htmlspecialchars($row['phone']) ?></td>
-            <td><?= htmlspecialchars($row['username']) ?></td>
             <td>
-                <?= $row['allowlogin'] == 1 
+                <?= $row['allowssp'] == 1 
                     ? '<span class="check">✔</span>' 
                     : '<span class="cross">✖</span>' ?>
             </td>
             <td>
-                <a class="btn" href="edit_operator.php?id=<?= $row['id'] ?>">
-                    Open Behandelaar
+                <a class="btn" href="edit_person.php?id=<?= $row['id'] ?>">
+                    Open Persoon
                 </a>
             </td>
         </tr>
