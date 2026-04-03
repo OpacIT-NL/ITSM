@@ -40,20 +40,11 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
+<div class="content">
+	<a href="ob-menu.php">Ga terug</a>
 		<center><h1>Leveranciers</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<center><table border="0" width="50%" style="width: 75%; height: 100%; vertical-align: top">
-			<tr>
-				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_supplier.php">Nieuwe Leverancier</a></p>
-					
+	<a href="new_supplier.php">Nieuwe Leverancier</a>
+					<div class="results">
 					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
@@ -72,28 +63,15 @@ if (!$result) {
             <td><?= htmlspecialchars($row['name']) ?></td>
             <td><?= htmlspecialchars($row['primaryemail']) ?></td>
             <td><?= htmlspecialchars($row['primaryphone']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_supplier.php?id=<?= $row['id'] ?>">
                     Open Leverancier
                 </a>
             </td>
         </tr>
     <?php endwhile; ?>
-
-    </tbody>
-</table>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table></center>
-	</td>
-</tr>
+</div>
+</div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

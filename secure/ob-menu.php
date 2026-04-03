@@ -29,69 +29,44 @@ mysqli_stmt_close($stmt);
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/modules.php'); ?>
-				<td style="vertical-align: top">
-					<table class=module border="0">
-						<tr><td colspan=4><h1>Ondersteunende Bestanden</h1></td></tr>
-						<tr>
-							<td>
-								<?php if ($persons == 1): ?>
-    								<a href="persons.php">
-										Personen
-									</a>
-								<?php endif; ?>	
-							</td>
-							<td>
-								<?php if ($persons == 1): ?>
-    								<a href="persongroups.php">
-										Persoonsgroepen
-									</a>
-								<?php endif; ?>	
-							</td>
-							<td>
-								<?php if ($operators == 1): ?>
-    								<a href="operators.php">
-										Behandelaars
-									</a>
-								<?php endif; ?>	
-							</td>
-							<td>
-								<?php if ($groups == 1): ?>
-    								<a href="operatorgroups.php">
-										Behandelaarsgroepen
-									</a>
-								<?php endif; ?>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<?php if ($suppliers == 1): ?>
-    								<a href="suppliers.php">
-										Leveranciers
-									</a>
-								<?php endif; ?>	
-							</td>
-							<td>
-								<?php if ($buildings == 1): ?>
-    								<a href="buildings.php">
-										Gebouwen
-									</a>
-								<?php endif; ?>	
-							</td>
-							<td>
-								<?php if ($customers == 1): ?>
-    								<a href="customers.php">
-										Klanten
-									</a>
-								<?php endif; ?>	
-							</td>
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+				<div class="module-section">
 
+    <h1>Ondersteunende Bestanden</h1>
+
+    <div class="module-grid">
+
+        <?php if ($persons == 1): ?>
+            <a href="persons.php">Personen</a>
+        <?php endif; ?>
+
+        <?php if ($persons == 1): ?>
+            <a href="persongroups.php">Persoonsgroepen</a>
+        <?php endif; ?>
+
+        <?php if ($operators == 1): ?>
+            <a href="operators.php">Behandelaars</a>
+        <?php endif; ?>
+
+        <?php if ($groups == 1): ?>
+            <a href="operatorgroups.php">Behandelaarsgroepen</a>
+        <?php endif; ?>
+
+        <?php if ($suppliers == 1): ?>
+            <a href="suppliers.php">Leveranciers</a>
+        <?php endif; ?>
+
+        <?php if ($buildings == 1): ?>
+            <a href="buildings.php">Gebouwen</a>
+        <?php endif; ?>
+
+        <?php if ($customers == 1): ?>
+            <a href="customers.php">Klanten</a>
+        <?php endif; ?>
+
+    </div>
+
+</div>
+</div>
 
 
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
