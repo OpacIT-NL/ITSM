@@ -2,11 +2,11 @@
 .layout {
     display: grid;
     grid-template-columns: 64px 1fr;
+	background: url("../../content/images/back.jpeg") no-repeat center center/cover;
     grid-template-rows: 50px 1fr;
     height: 100vh;
 }
 body {
-	background-image: url("../../content/images/back.jpeg");
 	font-family: Verdana;
 	    margin: 0;
     padding: 0;
