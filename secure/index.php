@@ -15,11 +15,11 @@ if (isset($_SESSION['expires_at']) && time() > $_SESSION['expires_at']) {
     exit;
 }
 $logged_in_user = $_SESSION['name'];
-$sql = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
+$sql = "SELECT isadmin, firstname, lastname FROM itsm_ob_operators WHERE username = ?";
 $stmt = mysqli_prepare($con, $sql);
 mysqli_stmt_bind_param($stmt, "s", $logged_in_user);
 mysqli_stmt_execute($stmt);
-mysqli_stmt_bind_result($stmt, $isadmin); // add more as needed
+mysqli_stmt_bind_result($stmt, $isadmin, $firstname, $lastname); // add more as needed
 mysqli_stmt_fetch($stmt);
 mysqli_stmt_close($stmt);
 ?>
@@ -30,7 +30,7 @@ mysqli_stmt_close($stmt);
     <!-- Main content -->
     <div class="content">
 
-        <h1>ITSM Dashboard - Welkom terug <?php echo $_SESSION['name'];?></h1>
+        <h1>ITSM Dashboard - Welkom terug <?php echo $firstname . ' ' . $lastname;?></h1>
 
         <h2>Hoofdmenu</h2>
 
