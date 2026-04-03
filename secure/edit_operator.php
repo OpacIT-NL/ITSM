@@ -51,7 +51,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Operator deleted successfully! <a href='operators.php'>Back to list</a>";
+    echo "Behandelaar verwijderd! <a href='operators.php'>Ga terug</a>";
     exit;
 }
 
@@ -138,7 +138,7 @@ if (!empty($_POST['password'])) {
     mysqli_stmt_execute($stmt);
 }
 
-    echo "Updated successfully! <a href='operators.php'>Back</a>";
+    echo "Opgeslagen! <a href='operators.php'>Ga terug</a>";
     exit;
 }
 
