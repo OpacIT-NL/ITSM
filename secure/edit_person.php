@@ -17,7 +17,7 @@ $logged_in_user = $_SESSION['name'];
 require_once(__DIR__ . '/../my.php');
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT persons FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare($con, $sql2);
 mysqli_stmt_bind_param($result2, "s", $logged_in_user);
 mysqli_stmt_execute($result2);
@@ -37,21 +37,18 @@ $id = (int)$_GET['id'];
 
 // All boolean fields
 $boolFields = [
-    'allowlogin','firstlineincidents','secondlineincidents','reqforchange',
-    'simplechange','extchange','problems','operations','assets','persons',
-    'operators','buildings','customers','suppliers','groups','events','ubm',
-    'reporting','isadmin'
+    'allowssp'
 ];
 if (isset($_POST['delete'])) {
 
-    $stmt = mysqli_prepare($con, "DELETE FROM itsm_ob_operators WHERE id = ?");
+    $stmt = mysqli_prepare($con, "DELETE FROM itsm_ob_persons WHERE id = ?");
     mysqli_stmt_bind_param($stmt, "i", $id);
 
     if (!mysqli_stmt_execute($stmt)) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaar verwijderd! <a href='operators.php'>Ga terug</a>";
+    echo "Persoon verwijderd! <a href='persons.php'>Ga terug</a>";
     exit;
 }
 
@@ -65,61 +62,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt = mysqli_prepare($con, "
-        UPDATE itsm_ob_operators SET
+        UPDATE itsm_ob_persons SET
             firstname=?,
             lastname=?,
             email=?,
             phone=?,
-            username=?,
-            allowlogin=?,
-            firstlineincidents=?,
-            secondlineincidents=?,
-            reqforchange=?,
-            simplechange=?,
-            extchange=?,
-            problems=?,
-            operations=?,
-            assets=?,
-            persons=?,
-            operators=?,
-            buildings=?,
-            customers=?,
-            suppliers=?,
-            groups=?,
-            events=?,
-            ubm=?,
-            reporting=?,
-            isadmin=?
+            allowssp=?
         WHERE id=?
     ");
 
     mysqli_stmt_bind_param(
         $stmt,
-        "sssssiiiiiiiiiiiiiiiiiiii",
+        "ssssii",
         $_POST['firstname'],
         $_POST['lastname'],
         $_POST['email'],
         $_POST['phone'],
-        $_POST['username'],
-        $boolValues['allowlogin'],
-        $boolValues['firstlineincidents'],
-        $boolValues['secondlineincidents'],
-        $boolValues['reqforchange'],
-        $boolValues['simplechange'],
-        $boolValues['extchange'],
-        $boolValues['problems'],
-        $boolValues['operations'],
-        $boolValues['assets'],
-        $boolValues['persons'],
-        $boolValues['operators'],
-        $boolValues['buildings'],
-        $boolValues['customers'],
-        $boolValues['suppliers'],
-        $boolValues['groups'],
-        $boolValues['events'],
-        $boolValues['ubm'],
-        $boolValues['reporting'],
-        $boolValues['isadmin'],
+        $boolValues['allowssp'],
         $id
     );
 
@@ -129,7 +88,7 @@ if (!empty($_POST['password'])) {
     $hashed = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
     $stmt = mysqli_prepare($con, "
-        UPDATE itsm_ob_operators 
+        UPDATE itsm_ob_persons 
         SET password = ? 
         WHERE id = ?
     ");
@@ -138,12 +97,12 @@ if (!empty($_POST['password'])) {
     mysqli_stmt_execute($stmt);
 }
 
-    echo "Opgeslagen! <a href='operators.php'>Ga terug</a>";
+    echo "Opgeslagen! <a href='persons.php'>Ga terug</a>";
     exit;
 }
 
 // Fetch operator
-$stmt = mysqli_prepare($con, "SELECT * FROM itsm_ob_operators WHERE id=?");
+$stmt = mysqli_prepare($con, "SELECT * FROM itsm_ob_persons WHERE id=?");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 
@@ -153,7 +112,7 @@ $operator = mysqli_fetch_assoc($result);
 
 
 if (!$operator) {
-    die("Operator not found");
+    die("Person not found");
 }
 ?>
 
@@ -161,8 +120,8 @@ if (!$operator) {
 
 <tr height="50px">
 	<td style="vertical-align: top;">
-				<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
-		<center><h1>Behandelaar bewerken: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
+				<p class="results" style="width: 15%; text-align: right"><a href="persons.php">Ga terug</a></p>
+		<center><h1>Persoon bewerken: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
 	</td>
 </tr>
 <tr>
@@ -190,9 +149,6 @@ if (!$operator) {
         <input type="text" name="phone" value="<?= htmlspecialchars($operator['phone']) ?>">
     </label>
 <br>
-    <label>Gebruikersnaam:
-        <input type="text" name="username" value="<?= htmlspecialchars($operator['username']) ?>">
-    </label>
 
     <hr>
 
@@ -216,9 +172,9 @@ if (!$operator) {
     <br><br>
     <button type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
-        onclick="return confirm('Weet je zeker dat je deze behandelaar wil verwijderen?');"
+        onclick="return confirm('Weet je zeker dat je deze persoon wil verwijderen?');"
         style="background:red;color:white;margin-left:10px;">
-    Verwijder behandelaar
+    Verwijder persoon
 </button>
 
 </form>

@@ -17,9 +17,37 @@ $logged_in_user = $_SESSION['name'];
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/modules.php'); ?>
-<!--Content here -->
-
-</tr>
+<td style="vertical-align: top">
+					<table class=module border="0">
+						<tr><td colspan=4></td></tr>
+						<tr>
+							<td>
+								
+							</td>
+							<td>
+								
+							</td>
+							<td>
+							
+							</td>
+							<td>
+							
+							</td>
+						</tr>
+						<tr>
+							<td>
+							
+							</td>
+							<td>
+							
+							</td>
+							<td>
+							
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
 		</table>
 	</td>
 </tr>
