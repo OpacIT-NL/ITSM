@@ -29,6 +29,9 @@ if ($operators == 0) {
     exit();
 }
 
+$stmt2 = $con->prepare("SELECT type FROM itsm_am_types");
+$stmt2->execute();
+$result = $stmt2->get_result();
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
@@ -38,7 +41,14 @@ if ($operators == 0) {
     <h1>Asset Management</h1>
 
     <div class="module-grid">
+<? 
+		while ($row = $result->fetch_assoc()) {
+    $typeUrl = urlencode($row['type']);           // safe for URL
+    $typeText = htmlspecialchars($row['type']);   // safe for HTML
 
+    echo "<a href='assets.php?filtertype=$typeUrl'>$typeText</a>";
+}
+		?>
        
     </div>
 

@@ -6,6 +6,10 @@
 		<a href="./set-general.php">
 			Algemene instellingen
 		</a>
+		Module instellingen
+		<a href="./set-am.php">
+			Asset Management
+		</a>
 	</div>
 	   </div>
 	   <div class="page-content">
