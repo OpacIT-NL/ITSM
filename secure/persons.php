@@ -63,7 +63,6 @@ if (!$result) {
             <th style="text-align: start;">Achternaam</th>
             <th style="text-align: start;">E-mail</th>
             <th style="text-align: start;">Telefoonnummer</th>
-            <th style="text-align: start;">Gebruikersnaam</th>
             <th style="text-align: start;">Login toegestaan</th>
             <th style="text-align: start;">Actie</th>
         </tr>
@@ -77,7 +76,6 @@ if (!$result) {
             <td><?= htmlspecialchars($row['lastname']) ?></td>
             <td><?= htmlspecialchars($row['email']) ?></td>
             <td><?= htmlspecialchars($row['phone']) ?></td>
-            <td><?= htmlspecialchars($row['username']) ?></td>
             <td>
                 <?= $row['allowssp'] == 1 
                     ? '<span class="check">✔</span>' 
