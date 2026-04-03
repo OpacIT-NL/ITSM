@@ -1,101 +1,50 @@
-/* CSS Document */
-* {
-  	box-sizing: border-box;
-  	font-family: -apple-system, BlinkMacSystemFont, "segoe ui", roboto, oxygen, ubuntu, cantarell, "fira sans", "droid sans", "helvetica neue", Arial, sans-serif;
-  	font-size: 16px;
+/* Full-page background */
+.login-page {
+    margin: 0;
+    height: 100vh;
+    background: url("/content/images/back.jpeg") no-repeat center center/cover;
+    font-family: Verdana;
+
+    /* Flexbox centering */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-body {	
-	background-image: url('/content/images/back.jpeg'); 
-	background-position: center; 
-	background-repeat: no-repeat; 
-	background-size: auto;
-	font-family: Verdana;
-	vertical-align: middle;
+/* Login box */
+.login-box {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 80px 100px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
-.login {
-  	width: 400px;
-  	background-color: #ffffff;
-  	box-shadow: 0 0 9px 0 rgba(0, 0, 0, 0.3);
-  	margin: 50px auto;
-}
-.login h1 {
-  	text-align: center;
-  	color: #5b6574;
-  	font-size: 24px;
-  	padding: 20px 0 20px 0;
-  	border-bottom: 1px solid #dee0e4;
-}
-.login form {
-  	display: flex;
-  	flex-wrap: wrap;
-  	justify-content: center;
-  	padding-top: 20px;
-}
-.login form label {
-  	display: flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 50px;
-  	height: 50px;
-  	background-color: #3274d6;
-  	color: #ffffff;
-}
-.login form input[type="password"], .login form input[type="text"] {
-  	width: 310px;
-  	height: 50px;
-  	border: 1px solid #dee0e4;
-  	margin-bottom: 20px;
-  	padding: 0 15px;
-}
-.login form input[type="submit"] {
-  	width: 100%;
-  	padding: 15px;
- 	margin-top: 20px;
-  	background-color: #3274d6;
-  	border: 0;
-  	cursor: pointer;
-  	font-weight: bold;
-  	color: #ffffff;
-  	transition: background-color 0.2s;
+/* Links styling */
+.login-link {
+    display: block;
+    background-color: #2b6cd1;
+    color: white;
+    padding: 15px 35px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 18px;
 }
 
-
-
-.login form input[type="submit"]:hover {
-	background-color: #2868c7;
-  	transition: background-color 0.2s;
+.login-link:hover {
+    background-color: #1f4bb0;
 }
 
-a:link {
-	  	display: inline-flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 400px;
-  	height: 64px;
-  	background-color: #3274d6;
-	text-decoration: none;
-  	color: #ffffff;
-	flex-direction: column;
-	gap: 60px; 
+/* HR styling */
+hr {
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 20px 0;
 }
 
-a:visited {
-	  	display: inline-flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 400px;
-  	height: 64px;
-  	background-color: #3274d6;
-	text-decoration: none;
-  	color: #ffffff;
-	flex-direction: column;
-	gap: 60px; 
-}
-
-a:hover {
-		  color: #ffffff;
-  text-decoration: none;
-  background-color: #111111;
+sub {
+	font-size: 14px;
 }
