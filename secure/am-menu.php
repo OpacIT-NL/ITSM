@@ -43,8 +43,8 @@ $result = $stmt2->get_result();
     <div class="module-grid">
 <? 
 		while ($row = $result->fetch_assoc()) {
-    $typeUrl = urlencode($row['type']);           // safe for URL
-    $typeText = htmlspecialchars($row['type']);   // safe for HTML
+    $typeUrl = urlencode($row['type']);
+    $typeText = htmlspecialchars($row['type']);
 
     echo "<a href='assets.php?filtertype=$typeUrl'>$typeText</a>";
 }
