@@ -250,6 +250,7 @@ ALTER TABLE `itsm_ob_suppliers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
   
   ALTER TABLE `itsm_am_fields` CHANGE `name` `name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL;
+  CREATE TRIGGER `after_insert_assettype` AFTER INSERT ON `itsm_am_types` FOR EACH ROW BEGIN DECLARE i INT DEFAULT 1; WHILE i <= 10 DO INSERT INTO itsm_am_fields (`type`, `field`, `name`) VALUES (NEW.type, CONCAT('customfield', i), NULL); SET i = i + 1; END WHILE; END
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
