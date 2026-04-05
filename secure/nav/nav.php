@@ -8,20 +8,12 @@
 </head>
 
 <body>
-
 <div class="layout">
 
-    <!-- Top bar -->
-    <div class="topbar">
-        <div class="topbar-right">
-            Ingelogde behandelaar: <?php echo $_SESSION['name'];?> |
-            <a href="./logout.php">Logout <i class="fa-solid fa-right-from-bracket"></i></a>
-        </div>
-    </div>
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-right"> Ingelogde behandelaar: <?php echo $_SESSION['name'];?> | <a href="./logout.php">Logout <i class="fa-solid fa-right-from-bracket"></i></a> </div>
+</div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="/secure/index.php" class="homebutton">
-            <i class="fa-solid fa-home fa-lg"></i>
-        </a>
-    </div>
+<!-- Sidebar -->
+<div class="sidebar"> <a href="/secure/index.php" class="homebutton"> <i class="fa-solid fa-home fa-lg"></i> </a> </div>

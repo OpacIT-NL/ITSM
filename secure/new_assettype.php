@@ -33,17 +33,16 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
   // Prepare insert
   $stmt = mysqli_prepare( $con, "
-        INSERT INTO itsm_core_category (
-            name, type
+        INSERT INTO itsm_am_types (
+            type
         ) VALUES (
-            ?,?
+            ?
         )
     " );
 
   mysqli_stmt_bind_param(
     $stmt,
-    "ss",
-    $_POST[ 'name' ],
+    "s",
     $_POST[ 'type' ]
   );
 
@@ -51,15 +50,15 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     die( "Insert failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  header( 'Location: set-ls-cat.php' );
+  header( 'Location: set-am-types.php' );
   exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href="set-ls-cat.php">Ga terug</a>
+<a href="set-am-types.php">Ga terug</a>
 <center>
-  <h1>Nieuwe categorie</h1>
+  <h1>Nieuw Asset type</h1>
 </center>
 <div class="form-wrapper">
 <div class="form-card">
@@ -68,23 +67,13 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   <!-- Basic fields -->
   <div class="form-group">
     <label>Naam:
-      <input type="text" name="name" required>
+      <input type="text" name="type" required>
     </label>
     <br>
   </div>
-  <div class="form-group">
-    <label for="type">Type:</label>
-    <select id="type" name="type">
-      <option value="" disabled selected hidden>Selecteer een type</option>
-      <option value="CHANGE">Wijziging</option>
-      <option value="INCIDENT">Incident</option>
-      <option value="PROBLEM">Problem</option>
-      <option value="EVENT">Event</option>
-    </select>
-  </div>
   <div class="form-actions">
-    <button type="submit" class="btn-primary">Maak categorie</button>
+    <button type="submit" class="btn-primary">Maak Asset type</button>
   </div>
-</form>
-</div></div></div>
+</form></div></div></div>
+
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
