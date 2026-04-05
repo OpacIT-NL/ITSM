@@ -8,7 +8,7 @@
     <a href="./ob-menu.php">
         Ondersteunende Bestanden
     </a>
-						<!--<a href="./am-menu.php">Asset Management</a>
+						<a href="./am-menu.php">Asset Management</a>
     <!-- Future modules -->
     <!--
     <a href="./inc-menu.php">Incident Management</a>
