@@ -35,10 +35,7 @@ if ($operators == 0) {
 <?php require_once(__DIR__ . '/nav/settings.php'); ?>
 <!--Content here -->
 
-</tr>
-		</table>
-	</td>
-</tr>
+
 
 
 
