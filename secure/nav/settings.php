@@ -1,4 +1,3 @@
-s
 <div class="content">
 <div class="page-layout">
 <div class="page-sidebar">
