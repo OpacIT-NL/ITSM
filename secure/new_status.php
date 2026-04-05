@@ -85,6 +85,7 @@ $boolValues = [];
             <option value="INCIDENT">Incident</option>
             <option value="PROBLEM">Problem</option>
             <option value="EVENT">Event</option>
+			<option value="ASSET">Asset</option>
         </select></div>
 <br>
 <div class="form-group">
