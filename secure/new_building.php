@@ -59,28 +59,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Gebouw aangemaakt! <a href='buildings.php'>Ga terug</a>";
+header('Location: buildings.php');
     exit;
 }
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="buildings.php">Ga terug</a></p>
+<div class="content">
+	<a href="buildings.php">Ga terug</a>
 
 		<center><h1>Gebouw aanmaken</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<center><table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
-
+<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
+<div class="form-group">
     <!-- Basic fields -->
 							Klant: <?
 
@@ -96,42 +88,29 @@ while ($row2 = $result3->fetch_assoc()) {
 
 echo '</select>';
 ?>
-
-<br>
+</div>
+<br><div class="form-group">
 		<label>Adres:
             <input type="text" name="address">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Postcode:
             <input type="text" name="postalcode">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Plaats:
             <input type="text" name="city">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>ICT Dienstverlener Pand: 
             <input type="text" name="idvp">
-        </label>
+        </label></div>
 <br>
 
 
-    <br><br>
-    <button type="submit">Opslaan</button>
-
+    <br><br><div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button>
+</div>
 </form>
-<br>
-
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table></center>
-	</td>
-</tr>
+</div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

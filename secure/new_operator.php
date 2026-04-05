@@ -114,58 +114,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaar aangemaakt! <a href='operators.php'>Ga terug</a>";
+header('Location: operators.php');
     exit;
 }
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
+<div class="content"><a href="operators.php">Ga terug</a>
 		<center><h1>Nieuwe behandelaar</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
+	<div class="form-wrapper">
+    <div class="form-card">
 					
-					<form method="post">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    
         <h3>Basis informatie</h3>
-
+<div class="form-group">
         <label>Voornaam:
             <input type="text" name="firstname" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>Achternaam:
             <input type="text" name="lastname" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>E-mail:
             <input type="email" name="email" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>Telefoonnummer:
             <input type="text" name="phone">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>Gebruikersnaam:
             <input type="text" name="username" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>Wachtwoord:
             <input type="password" name="password" required>
-        </label>
-    </div>
+        </label></div>
+    
 
     <!-- Permissions -->
-    <div class="group">
+    
         <h3>Rollen</h3>
 <div class=checkbox-grid>
         <?php foreach ($boolFields as $field => $label): ?>
@@ -175,23 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </label>
         <?php endforeach; ?>
 		</div>
-    </div>
+    
 
-    <br>
-    <button type="submit">Maak behandelaar</button>
-</form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+    <br><div class="form-actions">
+    <button type="submit" class="btn-primary">Maak behandelaar</button></div>
+</form></div></div></div>
+				
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 
