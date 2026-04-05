@@ -57,7 +57,7 @@ if ( !$result ) {
   <?php while ($row = mysqli_fetch_assoc($result)): ?>
   <tr>
     <td><?= htmlspecialchars($row['type']) ?></td>
-    <td class="tblaction"><a class="btn" href="edit_assettype.php?id=<?= $row['id'] ?>"> Open Assettype </a></td>
+    <td class="tblaction"><a class="btn" href="edit_assettype.php?id=<?= $row['id'] ?>"> Open Asset type </a></td>
   </tr>
   <?php endwhile; ?>
 </div>
