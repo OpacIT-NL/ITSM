@@ -47,7 +47,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Status verwijderd. <a href='set-ls-status.php'>Ga terug</a>";
+    header('Location: set-ls-status.php');
     exit;
 }
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Status aangepast! <a href='set-ls-status.php'>Ga terug</a>";
+    header('Location: set-ls-status.php');
     exit;
 }
 

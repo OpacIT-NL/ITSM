@@ -44,7 +44,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Klant verwijderd. <a href='customers.php'>Ga terug</a>";
+header('Location: customers.php');
     exit;
 }
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Klant aangepast! <a href='customers.php'>Ga terug</a>";
+    header('Location: customers.php');
     exit;
 }
 
@@ -123,31 +123,24 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="customers.php">Ga terug</a></p>
+<div class="content">
+	<a href="customers.php">Ga terug</a>
 
 		<center><h1>Klant Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<center><table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+	<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
 
-    <!-- Basic fields --><h3>Algemeen</h3>
+    <!-- Basic fields --><h3>Algemeen</h3><div class="form-group">
     <label>DIN:
         <input type="text" name="din" value="<?= htmlspecialchars($row2['din']) ?>" readonly>
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
-    </label>
-<br>Primair gebouw: 
+    </label></div>
+<br><div class="form-group">
+Primair gebouw: 
 	<?
 $selectedId = $row2['primarybuilding'] ?? null;
 
@@ -167,40 +160,40 @@ while ($row4 = $result3->fetch_assoc()) {
 }
 
 echo '</select>';
-?>
-						<br> <hr> <h3>Postadres</h3>
+?></div>
+						<br> <hr> <h3>Postadres</h3><div class="form-group">
 	<label>Adres:
         <input type="text" name="address" value="<?= htmlspecialchars($row2['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Postcode:
         <input type="text" name="postalcode" value="<?= htmlspecialchars($row2['postalcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Plaats:
         <input type="text" name="city" value="<?= htmlspecialchars($row2['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br><hr><h3>Contactgegevens</h3>
+    </label></div>
+<br><hr><h3>Contactgegevens</h3><div class="form-group">
 	<label>Primair E-mailadres:
         <input type="text" name="primaryemail" value="<?= htmlspecialchars($row2['primaryemail'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Primair telefoonnummer:
         <input type="text" name="primaryphone" value="<?= htmlspecialchars($row2['primaryphone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
+    </label></div>
 <br>
 
-    <br><br>
-    <button type="submit">Opslaan</button>
+    <br><br><div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze klant wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder klant
-</button>
+</button></div>
 
-</form>
+</form></div></div>
 <br>
-<center><h1>Personen</h1>
+<h1>Personen</h1><div class="results">
 <table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
@@ -213,7 +206,7 @@ echo '</select>';
     <?php while ($row5 = mysqli_fetch_assoc($result4)): ?>
         <tr>
             <td><?= $name = $row5['firstname'] . ' ' . $row5['lastname']; ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_person.php?id=<?= $row5['id'] ?>">
                     Open Persoon
                 </a>
@@ -222,8 +215,8 @@ echo '</select>';
     <?php endwhile; ?>
 
     </tbody>
-</table></center>
-					<center><h1>Gebouwen</h1>
+</table></div>
+	<center><h1>Gebouwen</h1></center><div class="results">
 <table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
@@ -242,7 +235,7 @@ echo '</select>';
             <td><?= htmlspecialchars($row7['postalcode']) ?></td>
             <td><?= htmlspecialchars($row7['city']) ?></td>
 			<td><?= htmlspecialchars($row7['idvp']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_building.php?id=<?= $row7['id'] ?>">
                     Open Gebouw
                 </a>
@@ -251,19 +244,8 @@ echo '</select>';
     <?php endwhile; ?>
 
     </tbody>
-</table></center>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table></center>
-	</td>
-</tr>
+</table></div></div>
+				
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

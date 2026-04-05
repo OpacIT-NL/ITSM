@@ -51,8 +51,8 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaar verwijderd! <a href='operators.php'>Ga terug</a>";
-    exit;
+header('Location: operators.php');
+	exit;
 }
 
 // Handle form submit
@@ -138,8 +138,8 @@ if (!empty($_POST['password'])) {
     mysqli_stmt_execute($stmt);
 }
 
-    echo "Opgeslagen! <a href='operators.php'>Ga terug</a>";
-    exit;
+header('Location: operators.php');
+	exit;
 }
 
 // Fetch operator
@@ -159,40 +159,34 @@ if (!$operator) {
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
-<tr height="50px">
-	<td style="vertical-align: top;">
-				<p class="results" style="width: 15%; text-align: right"><a href="operators.php">Ga terug</a></p>
+<div class="content">
+	<a href="operators.php">Ga terug</a>
 		<center><h1>Behandelaar bewerken: <?= htmlspecialchars($operator['firstname']) ?> <?= htmlspecialchars($operator['lastname']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
+	<div class="form-wrapper">
+    <div class="form-card">
 					
-					<form method="post">
-
+					<form method="post" class="form-grid">
+<div class="form-group">
     <!-- Basic fields -->
     <label>Voornaam:
         <input type="text" name="firstname" value="<?= htmlspecialchars($operator['firstname']) ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
     <label>Achternaam:
         <input type="text" name="lastname" value="<?= htmlspecialchars($operator['lastname']) ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
     <label>E-mail:
         <input type="email" name="email" value="<?= htmlspecialchars($operator['email']) ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
     <label>Telefoonnummer:
         <input type="text" name="phone" value="<?= htmlspecialchars($operator['phone']) ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
     <label>Gebruikersnaam:
         <input type="text" name="username" value="<?= htmlspecialchars($operator['username']) ?>">
-    </label>
+    </label></div>
 
     <hr>
 
@@ -207,33 +201,22 @@ if (!$operator) {
     <?php endforeach; ?>
 						</div>
     <hr>
-
+<div class="form-group">
     <!-- Password (optional safe handling) -->
     <label>Nieuw wachtwoord (laat leeg om niet te bewerken):
         <input type="password" name="password">
-    </label>
+    </label></div>
 
-    <br><br>
-    <button type="submit">Opslaan</button>
+    <br><br><div class="form-actions">
+    <button class="btn-primary" type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze behandelaar wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder behandelaar
-</button>
+</button></div>
 
-</form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</form></div></div></div>
+				
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

@@ -44,7 +44,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaarsgroep verwijderd! <a href='operatorgroups.php'>Ga terug</a>";
+header('Location: operatorgroups.php');
     exit;
 }
 
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-    echo "Opgeslagen! <a href='operatorgroups.php'>Ga terug</a>";
+header('Location: operatorgroups.php');
     exit;
 }
 
@@ -95,40 +95,32 @@ if (!$operator) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-				<p class="results" style="width: 15%; text-align: right"><a href="operatorgroups.php">Ga terug</a></p>
+<div class="content">
+<a href="operatorgroups.php">Ga terug</a>
 		<center><h1>Behandelaarsgroep bewerken: <?= htmlspecialchars($operator['groupname']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
-
+	<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
+<div class="form-group">
     <!-- Basic fields -->
     <label>Groepsnaam:
         <input type="text" name="groupname" value="<?= htmlspecialchars($operator['groupname']) ?>">
     </label>
-<br>
+<br></div>
 
-    <br><br>
-    <button type="submit">Opslaan</button>
+    <br><br><div class="form-actions">
+    <button class="btn-primary" type="submit">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze behandelaarsgroep wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder behandelaarsgroep
-</button>
+</button></div>
 
-</form>
+</form></div></div>
 <br>
-<center><h1>Groepsleden</h1>
-	<p class="results" style="width: 15%; text-align: right"><a href="new_opgrouplink.php?id=<?= $id ?>">Persoon koppelen</a></p>
-<table border="0" class=results style="width: 50%;">
+<center><h1>Groepsleden</h1></center>
+	<a href="new_opgrouplink.php?id=<?= $id ?>">Persoon koppelen</a>
+<div class="results"><table border="0" class=results>
     <thead>
         <tr>
             <th style="text-align: start;">Naam</th>
@@ -140,7 +132,7 @@ if (!$operator) {
     <?php while ($row = mysqli_fetch_assoc($result3)): ?>
         <tr>
             <td><?= htmlspecialchars($row['firstname']) ?> <?= htmlspecialchars($row['lastname']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="delete_opgrouplink.php?id=<?= $row['id'] ?>">
                     ontkoppelen
                 </a>
@@ -149,19 +141,8 @@ if (!$operator) {
     <?php endwhile; ?>
 
     </tbody>
-</table></center>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</table></div>
+				</div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

@@ -44,7 +44,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Categorie verwijderd. <a href='set-ls-cat.php'>Ga terug</a>";
+    header('Location: set-ls-cat.php');
     exit;
 }
 
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Categorie aangepast! <a href='set-ls-cat.php'>Ga terug</a>";
+    header('Location: set-ls-cat.php');
     exit;
 }
 

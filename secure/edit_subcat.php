@@ -78,7 +78,7 @@ if (!$result) {
     die("Operator not found");
 }
 
-    echo "Subategorie aangepast! <a href='edit_cat.php?id=$parent'>Ga terug</a>";
+echo "<script>history.back();</script>";
     exit;
 }
 
