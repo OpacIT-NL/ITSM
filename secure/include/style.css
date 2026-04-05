@@ -26,6 +26,12 @@ body {
     margin-left: 10px;
 }
 
+.checkbox-grid { 
+	display: grid; 
+	grid-template-columns: repeat(2,1fr); 
+	gap: 10px; 
+}
+
 /* Sidebar */
 .sidebar {
     background-color: rgba(0,0,0,0.57);
