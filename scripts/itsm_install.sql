@@ -11,13 +11,14 @@ SET time_zone = "+00:00";
 CREATE TABLE `itsm_am_assets` (
   `id` int(11) NOT NULL,
   `objectid` varchar(255) NOT NULL,
-  `type` varchar(255) NOT NULL,
+  `type` int(11) NOT NULL,
   `startdate` varchar(255) DEFAULT NULL,
   `enddate` varchar(255) DEFAULT NULL,
   `price` varchar(255) DEFAULT NULL,
   `status` int(11) NOT NULL,
   `active` int(1) NOT NULL,
   `archived` int(1) NOT NULL,
+  `owner` int(11) DEFAULT NULL,
   `customfield1` varchar(255) DEFAULT NULL,
   `customfield2` varchar(255) DEFAULT NULL,
   `customfield3` varchar(255) DEFAULT NULL,
@@ -34,13 +35,33 @@ CREATE TABLE `itsm_am_fields` (
   `id` int(11) NOT NULL,
   `type` int(11) NOT NULL,
   `field` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL
+  `name` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_am_types` (
   `id` int(11) NOT NULL,
   `type` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+DELIMITER $$
+CREATE TRIGGER `after_delete_assettype` AFTER DELETE ON `itsm_am_types` FOR EACH ROW BEGIN
+    DELETE FROM itsm_am_fields
+    WHERE type = OLD.id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `after_insert_assettype` AFTER INSERT ON `itsm_am_types` FOR EACH ROW BEGIN
+    DECLARE i INT DEFAULT 1;
+
+    WHILE i <= 10 DO
+        INSERT INTO itsm_am_fields (`type`, `field`, `name`)
+        VALUES (NEW.id, CONCAT('customfield', i), NULL);
+
+        SET i = i + 1;
+    END WHILE;
+END
+$$
+DELIMITER ;
 
 CREATE TABLE `itsm_core_category` (
   `id` int(11) NOT NULL,
@@ -248,14 +269,6 @@ ALTER TABLE `itsm_ob_persons`
 
 ALTER TABLE `itsm_ob_suppliers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-  
-ALTER TABLE `itsm_am_fields` CHANGE `name` `name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL;
-  
-CREATE TRIGGER `after_insert_assettype` AFTER INSERT ON `itsm_am_types` FOR EACH ROW BEGIN DECLARE i INT DEFAULT 1; WHILE i <= 10 DO INSERT INTO itsm_am_fields (`type`, `field`, `name`) VALUES (NEW.id, CONCAT('customfield', i), NULL); SET i = i + 1; END WHILE; END
-  
-CREATE TRIGGER `after_delete_assettype` AFTER DELETE ON `itsm_am_types` FOR EACH ROW BEGIN DELETE FROM itsm_am_fields WHERE type = OLD.id; END
-
-ALTER TABLE `itsm_am_assets` ADD `owner` INT(11) NULL AFTER `archived`;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
