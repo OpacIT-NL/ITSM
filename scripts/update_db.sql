@@ -59,7 +59,7 @@ ALTER TABLE `itsm_am_fields`
 ALTER TABLE `itsm_am_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
   
-  ALTER TABLE `itsm_am_fields` CHANGE `name` `name` VARCHAR(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL;
+
 DELIMITER $$
 CREATE TRIGGER `after_delete_assettype` AFTER DELETE ON `itsm_am_types` FOR EACH ROW BEGIN
     DELETE FROM itsm_am_fields
@@ -81,7 +81,7 @@ END
 $$
 DELIMITER ;
   
-  ALTER TABLE `itsm_am_assets` ADD `owner` INT(11) NULL AFTER `archived`;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
