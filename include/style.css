@@ -1,44 +1,39 @@
 .login-page {
-    margin: 0;
-    height: 100vh;
-    background: url("/content/images/back.jpeg") no-repeat center center/cover;
-    font-family: Verdana;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  margin: 0;
+  height: 100vh;
+  background: url("/content/images/back.jpeg") no-repeat center center/cover;
+  font-family: Verdana;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
 .login-box {
-    background: rgba(255, 255, 255, 0.9);
-    padding: 80px 100px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 80px 100px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
-
 .login-link {
-    display: block;
-    background-color: #2b6cd1;
-    color: white;
-    padding: 15px 35px;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 18px;
+  display: block;
+  background-color: #2b6cd1;
+  color: white;
+  padding: 15px 35px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 18px;
 }
-
 .login-link:hover {
-    background-color: #1f4bb0;
+  background-color: #1f4bb0;
 }
-
 hr {
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #ccc;
+  margin: 20px 0;
 }
-
 sub {
-	font-size: 14px;
+  font-size: 14px;
 }

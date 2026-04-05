@@ -1,74 +1,65 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['operatorloggedin'])) {
-	header('Location: login.php');
-	exit;
+if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
+  header( 'Location: login.php' );
+  exit;
 }
 // Absolute expiration check
-if (isset($_SESSION['expires_at']) && time() > $_SESSION['expires_at']) {
-    session_unset();
-    session_destroy();
-    header("Location: login.php?expired=1");
-    exit;
+if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
+  session_unset();
+  session_destroy();
+  header( "Location: login.php?expired=1" );
+  exit;
 }
-$logged_in_user = $_SESSION['name'];
-require_once(__DIR__ . '/../my.php');
+$logged_in_user = $_SESSION[ 'name' ];
+require_once( __DIR__ . '/../my.php' );
 
 // Query
 $sql = "SELECT *
         FROM itsm_ob_persongroups";
-$result = mysqli_query($con, $sql);
+$result = mysqli_query( $con, $sql );
 
 // Authorization check
 $sql2 = "SELECT persons FROM itsm_ob_operators WHERE username = ?";
-$result2 = mysqli_prepare($con, $sql2);
-mysqli_stmt_bind_param($result2, "s", $logged_in_user);
-mysqli_stmt_execute($result2);
-mysqli_stmt_bind_result($result2, $groups);
-mysqli_stmt_fetch($result2);
-mysqli_stmt_close($result2);
-if ($groups == 0) {
-    header("Location: ob-menu.php");
-    exit();
+$result2 = mysqli_prepare( $con, $sql2 );
+mysqli_stmt_bind_param( $result2, "s", $logged_in_user );
+mysqli_stmt_execute( $result2 );
+mysqli_stmt_bind_result( $result2, $groups );
+mysqli_stmt_fetch( $result2 );
+mysqli_stmt_close( $result2 );
+if ( $groups == 0 ) {
+  header( "Location: ob-menu.php" );
+  exit();
 }
 
-if (!$result) {
-    die("Query failed: " . mysqli_error($con));
+if ( !$result ) {
+  die( "Query failed: " . mysqli_error( $con ) );
 }
 ?>
-
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content">
-<a href="ob-menu.php">Ga terug</a>
-		<center><h1>Persoonsgroepen</h1></center>
-<a href="new_persongroup.php">Nieuwe Persoonsgroep</a>
-	<div class="results">				
-					<table border="0" class=results style="width: 100%;">
-    <thead>
+<div class="content"> <a href="ob-menu.php">Ga terug</a>
+  <center>
+    <h1>Persoonsgroepen</h1>
+  </center>
+  <a href="new_persongroup.php">Nieuwe Persoonsgroep</a>
+  <div class="results">
+    <table border="0" class=results style="width: 100%;">
+      <thead>
         <tr>
-            <th style="text-align: start;">Naam</th>
-            <th style="text-align: start;">Actie</th>
+          <th style="text-align: start;">Naam</th>
+          <th style="text-align: start;">Actie</th>
         </tr>
-    </thead>
-    <tbody>
-
-    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+      </thead>
+      <tbody>
+        <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
-            <td><?= htmlspecialchars($row['groupname']) ?></td>
-            <td class="tblaction">
-                <a class="btn" href="edit_persongroup.php?id=<?= $row['id'] ?>">
-                    Open Persoonsgroep
-                </a>
-            </td>
+          <td><?= htmlspecialchars($row['groupname']) ?></td>
+          <td class="tblaction"><a class="btn" href="edit_persongroup.php?id=<?= $row['id'] ?>"> Open Persoonsgroep </a></td>
         </tr>
-    <?php endwhile; ?>
-
-    </tbody>
-</table>
-		</div>
+        <?php endwhile; ?>
+      </tbody>
+    </table>
+  </div>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
-
-
-
