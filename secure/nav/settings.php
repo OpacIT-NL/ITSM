@@ -7,9 +7,9 @@
 			Algemene instellingen
 		</a>
 		Module instellingen
-		<a href="./set-am.php">
+		<!--<a href="./set-am.php">
 			Asset Management
-		</a>
+		</a>-->
 	</div>
 	   </div>
 	   <div class="page-content">
