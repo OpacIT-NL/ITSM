@@ -1,7 +1,6 @@
 <?php
 session_start();
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
@@ -37,7 +36,7 @@ $id = ( int )$_GET[ 'id' ];
 
 if ( isset( $_POST[ 'delete' ] ) ) {
 
-  $stmt = mysqli_prepare( $con, "DELETE FROM itsm_am_assettype WHERE id = ?" );
+  $stmt = mysqli_prepare( $con, "DELETE FROM itsm_am_types WHERE id = ?" );
   mysqli_stmt_bind_param( $stmt, "i", $id );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
@@ -123,20 +122,21 @@ if ( !$result ) {
 <center>
   <h1>Vrije velden</h1>
 </center>
-<a href="new_subcat.php?id=<?= $id ?>">Nieuwe Subcategorie</a>
 <div class="results">
   <table border="0" class=results style="width: 100%;">
     <thead>
       <tr>
-        <th style="text-align: start;">Subcategorie</th>
+        <th style="text-align: start;">Veld</th>
+		  <th style="text-align: start;">Naam</th>
         <th style="text-align: start;">Actie</th>
       </tr>
     </thead>
     <tbody>
       <?php while ($row = mysqli_fetch_assoc($result3)): ?>
       <tr>
-        <td><?= htmlspecialchars($row['type']) ?></td>
-        <td class="tblaction"><a class="btn" href="edit_subcat.php?id=<?= $row['id'] ?>"> Open Subcategorie </a></td>
+        <td><?= htmlspecialchars($row['field']) ?></td>
+		<td><?= htmlspecialchars($row['name']) ?></td>
+        <td class="tblaction"><a class="btn" href="edit_amfield.php?id=<?= $row['id'] ?>"> Veld bewerken </a></td>
       </tr>
       <?php endwhile; ?>
     </tbody>

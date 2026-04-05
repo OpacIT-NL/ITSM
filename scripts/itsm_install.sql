@@ -254,6 +254,8 @@ ALTER TABLE `itsm_am_fields` CHANGE `name` `name` VARCHAR(255) CHARACTER SET lat
 CREATE TRIGGER `after_insert_assettype` AFTER INSERT ON `itsm_am_types` FOR EACH ROW BEGIN DECLARE i INT DEFAULT 1; WHILE i <= 10 DO INSERT INTO itsm_am_fields (`type`, `field`, `name`) VALUES (NEW.id, CONCAT('customfield', i), NULL); SET i = i + 1; END WHILE; END
   
 CREATE TRIGGER `after_delete_assettype` AFTER DELETE ON `itsm_am_types` FOR EACH ROW BEGIN DELETE FROM itsm_am_fields WHERE type = OLD.id; END
+
+ALTER TABLE `itsm_am_assets` ADD `owner` INT(11) NULL AFTER `archived`;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
