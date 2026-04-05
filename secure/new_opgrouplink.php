@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaar toegevoegd aan groep. <a href='edit_operatorgroup.php?id=$id'>Ga terug</a>";
+echo "<script>history.go(-2);</script>";
     exit;
 }
 
