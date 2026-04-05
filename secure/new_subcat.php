@@ -51,51 +51,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!mysqli_stmt_execute($stmt)) {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
-
-    echo "Subcategorie aangemaakt. <a href='edit_cat.php?id=$id'>Ga terug</a>";
+header("Location: edit_cat.php?id=$id");
     exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="edit_cat.php?id=<?= $id ?>">Ga terug</a></p>
+<div class="content">
+	<a href="edit_cat.php?id=<?= $id ?>">Ga terug</a>
 		<center><h1>Nieuwe subcategorie</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
+	<div class="form-wrapper">
+    <div class="form-card">
 					
-					<form method="post">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    <div class="form-group">
         <label>Naam:
             <input type="text" name="name" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
         <label>Hoofdcategorie:
             <input type="text" name="parent" value="<?= $id ?>" required>
-        </label>
+        </label></div>
 <br>
 
-    <br>
-    <button type="submit">Maak subcategorie</button>
+    <br><div class="form-actions">
+    <button type="submit" class="btn-primary">Maak subcategorie</button></div>
 </form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 

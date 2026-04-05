@@ -51,31 +51,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Categorie aangemaakt! <a href='set-ls-cat.php'>Ga terug</a>";
+    header('Location: set-ls-cat.php');
     exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-cat.php">Ga terug</a></p>
+<div class="content">
+<a href="set-ls-cat.php">Ga terug</a>
 		<center><h1>Nieuwe categorie</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+
+	<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    <div class="form-group">
         <label>Naam:
             <input type="text" name="name" required>
         </label>
-<br>
+		<br></div><div class="form-group">
         <label for="type">Type:</label>
         <select id="type" name="type">
             <option value="" disabled selected hidden>Selecteer een type</option>
@@ -83,11 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <option value="INCIDENT">Incident</option>
             <option value="PROBLEM">Problem</option>
             <option value="EVENT">Event</option>
-        </select>
-<br>
-
-    <br>
-    <button type="submit">Maak categorie</button>
+						</select></div>
+<div class="form-actions">
+	<button type="submit" class="btn-primary">Maak categorie</button></div>
 </form>
 				</td>
 				<td>

@@ -41,19 +41,11 @@ if ($operators == 0) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-				<tr height="50px">
-	<td style="vertical-align: top;">
-						<p class="results" style="width: 15%; text-align: right"><a href="set-general.php">Ga terug</a></p>
+<div class="content">
+<a href="set-general.php">Ga terug</a>
 
 		<center><h1>Categorie-beheer</h1></center>
-	</td>
-</tr>
-<tr>
-	<td><center>
-		<table border="0" width="50%" style="width: 65%; height: 100%; vertical-align: top">
-			<tr>
-				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_cat.php">Nieuwe Categorie</a></p>
+	<a href="new_cat.php">Nieuwe Categorie</a>
 <form method="GET">
     <label for="type">Filter op soort:</label>
     <select name="type" id="type" onchange="this.form.submit()">
@@ -76,6 +68,7 @@ if ($operators == 0) {
         </option>
     </select>
 </form>
+<div class="results">
 					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
@@ -90,7 +83,7 @@ if ($operators == 0) {
         <tr>
             <td><?= htmlspecialchars($row['name']) ?></td>
             <td><?= htmlspecialchars($row['type']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_cat.php?id=<?= $row['id'] ?>">
                     Open Categorie
                 </a>
@@ -100,18 +93,8 @@ if ($operators == 0) {
 
     </tbody>
 </table>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table></center>
-	</td>
-</tr>
+</div>
+</div>
 
 
 

@@ -107,85 +107,74 @@ if (!$result) {
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="buildings.php">Ga terug</a></p>
+<div class="content">
 
-		<center><h1>Gebouw Bewerken: <?= htmlspecialchars($row2['address'] . ', ' . $row2['postalcode'] . ', ' . $row2['city']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<center><table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+        <a href="buildings.php">Ga terug</a>
+        <center><h1>
+            Gebouw Bewerken: 
+            <?= htmlspecialchars($row2['address'] . ', ' . $row2['postalcode'] . ', ' . $row2['city']) ?>
+        </h1></center>
+   
+<div class="form-wrapper">
+    <div class="form-card">
 
-    <!-- Basic fields -->
-							Klant: <?
-$selectedId = $row2['customer'] ?? null;
+        <form method="post" class="form-grid">
 
-echo '<select name="customer">';
+            <!-- Klant -->
+            <div class="form-group">
+                <label>Klant</label>
+                <select name="customer">
+                    <?php
+                    $selectedId = $row2['customer'] ?? null;
+                    $emptySelected = empty($selectedId) ? 'selected' : '';
+                    echo "<option value='' $emptySelected>--Selecteer een klant--</option>";
 
-// Check if nothing is selected
-$emptySelected = empty($selectedId) ? 'selected' : '';
-echo "<option value='' $emptySelected>--Selecteer een klant--</option>";
+                    while ($row3 = $result4->fetch_assoc()) {
+                        $cid = $row3['id'];
+                        $name = htmlspecialchars($row3['din'] . ' - ' . $row3['name']);
+                        $selected = ($cid == $selectedId) ? 'selected' : '';
+                        echo "<option value='$cid' $selected>$name</option>";
+                    }
+                    ?>
+                </select>
+            </div>
 
-while ($row3 = $result4->fetch_assoc()) {
-    $id = $row3['id'];
-    $name = htmlspecialchars($row3['din'] . ' - ' . $row3['name']);
+            <div class="form-group">
+                <label>Adres</label>
+                <input type="text" name="address" value="<?= htmlspecialchars($row2['address'] ?? '') ?>">
+            </div>
 
-    $selected = ($id == $selectedId) ? 'selected' : '';
+            <div class="form-group">
+                <label>Postcode</label>
+                <input type="text" name="postalcode" value="<?= htmlspecialchars($row2['postalcode'] ?? '') ?>">
+            </div>
 
-    echo "<option value='$id' $selected>$name</option>";
-}
+            <div class="form-group">
+                <label>Plaats</label>
+                <input type="text" name="city" value="<?= htmlspecialchars($row2['city'] ?? '') ?>">
+            </div>
 
-echo '</select>';
-?>
-						<br>
+            <div class="form-group">
+                <label>ICT Dienstverlener Pand</label>
+                <input type="text" name="idvp" value="<?= htmlspecialchars($row2['idvp'] ?? '') ?>">
+            </div>
 
-	<label>Adres:
-        <input type="text" name="address" value="<?= htmlspecialchars($row2['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
-	<label>Postcode:
-        <input type="text" name="postalcode" value="<?= htmlspecialchars($row2['postalcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
-	<label>Plaats:
-        <input type="text" name="city" value="<?= htmlspecialchars($row2['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
-	<label>ICT Dienstverlener Pand:
-        <input type="text" name="idvp" value="<?= htmlspecialchars($row2['idvp'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+            <!-- Buttons -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Opslaan</button>
 
+                <button type="submit" name="delete"
+                    class="btn-danger"
+                    onclick="return confirm('Weet je zeker dat je dit gebouw wil verwijderen?');">
+                    Verwijder gebouw
+                </button>
+            </div>
 
-    <br><br>
-    <button type="submit">Opslaan</button>
-						<button type="submit" name="delete" 
-        onclick="return confirm('Weet je zeker dat je dit gebouw wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
-    Verwijder gebouw
-</button>
+        </form>
 
-</form>
-<br>
-
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table></center>
-	</td>
-</tr>
+    </div>
+	</div>
+</div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

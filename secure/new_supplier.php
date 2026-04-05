@@ -56,73 +56,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Leverancier aangemaakt! <a href='suppliers.php'>Ga terug</a>";
+    header('Location: suppliers.php');
     exit;
 }
 
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="suppliers.php">Ga terug</a></p>
+<div class="content">
+	<a href="suppliers.php">Ga terug</a>
 		<center><h1>Nieuwe leverancier</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    <div class="form-group">
         <label>Crediteur Identificatie Nummer (CIN):
             <input type="text" name="din" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Naam:
             <input type="text" name="name" required>
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Adres:
             <input type="text" name="address">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Postcode:
             <input type="text" name="postalcode">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Plaats:
             <input type="text" name="city">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Primair e-mailadres:
             <input type="text" name="primaryemail">
-        </label>
-<br>
+        </label></div>
+<br><div class="form-group">
 		<label>Primair telefoonnummer:
             <input type="text" name="primaryphone">
-        </label>
+        </label></div>
 <br>
-
-<br>
-
-    <br>
-    <button type="submit">Maak leverancier</button>
-</form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+<div class="form-actions">
+    <button type="submit" class="btn-primary">Maak leverancier</button></div>
+</form></div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
