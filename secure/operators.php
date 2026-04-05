@@ -40,21 +40,12 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
+<div class="content">
+<a href="ob-menu.php">Ga terug</a>
 		<center><h1>Behandelaars</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_operator.php">Nieuwe Behandelaar</a></p>
-					
-					<table border="0" class=results style="width: 100%;">
+<a href="new_operator.php">Nieuwe Behandelaar</a>
+				<div class="results">	
+<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
             <th style="text-align: start;">Voornaam</th>
@@ -80,7 +71,7 @@ if (!$result) {
                     ? '<span class="check">✔</span>' 
                     : '<span class="cross">✖</span>' ?>
             </td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_operator.php?id=<?= $row['id'] ?>">
                     Open Behandelaar
                 </a>
@@ -90,18 +81,9 @@ if (!$result) {
 
     </tbody>
 </table>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</div>
+</div>
+				
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

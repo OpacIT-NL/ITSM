@@ -47,7 +47,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Status verwijderd. <a href='set-ls-status.php'>Ga terug</a>";
+    header('Location: set-ls-status.php');
     exit;
 }
 
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Status aangepast! <a href='set-ls-status.php'>Ga terug</a>";
+    header('Location: set-ls-status.php');
     exit;
 }
 
@@ -101,30 +101,22 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="set-ls-status.php">Ga terug</a></p>
+<div class="content">
+<a href="set-ls-status.php">Ga terug</a>
 
 		<center><h1>Status Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+	<div class="form-wrapper">
+    <div class="form-card">					
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <label>Naam:
+   <div class="form-group"> <label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
-    </label>
+	   </label></div>
 <br>
-						    <label>Type:
+						   <div class="form-group"> <label>Type:
         <input type="text" name="type" value="<?= htmlspecialchars($row2['type']) ?>" readonly>
-    </label>
+							   </label></div>
 <br>
 						<hr>
 <div class="group">
@@ -137,29 +129,17 @@ if (!$result) {
         <?php endforeach; ?>
 		</div>
     </div>
-
-    <br><br>
-    <button type="submit">Opslaan</button>
+<div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze status wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder status
 </button>
-
+ </div>
 </form>
-
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+ </div> </div> </div>
+				
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

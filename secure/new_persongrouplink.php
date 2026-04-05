@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Persoon toegevoegd aan groep. <a href='edit_persongroup.php?id=$id'>Ga terug</a>";
+echo "<script>history.go(-2);</script>";
     exit;
 }
 
@@ -77,21 +77,14 @@ ORDER BY o.firstname, o.lastname;");
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
-<tr height="50px">
-	<td style="vertical-align: top;">
+<div class="content">
 		<center><h1>Persoon toevoegen aan groep</h1></center>
-	</td>
-</tr>
-<tr>
-	<td><center>
-		<table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+	<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    <div class="form-group">
 <? echo '<select name="person">';
 
 while ($row = $result3->fetch_assoc()) {
@@ -101,25 +94,9 @@ while ($row = $result3->fetch_assoc()) {
     echo "<option value='$id'>$name</option>";
 }
 
-echo '</select>'; ?>
+echo '</select>'; ?></div>
 
-    <br>
-    <button type="submit">Toevoegen aan groep</button>
-</form></center>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+    <br><div class="form-actions">
+    <button type="submit" class="btn-primary">Toevoegen aan groep</button></div>
+</form></div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
-
-
-
-$id = (int)$_GET['id'];

@@ -36,5 +36,5 @@ if ($operators == 0) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Behandelaar verwijderd uit oplosgroep! <a href='javascript:history.back(1)'>Ga terug</a>";
+echo "<script>history.back();</script>";
     exit;

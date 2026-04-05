@@ -50,50 +50,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Insert failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Persoonsgroep aangemaakt! <a href='persongroups.php'>Ga terug!</a>";
+    header('Location: persongroups.php');
     exit;
 }
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="persongroups.php">Ga terug</a></p>
+<div class="content"><a href="persongroups.php">Ga terug</a>
 		<center><h1>Nieuwe persoonsgroep</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
-					
-					<form method="post">
+	<div class="form-wrapper">
+    <div class="form-card">
+					<form method="post" class="form-grid">
 
     <!-- Basic fields -->
-    <div class="group">
+    
         <h3>Basic Information</h3>
-
+<div class="form-group">
         <label>Name:
             <input type="text" name="name" required>
-        </label>
+        </label></div>
 
-    <br>
-    <button type="submit">Opslaan</button>
-</form>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+    <br><div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button></div>
+</form></div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

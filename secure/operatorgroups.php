@@ -39,21 +39,12 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="ob-menu.php">Ga terug</a></p>
-		<center><h1>Behandelaarsgroepen</h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<table border="0" width="50%" style="width: 100%; height: 100%; vertical-align: top">
-			<tr>
-				<td class=results style="vertical-align: top;">
-					<p style="width: 15%; text-align: right"><a href="new_operatorgroup.php">Nieuwe Behandelaarsgroep</a></p>
-					<center>
-					<table border="0" class=results style="width: 50%;">
+<div class="content">
+	<a href="ob-menu.php">Ga terug</a>
+	<center><h1>Behandelaarsgroepen</h1></center>
+	<a href="new_operatorgroup.php">Nieuwe Behandelaarsgroep</a>
+	<div class="results">
+					<table border="0" class=results style="width: 100%;">
     <thead>
         <tr>
             <th style="text-align: start;">Naam</th>
@@ -65,7 +56,7 @@ if (!$result) {
     <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
             <td><?= htmlspecialchars($row['groupname']) ?></td>
-            <td>
+            <td class="tblaction">
                 <a class="btn" href="edit_operatorgroup.php?id=<?= $row['id'] ?>">
                     Open Behandelaarsgroep
                 </a>
@@ -74,19 +65,9 @@ if (!$result) {
     <?php endwhile; ?>
 
     </tbody>
-</table></center>
-				</td>
-				<td>
-					<table>
-						<tr>
-						
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
-	</td>
-</tr>
+</table>
+</div>
+</div>		
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 

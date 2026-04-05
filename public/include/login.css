@@ -1,101 +1,94 @@
-/* CSS Document */
-* {
-  	box-sizing: border-box;
-  	font-family: -apple-system, BlinkMacSystemFont, "segoe ui", roboto, oxygen, ubuntu, cantarell, "fira sans", "droid sans", "helvetica neue", Arial, sans-serif;
-  	font-size: 16px;
+.login-page {
+    margin: 0;
+    height: 100vh;
+    background: url("../../content/images/back.jpeg") no-repeat center center/cover;
+    font-family: Verdana;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-body {	
-	background-image: url('/content/images/back.jpeg'); 
-	background-position: center; 
-	background-repeat: no-repeat; 
-	background-size: auto;
-	font-family: Verdana;
-	vertical-align: middle;
+.login-box {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 60px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
-.login {
-  	width: 400px;
-  	background-color: #ffffff;
-  	box-shadow: 0 0 9px 0 rgba(0, 0, 0, 0.3);
-  	margin: 50px auto;
-}
-.login h1 {
-  	text-align: center;
-  	color: #5b6574;
-  	font-size: 24px;
-  	padding: 20px 0 20px 0;
-  	border-bottom: 1px solid #dee0e4;
-}
-.login form {
-  	display: flex;
-  	flex-wrap: wrap;
-  	justify-content: center;
-  	padding-top: 20px;
-}
-.login form label {
-  	display: flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 50px;
-  	height: 50px;
-  	background-color: #3274d6;
-  	color: #ffffff;
-}
-.login form input[type="password"], .login form input[type="text"] {
-  	width: 310px;
-  	height: 50px;
-  	border: 1px solid #dee0e4;
-  	margin-bottom: 20px;
-  	padding: 0 15px;
-}
-.login form input[type="submit"] {
-  	width: 100%;
-  	padding: 15px;
- 	margin-top: 20px;
-  	background-color: #3274d6;
-  	border: 0;
-  	cursor: pointer;
-  	font-weight: bold;
-  	color: #ffffff;
-  	transition: background-color 0.2s;
+.login-link {
+    display: block;
+    background-color: #2b6cd1;
+    color: white;
+    padding: 15px 35px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 18px;
 }
 
-
-
-.login form input[type="submit"]:hover {
-	background-color: #2868c7;
-  	transition: background-color 0.2s;
+.login-link:hover {
+    background-color: #1f4bb0;
 }
 
-a:link {
-	  	display: inline-flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 400px;
-  	height: 64px;
-  	background-color: #3274d6;
-	text-decoration: none;
-  	color: #ffffff;
-	flex-direction: column;
-	gap: 60px; 
+hr {
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 20px 0;
 }
 
-a:visited {
-	  	display: inline-flex;
-  	justify-content: center;
-  	align-items: center;
-  	width: 400px;
-  	height: 64px;
-  	background-color: #3274d6;
-	text-decoration: none;
-  	color: #ffffff;
-	flex-direction: column;
-	gap: 60px; 
+sub {
+	font-size: 14px;
 }
 
-a:hover {
-		  color: #ffffff;
-  text-decoration: none;
-  background-color: #111111;
+/* Form layout */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Input + icon */
+.input-group {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    padding: 10px 15px;
+    border-radius: 6px;
+    gap: 10px;
+}
+
+.input-group i {
+    color: #555;
+}
+
+.input-group input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+}
+
+/* Button */
+.login-button {
+    background-color: #2b6cd1;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background-color: #1f4bb0;
+}
+
+/* Error message */
+.error {
+    color: red;
+    font-size: 14px;
 }

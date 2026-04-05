@@ -44,7 +44,7 @@ if (isset($_POST['delete'])) {
         die("Delete failed: " . mysqli_stmt_error($stmt));
     }
 
-    echo "Leverancier verwijderd. <a href='suppliers.php'>Ga terug</a>";
+    header('Location: suppliers.php');
     exit;
 }
 
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Only update password if a new one is entered
 
 
-    echo "Leverancier aangepast! <a href='suppliers.php'>Ga terug</a>";
+header('Location: suppliers.php');
     exit;
 }
 
@@ -98,70 +98,56 @@ if (!$result) {
 ?>
 
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-
-<tr height="50px">
-	<td style="vertical-align: top;">
-		<p class="results" style="width: 15%; text-align: right"><a href="suppliers.php">Ga terug</a></p>
+<div class="content">
+	<a href="suppliers.php">Ga terug</a>
 
 		<center><h1>Leverancier Bewerken: <?= htmlspecialchars($row2['name']) ?></h1></center>
-	</td>
-</tr>
-<tr>
-	<td>
-		<center><table border="0" width="50%" style="width: 50%; height: 100%; vertical-align: top">
-			<tr>
-				<td style="vertical-align: top;">
+	<div class="form-wrapper">
+    <div class="form-card">
 					
-					<form method="post">
+					<form method="post" class="form-grid">
 
-    <!-- Basic fields --><h3>Algemeen</h3>
+    <!-- Basic fields --><h3>Algemeen</h3><div class="form-group">
     <label>CIN:
         <input type="text" name="cin" value="<?= htmlspecialchars($row2['cin']) ?>" readonly>
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Naam:
         <input type="text" name="name" value="<?= htmlspecialchars($row2['name']) ?>">
-    </label>
+    </label></div>
 <br>
-						<br> <hr> <h3>Postadres</h3>
+						<br> <hr> <h3>Postadres</h3><div class="form-group">
 	<label>Adres:
         <input type="text" name="address" value="<?= htmlspecialchars($row2['address'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Postcode:
         <input type="text" name="postalcode" value="<?= htmlspecialchars($row2['postalcode'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Plaats:
         <input type="text" name="city" value="<?= htmlspecialchars($row2['city'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br><hr><h3>Contactgegevens</h3>
+    </label></div>
+<br><hr><h3>Contactgegevens</h3><div class="form-group">
 	<label>Primair E-mailadres:
         <input type="text" name="primaryemail" value="<?= htmlspecialchars($row2['primaryemail'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
-<br>
+    </label></div>
+<br><div class="form-group">
 	<label>Primair telefoonnummer:
         <input type="text" name="primaryphone" value="<?= htmlspecialchars($row2['primaryphone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    </label>
+    </label></div>
 <br>
 
-    <br><br>
-    <button type="submit">Opslaan</button>
+    <br><br><div class="form-actions">
+    <button type="submit" class="btn-primary">Opslaan</button>
 						<button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze leverancier wil verwijderen?');"
-        style="background:red;color:white;margin-left:10px;">
+        class="btn-danger">
     Verwijder leverancier
-</button>
+</button></div>
 
-</form>
-<br>
+</form></div></div></div>
 
-				</td>
-
-			</tr>
-		</table></center>
-	</td>
-</tr>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
 
 
