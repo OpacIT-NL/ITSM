@@ -86,12 +86,5 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     <button type="submit" class="btn-primary">Maak categorie</button>
   </div>
 </form>
-</td>
-<td><table>
-    <tr> </tr>
-  </table></td>
-</tr>
-</table>
-</td>
-</tr>
+</div></div></div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
