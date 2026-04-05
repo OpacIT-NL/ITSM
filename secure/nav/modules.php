@@ -5,7 +5,7 @@
   <center>
     <h1>Modules</h1>
   </center>
-  <div class="modules-menu"> <a href="./ob-menu.php"> Ondersteunende Bestanden </a> <a href="./am-menu.php">Asset Management</a> 
+  <div class="modules-menu"> <a href="./ob-menu.php"> Ondersteunende Bestanden </a> <a href="./am-menu.php">Asset Management</a> <a href="./im-menu.php">Incident Management</a> 
     <!-- Future modules --> 
     <!--
     <a href="./inc-menu.php">Incident Management</a>
