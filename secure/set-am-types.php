@@ -40,7 +40,7 @@ if ( !$result ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href='javascript:history.back(1)'>Ga terug</a>
+<?php $module_back_url = 'set-am.php'; require(__DIR__ . '/include/module_links.php'); ?>
 <center>
   <h1>Asset types</h1>
 </center>

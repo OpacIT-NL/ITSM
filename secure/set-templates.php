@@ -47,7 +47,7 @@ $result = mysqli_query( $con, "
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <a href='javascript:history.back(1)'>Ga terug</a>
+  <?php $module_back_url = 'settings.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
     <h1>Sjabloonbeheer</h1>
   </center>

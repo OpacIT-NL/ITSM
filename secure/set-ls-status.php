@@ -40,7 +40,7 @@ if ( $operators == 0 ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
+<div class="content"> <?php $module_back_url = 'settings.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
     <h1>Status-beheer</h1>
   </center>

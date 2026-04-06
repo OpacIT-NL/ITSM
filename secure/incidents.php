@@ -97,7 +97,7 @@ $result = mysqli_stmt_get_result( $stmt );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <a href='javascript:history.back(1)'>Ga terug</a>
+  <?php $module_back_url = 'im_menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
