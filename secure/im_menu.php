@@ -28,11 +28,11 @@ incident_require_access( $operator_context );
   <h2>Aanmaken</h2>
   <div class="module-grid">
     <?php if ( (int)$operator_context['firstlineincidents'] === 1 ): ?>
-    <a href="new_incident.php?mode=firstline">Maak eerstelijns incident</a>
+    <a href="new_incident.php?mode=firstline">Eerstelijns incident</a>
     <?php endif; ?>
     <?php if ( (int)$operator_context['secondlineincidents'] === 1 ): ?>
-    <a href="new_incident.php?mode=secondline">Maak tweedelijns incident</a>
-    <a href="new_incident.php?mode=major">Maak major incident</a>
+    <a href="new_incident.php?mode=secondline">Tweedelijns incident</a>
+    <a href="new_incident.php?mode=major">Major incident</a>
     <?php endif; ?>
   </div>
   <br>

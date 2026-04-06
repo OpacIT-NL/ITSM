@@ -120,37 +120,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-          <div class="form-group">
-            <label class="incident-meta-label">Status</label>
-            <label>
-              <select name="statusid" id="status_id" required>
-                <option value="">Selecteer een status</option>
-                <?php foreach ( $reference_data['statuses'] as $status ): ?>
-                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($status['name']) ?>
-                </option>
-                <?php endforeach; ?>
-              </select>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Gereed</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Afgemeld</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
+         
 
           <?php if ( $show_major_link_control ): ?>
           <div class="form-group">
@@ -182,7 +152,37 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
               <datalist id="operators_list"></datalist>
             </label>
           </div>
+ <div class="form-group">
+            <label class="incident-meta-label">Status</label>
+            <label>
+              <select name="statusid" id="status_id" required>
+                <option value="">Selecteer een status</option>
+                <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($status['name']) ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
 
+          <div class="form-group">
+            <label class="incident-meta-label">Gereed</label>
+            <label>
+              <div>
+                <input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Afgemeld</label>
+            <label>
+              <div>
+                <input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled>
+              </div>
+            </label>
+          </div>
           <input type="hidden" name="incidenttype" value="<?= htmlspecialchars($current_mode) ?>">
         </div>
       </div>
