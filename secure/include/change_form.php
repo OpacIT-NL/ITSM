@@ -7,8 +7,6 @@ $assets_json = json_encode( $reference_data['assets'], JSON_HEX_TAG | JSON_HEX_A
 $groups_json = json_encode( $reference_data['groups'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
-$templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
-$major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
@@ -32,8 +30,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
     <div class="incident-column">
       <div class="incident-card incident-left-card">
         <div class="form-grid">
-          <h2 class="incident-section-title">Algemeen</h2>
-
+          <h2 class="incident-section-title">Algemeen</h2>         
           <hr>
 
           <div class="form-group">
@@ -69,7 +66,29 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
           </div>
 
           <hr>
+ <div class="form-group">
+            <label class="incident-meta-label">Wijzigingssoort</label>
+            <label>
+              <div class="change-radio-group">
+                <label><input type="radio" name="requesttype" value="simple" <?= $form_values['requesttype'] === 'simple' ? 'checked' : '' ?>> Eenvoudige Wijziging</label>
+                <label><input type="radio" name="requesttype" value="extended" <?= $form_values['requesttype'] === 'extended' ? 'checked' : '' ?>> Uitgebreide Wijziging</label>
+              </div>
+            </label>
+          </div>
 
+          <div class="form-group">
+            <label class="incident-meta-label">Type</label>
+            <label>
+              <select name="changetype" id="changetype" required>
+                <?php foreach ( change_type_options() as $value => $label ): ?>
+                <option value="<?= htmlspecialchars($value) ?>" <?= $form_values['changetype'] === $value ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($label) ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+<hr>
           <div class="form-group">
             <label class="incident-meta-label">Categorie</label>
             <label>
@@ -121,16 +140,29 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-         
-
-          <?php if ( $show_major_link_control ): ?>
+          <?php if ( $show_status_block ): ?>
           <div class="form-group">
-            <label class="incident-meta-label">Major incident</label>
+            <label class="incident-meta-label">Status</label>
             <label>
-              <input type="hidden" name="majorincidentid" id="majorincident_id" value="<?= htmlspecialchars((string)$form_values['majorincidentid']) ?>">
-              <input type="text" id="majorincident_lookup" list="major_incidents_list" autocomplete="off">
-              <datalist id="major_incidents_list"></datalist>
+              <select name="statusid" id="status_id">
+                <option value="">Selecteer een status</option>
+                <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($status['name']) ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
             </label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Gereed</label>
+            <label><div><input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled></div></label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Afgemeld</label>
+            <label><div><input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled></div></label>
           </div>
           <?php endif; ?>
 
@@ -145,46 +177,15 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-          <div class="form-group">
-            <label class="incident-meta-label">Behandelaar</label>
+          <div class="form-group" id="operator_field_group">
+            <label class="incident-meta-label" id="operator_label"><?= $form_values['requesttype'] === 'extended' ? 'Coordinator' : 'Behandelaar' ?></label>
             <label>
               <input type="hidden" name="operatorid" id="operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
+              <input type="hidden" name="coordinatorid" id="coordinator_id" value="<?= htmlspecialchars((string)$form_values['coordinatorid']) ?>">
               <input type="text" id="operator_lookup" list="operators_list" autocomplete="off">
               <datalist id="operators_list"></datalist>
             </label>
           </div>
- <div class="form-group">
-            <label class="incident-meta-label">Status</label>
-            <label>
-              <select name="statusid" id="status_id" required>
-                <option value="">Selecteer een status</option>
-                <?php foreach ( $reference_data['statuses'] as $status ): ?>
-                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($status['name']) ?>
-                </option>
-                <?php endforeach; ?>
-              </select>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Gereed</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Afgemeld</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
-          <input type="hidden" name="incidenttype" value="<?= htmlspecialchars($current_mode) ?>">
         </div>
       </div>
     </div>
@@ -192,13 +193,10 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
     <div class="incident-column">
       <div class="incident-card incident-main-card">
         <div class="form-grid">
-          <?php if ( !empty( $action_links ) || !empty( $action_buttons ) ): ?>
+          <?php if ( !empty( $action_buttons ) ): ?>
           <div class="form-actions">
-            <?php foreach ( $action_links as $action_link ): ?>
-            <a href="<?= htmlspecialchars($action_link['href']) ?>" class="btn-primary"><?= htmlspecialchars($action_link['label']) ?></a>
-            <?php endforeach; ?>
             <?php foreach ( $action_buttons as $action_button ): ?>
-            <button type="submit" name="incident_action" value="<?= htmlspecialchars($action_button['value']) ?>" class="btn-primary" <?= !empty($action_button['formnovalidate']) ? 'formnovalidate' : '' ?>>
+            <button type="submit" name="change_action" value="<?= htmlspecialchars($action_button['value']) ?>" class="<?= htmlspecialchars($action_button['class']) ?>" <?= !empty($action_button['formnovalidate']) ? 'formnovalidate' : '' ?>>
               <?= htmlspecialchars($action_button['label']) ?>
             </button>
             <?php endforeach; ?>
@@ -227,13 +225,6 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-          <div class="form-actions">
-            <select id="template_select">
-              <option value="">Selecteer sjabloon</option>
-            </select>
-            <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
-          </div>
-
           <div class="form-group">
             <label>
               <input type="checkbox" name="internalonly" <?= !empty($form_values['internalonly']) ? 'checked' : '' ?>>
@@ -254,40 +245,84 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
                 <span><?= htmlspecialchars($comment['operator_name']) ?></span>
                 <span><?= htmlspecialchars($comment['createdat']) ?></span>
               </div>
-              <?php if ( (int)$comment['internalonly'] === 1 ): ?>
-              <span class="incident-badge">Niet voor klant</span>
-              <?php else: ?>
-              <span class="incident-badge">Klant zichtbaar</span>
-              <?php endif; ?>
+              <span class="incident-badge"><?= (int)$comment['internalonly'] === 1 ? 'Niet voor klant' : 'Klant zichtbaar' ?></span>
               <p><?= nl2br(htmlspecialchars($comment['commenttext'])) ?></p>
-              <div class="form-actions">
-                <a href="edit_incident.php?id=<?= htmlspecialchars((string)$incident_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>">Commentaar bewerken</a>
-                <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit commentaar wil verwijderen?');">Commentaar verwijderen</button>
-              </div>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
           </div>
           <?php endif; ?>
 
-          <?php if ( $show_linked_incidents ): ?>
+          <?php if ( $show_activities ): ?>
           <hr>
-          <h3>Gekoppelde incidenten</h3>
+          <h3>Wijzigingsactiviteiten</h3>
           <div class="incident-history">
-            <?php if ( empty( $linked_incidents ) ): ?>
-            <p>Geen gekoppelde incidenten.</p>
+            <?php if ( empty( $activities ) ): ?>
+            <p>Nog geen wijzigingsactiviteiten.</p>
             <?php else: ?>
-            <?php foreach ( $linked_incidents as $linked_incident ): ?>
+            <?php foreach ( $activities as $activity ): ?>
             <div class="incident-comment">
               <div class="incident-comment-meta">
-                <span><?= htmlspecialchars(incident_format_display_number($linked_incident)) ?> <?= htmlspecialchars(incident_mode_label($linked_incident['incidenttype'])) ?></span>
-                <span><?= htmlspecialchars($linked_incident['status_name']) ?></span>
+                <span><?= htmlspecialchars($activity['title']) ?></span>
+                <span><?= htmlspecialchars($activity['status_name']) ?></span>
               </div>
-              <p><?= htmlspecialchars($linked_incident['title']) ?></p>
-              <a href="edit_incident.php?id=<?= htmlspecialchars((string)$linked_incident['id']) ?>">Open gekoppeld incident</a>
+              <p><?= nl2br(htmlspecialchars($activity['description'])) ?></p>
+              <p>Groep: <?= htmlspecialchars($activity['groupname']) ?> | Behandelaar: <?= htmlspecialchars($activity['operator_name']) ?></p>
+              <a href="edit_change_activity.php?id=<?= htmlspecialchars((string)$activity['id']) ?>">Open wijzigingsactiviteit</a>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="toggle_new_activity" class="btn-primary">
+              Nieuwe wijzigingsactiviteit
+            </button>
+          </div>
+
+          <div id="new_activity_panel" class="incident-card" style="margin-top: 10px; display: none;">
+            <div class="form-grid">
+              <h3>Nieuwe wijzigingsactiviteit</h3>
+              <div class="form-group">
+                <label class="incident-meta-label">Titel</label>
+                <label><input type="text" name="activity_title" value="<?= htmlspecialchars($activity_values['title']) ?>"></label>
+              </div>
+              <div class="form-group">
+                <label class="incident-meta-label">Omschrijving</label>
+                <label><textarea name="activity_description"><?= htmlspecialchars($activity_values['description']) ?></textarea></label>
+              </div>
+              <div class="form-group">
+                <label class="incident-meta-label">Behandelaarsgroep</label>
+                <label>
+                  <input type="hidden" name="activity_operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$activity_values['operatorgroupid']) ?>">
+                  <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="incident-meta-label">Behandelaar</label>
+                <label>
+                  <input type="hidden" name="activity_operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$activity_values['operatorid']) ?>">
+                  <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
+                  <datalist id="activity_operators_list"></datalist>
+                </label>
+              </div>
+              <div class="form-group">
+                <label class="incident-meta-label">Status</label>
+                <label>
+                  <select name="activity_statusid">
+                    <option value="">Selecteer een status</option>
+                    <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                    <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$activity_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                      <?= htmlspecialchars($status['name']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                  </select>
+                </label>
+              </div>
+              <div class="form-actions">
+                <button type="submit" name="change_action" value="add_activity" class="btn-primary">Activiteit toevoegen</button>
+              </div>
+            </div>
           </div>
           <?php endif; ?>
         </div>
@@ -305,42 +340,17 @@ const assets = <?= $assets_json ?>;
 const groups = <?= $groups_json ?>;
 const operators = <?= $operators_json ?>;
 const opLinks = <?= $op_links_json ?>;
-const templates = <?= $templates_json ?>;
-const majorIncidents = <?= $major_incidents_json ?>;
 
-function customerLabel(row) {
-  return `${row.din || row.id} - ${row.name}`;
-}
-
-function personLabel(row) {
-  return row.email ? `${row.lastname}, ${row.firstname} (${row.email})` : `${row.lastname}, ${row.firstname}`;
-}
-
-function categoryLabel(row) {
-  return row.name;
-}
-
-function assetLabel(row) {
-  return row.objectid;
-}
-
-function groupLabel(row) {
-  return row.groupname;
-}
-
-function operatorLabel(row) {
-  return `${row.lastname}, ${row.firstname}`;
-}
-
-function majorIncidentLabel(row) {
-  return `${row.incidentnumber || ('#' + row.id)} - ${row.title}`;
-}
+function customerLabel(row) { return `${row.din || row.id} - ${row.name}`; }
+function personLabel(row) { return row.email ? `${row.lastname}, ${row.firstname} (${row.email})` : `${row.lastname}, ${row.firstname}`; }
+function categoryLabel(row) { return row.name; }
+function assetLabel(row) { return row.objectid; }
+function groupLabel(row) { return row.groupname; }
+function operatorLabel(row) { return `${row.lastname}, ${row.firstname}`; }
 
 function setDatalistOptions(listId, rows, labelBuilder) {
   const list = document.getElementById(listId);
-  if (!list) {
-    return;
-  }
+  if (!list) { return; }
 
   if (list.tagName === 'DATALIST') {
     list.innerHTML = '';
@@ -366,10 +376,7 @@ function setDatalistOptions(listId, rows, labelBuilder) {
 function setLookupValue(inputId, hiddenId, rows, labelBuilder) {
   const input = document.getElementById(inputId);
   const hidden = document.getElementById(hiddenId);
-  if (!input || !hidden) {
-    return;
-  }
-
+  if (!input || !hidden) { return; }
   const current = rows.find((row) => String(row.id) === String(hidden.value));
   input.value = current ? labelBuilder(current) : '';
 }
@@ -377,17 +384,13 @@ function setLookupValue(inputId, hiddenId, rows, labelBuilder) {
 function resolveLookup(inputId, hiddenId, rowsSource, labelBuilder, onResolved) {
   const input = document.getElementById(inputId);
   const hidden = document.getElementById(hiddenId);
-  if (!input || !hidden) {
-    return;
-  }
+  if (!input || !hidden) { return; }
 
   const resolve = () => {
     const rows = typeof rowsSource === 'function' ? rowsSource() : rowsSource;
     const match = rows.find((row) => labelBuilder(row) === input.value);
     hidden.value = match ? String(match.id) : '';
-    if (onResolved) {
-      onResolved(match);
-    }
+    if (onResolved) { onResolved(match || null); }
   };
 
   input.addEventListener('input', resolve);
@@ -398,30 +401,23 @@ function resolveLookup(inputId, hiddenId, rowsSource, labelBuilder, onResolved) 
 function initComboBox(inputId, hiddenId, rowsSource, labelBuilder, onResolved) {
   const input = document.getElementById(inputId);
   const hidden = document.getElementById(hiddenId);
+  if (!input || !hidden) { return; }
   const menu = document.getElementById(input.getAttribute('list'));
-  if (!input || !hidden || !menu) {
-    return;
-  }
+  if (!menu) { return; }
 
   const render = (showAll = false) => {
     const rows = typeof rowsSource === 'function' ? rowsSource() : rowsSource;
     const term = input.value.trim().toLowerCase();
-    const filteredRows = showAll || term === ''
-      ? rows
-      : rows.filter((row) => labelBuilder(row).toLowerCase().includes(term));
-
+    const filteredRows = showAll || term === '' ? rows : rows.filter((row) => labelBuilder(row).toLowerCase().includes(term));
     setDatalistOptions(menu.id, filteredRows, labelBuilder);
     menu.classList.toggle('is-open', filteredRows.length > 0);
-
     Array.from(menu.querySelectorAll('.combo-option')).forEach((option) => {
       option.addEventListener('click', () => {
         const match = rows.find((row) => String(row.id) === option.dataset.id);
         input.value = match ? labelBuilder(match) : '';
         hidden.value = match ? String(match.id) : '';
         menu.classList.remove('is-open');
-        if (onResolved) {
-          onResolved(match || null);
-        }
+        if (onResolved) { onResolved(match || null); }
       });
     });
   };
@@ -430,58 +426,40 @@ function initComboBox(inputId, hiddenId, rowsSource, labelBuilder, onResolved) {
     const rows = typeof rowsSource === 'function' ? rowsSource() : rowsSource;
     const typedValue = input.value;
     const typedLower = typedValue.trim().toLowerCase();
-
     if (typedLower === '') {
       hidden.value = '';
-      if (onResolved) {
-        onResolved(null);
-      }
+      if (onResolved) { onResolved(null); }
       return;
     }
-
     const prefixMatch = rows.find((row) => labelBuilder(row).toLowerCase().startsWith(typedLower));
     if (prefixMatch) {
       const fullLabel = labelBuilder(prefixMatch);
       input.value = fullLabel;
       input.setSelectionRange(typedValue.length, fullLabel.length);
       hidden.value = String(prefixMatch.id);
-      if (onResolved) {
-        onResolved(prefixMatch);
-      }
+      if (onResolved) { onResolved(prefixMatch); }
       return;
     }
-
     const exactMatch = rows.find((row) => labelBuilder(row) === typedValue);
     hidden.value = exactMatch ? String(exactMatch.id) : '';
-    if (onResolved) {
-      onResolved(exactMatch || null);
-    }
+    if (onResolved) { onResolved(exactMatch || null); }
   };
 
   input.addEventListener('focus', () => render(true));
-  input.addEventListener('input', () => {
-    hidden.value = '';
-    render(false);
-    applyAutocomplete();
-  });
+  input.addEventListener('input', () => { hidden.value = ''; render(false); applyAutocomplete(); });
   input.addEventListener('blur', () => {
     window.setTimeout(() => {
       menu.classList.remove('is-open');
       const rows = typeof rowsSource === 'function' ? rowsSource() : rowsSource;
       const match = rows.find((row) => labelBuilder(row) === input.value);
       hidden.value = match ? String(match.id) : '';
-      if (onResolved) {
-        onResolved(match || null);
-      }
+      if (onResolved) { onResolved(match || null); }
     }, 150);
   });
 
   const toggle = document.querySelector(`.combo-toggle[data-target="${inputId}"]`);
   if (toggle) {
-    toggle.addEventListener('click', () => {
-      input.focus();
-      render(true);
-    });
+    toggle.addEventListener('click', () => { input.focus(); render(true); });
   }
 }
 
@@ -504,16 +482,12 @@ function currentCategorySubcategories() {
   return subcategories.filter((row) => String(row.parent) === String(categoryId));
 }
 
-function currentGroupOperators() {
-  const groupId = document.getElementById('operatorgroup_id').value;
-  if (!groupId) {
-    return operators;
-  }
-
-  const operatorIds = opLinks
-    .filter((row) => String(row.groupid) === String(groupId))
-    .map((row) => String(row.operatorid));
-
+function currentGroupOperators(groupFieldId = 'operatorgroup_id') {
+  const groupField = document.getElementById(groupFieldId);
+  if (!groupField) { return operators; }
+  const groupId = groupField.value;
+  if (!groupId) { return operators; }
+  const operatorIds = opLinks.filter((row) => String(row.groupid) === String(groupId)).map((row) => String(row.operatorid));
   return operators.filter((row) => operatorIds.includes(String(row.id)));
 }
 
@@ -526,8 +500,7 @@ function refreshPersons(resetSelection) {
     refreshPersonFields(null);
   } else {
     setLookupValue('person_lookup', 'person_id', rows, personLabel);
-    const current = rows.find((row) => String(row.id) === document.getElementById('person_id').value);
-    refreshPersonFields(current || null);
+    refreshPersonFields(rows.find((row) => String(row.id) === document.getElementById('person_id').value) || null);
   }
 }
 
@@ -542,101 +515,122 @@ function refreshSubcategories(resetSelection) {
   }
 }
 
-function refreshOperators(resetSelection) {
-  const rows = currentGroupOperators();
+function refreshOperatorLookups(resetSelection) {
+  const rows = currentGroupOperators('operatorgroup_id');
   setDatalistOptions('operators_list', rows, operatorLabel);
   if (resetSelection) {
     document.getElementById('operator_id').value = '';
+    document.getElementById('coordinator_id').value = '';
     document.getElementById('operator_lookup').value = '';
   } else {
-    setLookupValue('operator_lookup', 'operator_id', rows, operatorLabel);
+    const hiddenId = currentRequestType() === 'extended' ? 'coordinator_id' : 'operator_id';
+    setLookupValue('operator_lookup', hiddenId, rows, operatorLabel);
   }
 }
 
-function currentTemplates() {
-  const categoryId = document.getElementById('category_id').value;
-  const subcategoryId = document.getElementById('subcategory_id').value;
-  return templates.filter((row) => {
-    if (String(row.categoryid) !== String(categoryId)) {
-      return false;
-    }
-    if (!subcategoryId) {
-      return !row.subcategoryid || String(row.subcategoryid) === '';
-    }
-    return String(row.subcategoryid || '') === String(subcategoryId);
-  });
+function refreshActivityOperators(resetSelection) {
+  const activityOperator = document.getElementById('activity_operator_id');
+  const activityLookup = document.getElementById('activity_operator_lookup');
+  if (!activityOperator || !activityLookup) { return; }
+
+  const rows = currentGroupOperators('activity_operatorgroup_id');
+  setDatalistOptions('activity_operators_list', rows, operatorLabel);
+  if (resetSelection) {
+    activityOperator.value = '';
+    activityLookup.value = '';
+  } else {
+    setLookupValue('activity_operator_lookup', 'activity_operator_id', rows, operatorLabel);
+  }
 }
 
-function refreshTemplateSelect() {
-  const templateSelect = document.getElementById('template_select');
-  if (!templateSelect) {
-    return;
+function currentRequestType() {
+  const checked = document.querySelector('input[name="requesttype"]:checked');
+  return checked ? checked.value : 'simple';
+}
+
+function syncOperatorRole() {
+  const requestType = currentRequestType();
+  const label = document.getElementById('operator_label');
+  if (label) {
+    label.textContent = requestType === 'extended' ? 'Coordinator' : 'Behandelaar';
   }
 
-  const rows = currentTemplates();
-  templateSelect.innerHTML = '<option value="">Selecteer sjabloon</option>';
-  rows.forEach((row) => {
-    const option = document.createElement('option');
-    option.value = String(row.id);
-    option.textContent = row.name;
-    templateSelect.appendChild(option);
-  });
+  const operatorId = document.getElementById('operator_id');
+  const coordinatorId = document.getElementById('coordinator_id');
+  if (requestType === 'extended') {
+    if (operatorId) { operatorId.value = ''; }
+  } else if (coordinatorId) {
+    coordinatorId.value = '';
+  }
+
+  const changeType = document.getElementById('changetype');
+  if (changeType) {
+    Array.from(changeType.options).forEach((option) => {
+      const allowed = option.value !== 'normalcab' || requestType === 'extended';
+      option.hidden = !allowed;
+      option.disabled = !allowed;
+    });
+    if (changeType.value === 'normalcab' && requestType !== 'extended') {
+      changeType.value = 'normal';
+    }
+  }
+
+  refreshOperatorLookups(false);
 }
 
 setDatalistOptions('customers_list', customers, customerLabel);
 setDatalistOptions('groups_list', groups, groupLabel);
-setDatalistOptions('major_incidents_list', majorIncidents, majorIncidentLabel);
-
 setLookupValue('customer_lookup', 'customer_id', customers, customerLabel);
 setLookupValue('category_lookup', 'category_id', categories, categoryLabel);
 setLookupValue('asset_lookup', 'asset_id', assets, assetLabel);
 setLookupValue('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel);
-setLookupValue('majorincident_lookup', 'majorincident_id', majorIncidents, majorIncidentLabel);
+setLookupValue('activity_operatorgroup_lookup', 'activity_operatorgroup_id', groups, groupLabel);
 refreshPersons(false);
 refreshSubcategories(false);
-refreshOperators(false);
-refreshTemplateSelect();
-setLookupValue('operator_lookup', 'operator_id', currentGroupOperators(), operatorLabel);
-refreshAssetType(assets.find((row) => String(row.id) === document.getElementById('asset_id').value) || null);
+refreshOperatorLookups(false);
+refreshActivityOperators(false);
+refreshAssetType(assets.find((row) => String(row.id) === String(document.getElementById('asset_id').value)) || null);
 
-resolveLookup('customer_lookup', 'customer_id', customers, customerLabel, () => {
-  refreshPersons(true);
-});
-resolveLookup('person_lookup', 'person_id', currentCustomerPersons, personLabel, (match) => {
-  refreshPersonFields(match || null);
-});
-resolveLookup('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel, () => {
-  refreshOperators(true);
-});
-resolveLookup('operator_lookup', 'operator_id', currentGroupOperators, operatorLabel);
-resolveLookup('majorincident_lookup', 'majorincident_id', majorIncidents, majorIncidentLabel);
+resolveLookup('customer_lookup', 'customer_id', customers, customerLabel, () => refreshPersons(true));
+resolveLookup('person_lookup', 'person_id', currentCustomerPersons, personLabel, (match) => refreshPersonFields(match || null));
+resolveLookup('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel, () => refreshOperatorLookups(true));
+resolveLookup('activity_operatorgroup_lookup', 'activity_operatorgroup_id', groups, groupLabel, () => refreshActivityOperators(true));
+resolveLookup('activity_operator_lookup', 'activity_operator_id', () => currentGroupOperators('activity_operatorgroup_id'), operatorLabel);
+
 document.getElementById('category_lookup').setAttribute('list', 'categories_list');
 document.getElementById('subcategory_lookup').setAttribute('list', 'subcategories_list');
 document.getElementById('asset_lookup').setAttribute('list', 'assets_list');
-initComboBox('category_lookup', 'category_id', categories, categoryLabel, () => {
-  refreshSubcategories(true);
-  refreshTemplateSelect();
+initComboBox('category_lookup', 'category_id', categories, categoryLabel, () => refreshSubcategories(true));
+initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel);
+initComboBox('asset_lookup', 'asset_id', assets, assetLabel, (match) => refreshAssetType(match || null));
+
+const operatorLookup = document.getElementById('operator_lookup');
+if (operatorLookup) {
+  const resolveOperator = () => {
+    const rows = currentGroupOperators('operatorgroup_id');
+    const match = rows.find((row) => operatorLabel(row) === operatorLookup.value);
+    const requestType = currentRequestType();
+    document.getElementById('operator_id').value = requestType === 'simple' && match ? String(match.id) : '';
+    document.getElementById('coordinator_id').value = requestType === 'extended' && match ? String(match.id) : '';
+  };
+  operatorLookup.addEventListener('input', resolveOperator);
+  operatorLookup.addEventListener('change', resolveOperator);
+  operatorLookup.addEventListener('blur', resolveOperator);
+}
+
+document.querySelectorAll('input[name="requesttype"]').forEach((radio) => {
+  radio.addEventListener('change', syncOperatorRole);
 });
-initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel, () => {
-  refreshTemplateSelect();
-});
-initComboBox('asset_lookup', 'asset_id', assets, assetLabel, (match) => {
-  refreshAssetType(match || null);
-});
+syncOperatorRole();
 
 function refreshStatusFlags() {
   const select = document.getElementById('status_id');
   const readyDisplay = document.getElementById('status_ready_display');
   const closedDisplay = document.getElementById('status_closed_display');
-  if (!select || !readyDisplay || !closedDisplay) {
-    return;
-  }
-
+  if (!select || !readyDisplay || !closedDisplay) { return; }
   const option = select.options[select.selectedIndex];
-  const ready = option ? option.getAttribute('data-ready') === '1' : false;
-  const closed = option ? option.getAttribute('data-closed') === '1' : false;
-  readyDisplay.checked = ready;
-  closedDisplay.checked = closed;
+  readyDisplay.checked = option ? option.getAttribute('data-ready') === '1' : false;
+  closedDisplay.checked = option ? option.getAttribute('data-closed') === '1' : false;
 }
 
 const statusSelect = document.getElementById('status_id');
@@ -645,23 +639,17 @@ if (statusSelect) {
   statusSelect.addEventListener('change', refreshStatusFlags);
 }
 
-const applyTemplateButton = document.getElementById('apply_template_button');
-if (applyTemplateButton) {
-  applyTemplateButton.addEventListener('click', () => {
-    const templateSelect = document.getElementById('template_select');
-    const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
-    if (!selected) {
-      return;
-    }
+const toggleNewActivityButton = document.getElementById('toggle_new_activity');
+const newActivityPanel = document.getElementById('new_activity_panel');
+if (toggleNewActivityButton && newActivityPanel) {
+  const shouldOpenByDefault = <?= !empty($activity_values['title']) || !empty($activity_values['description']) || !empty($activity_values['operatorgroupid']) || !empty($activity_values['operatorid']) || !empty($activity_values['statusid']) ? 'true' : 'false' ?>;
+  if (shouldOpenByDefault) {
+    newActivityPanel.style.display = 'block';
+  }
 
-    const descriptionField = document.querySelector('textarea[name="description"]');
-    const commentField = document.querySelector('textarea[name="commenttext"]');
-    if (descriptionField) {
-      descriptionField.value = selected.description || '';
-    }
-    if (commentField) {
-      commentField.value = selected.commenttext || '';
-    }
+  toggleNewActivityButton.addEventListener('click', () => {
+    const isOpen = newActivityPanel.style.display !== 'none';
+    newActivityPanel.style.display = isOpen ? 'none' : 'block';
   });
 }
 </script>
