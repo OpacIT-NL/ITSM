@@ -1,7 +1,5 @@
 <?php
 session_start();
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
 
@@ -20,20 +18,28 @@ if ( !isset( $_GET['id'] ) || !is_numeric( $_GET['id'] ) ) {
 }
 
 $logged_in_user = $_SESSION['name'];
-$operator_context = change_get_operator_context( $con, $logged_in_user );
-change_require_access( $operator_context );
-$activity_id = (int)$_GET['id'];
+$sql2 = "SELECT isadmin FROM itsm_ob_operators WHERE username = ?";
+$result2 = mysqli_prepare( $con, $sql2 );
+mysqli_stmt_bind_param( $result2, "s", $logged_in_user );
+mysqli_stmt_execute( $result2 );
+mysqli_stmt_bind_result( $result2, $operators );
+mysqli_stmt_fetch( $result2 );
+mysqli_stmt_close( $result2 );
+if ( $operators == 0 ) {
+  header( "Location: index.php" );
+  exit();
+}
 
+$activity_id = (int)$_GET['id'];
 $stmt = mysqli_prepare( $con, "
     SELECT
       a.*,
-      c.id AS change_id,
-      c.changenumber,
-      c.requesttype,
-      c.approvalstate,
-      c.title AS change_title
-    FROM itsm_cm_changeactivities a
-    INNER JOIN itsm_cm_changes c ON a.changeid = c.id
+      t.id AS template_id,
+      t.name AS template_name,
+      t.type AS template_type,
+      t.changerequesttype
+    FROM itsm_core_templateactivities a
+    INNER JOIN itsm_core_templates t ON a.templateid = t.id
     WHERE a.id = ?
 " );
 mysqli_stmt_bind_param( $stmt, "i", $activity_id );
@@ -43,7 +49,10 @@ $activity = mysqli_fetch_assoc( $result );
 mysqli_stmt_close( $stmt );
 
 if ( !$activity ) {
-  die( 'Wijzigingsactiviteit niet gevonden' );
+  die( 'Sjabloonactiviteit niet gevonden' );
+}
+if ( $activity['template_type'] !== 'CHANGE' || $activity['changerequesttype'] !== 'extended' ) {
+  die( 'Sjabloonactiviteit is alleen beschikbaar voor uitgebreide wijzigingssjablonen' );
 }
 
 $reference_data = change_load_reference_data( $con );
@@ -83,7 +92,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $status_id = (int)$validation['status']['id'];
 
     $update_stmt = mysqli_prepare( $con, "
-        UPDATE itsm_cm_changeactivities SET
+        UPDATE itsm_core_templateactivities SET
           title = ?,
           description = ?,
           operatorgroupid = ?,
@@ -103,11 +112,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     );
 
     if ( !mysqli_stmt_execute( $update_stmt ) ) {
-      $errors[] = 'Wijzigingsactiviteit bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+      $errors[] = 'Sjabloonactiviteit bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
     } else {
-      header( 'Location: edit_change_activity.php?id=' . $activity_id );
+      mysqli_stmt_close( $update_stmt );
+      header( 'Location: edit_template_activity.php?id=' . $activity_id );
       exit;
     }
+    mysqli_stmt_close( $update_stmt );
   }
 }
 
@@ -119,7 +130,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
 <div class="content">
   <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
-    <h1>Wijzigingsactiviteit <?= htmlspecialchars(change_format_activity_number($activity)) ?></h1>
+    <h1>Sjabloonactiviteit - <?= htmlspecialchars($activity['title']) ?></h1>
   </center>
 
   <?php if ( !empty( $errors ) ): ?>
@@ -136,7 +147,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
   <div class="form-wrapper">
     <form method="post" class="form-card">
       <div class="form-grid">
-        <p>Wijziging: <a href="edit_change.php?id=<?= htmlspecialchars((string)$activity['change_id']) ?>"><?= htmlspecialchars(change_format_display_number($activity)) ?> - <?= htmlspecialchars($activity['change_title']) ?></a></p>
+        <p>Sjabloon: <a href="edit_template.php?id=<?= htmlspecialchars((string)$activity['template_id']) ?>"><?= htmlspecialchars($activity['template_name']) ?></a></p>
 
         <div class="form-group">
           <label>Titel</label>
@@ -145,7 +156,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
 
         <div class="form-group">
           <label>Omschrijving</label>
-          <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
+          <textarea name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
         </div>
 
         <div class="form-group">

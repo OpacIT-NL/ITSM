@@ -7,10 +7,11 @@ $assets_json = json_encode( $reference_data['assets'], JSON_HEX_TAG | JSON_HEX_A
 $groups_json = json_encode( $reference_data['groups'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
-  <a href="<?= htmlspecialchars($back_url) ?>">Ga terug</a>
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
@@ -225,6 +226,14 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
             </label>
           </div>
 
+          <div class="form-actions" id="template_actions">
+            <input type="hidden" name="applied_template_id" id="applied_template_id" value="<?= htmlspecialchars((string)($form_values['applied_template_id'] ?? '')) ?>">
+            <select id="template_select">
+              <option value="">Selecteer sjabloon</option>
+            </select>
+            <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
+          </div>
+
           <div class="form-group">
             <label>
               <input type="checkbox" name="internalonly" <?= !empty($form_values['internalonly']) ? 'checked' : '' ?>>
@@ -263,7 +272,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
             <?php foreach ( $activities as $activity ): ?>
             <div class="incident-comment">
               <div class="incident-comment-meta">
-                <span><?= htmlspecialchars($activity['title']) ?></span>
+                <span><?= htmlspecialchars(change_format_activity_number($activity)) ?> - <?= htmlspecialchars($activity['title']) ?></span>
                 <span><?= htmlspecialchars($activity['status_name']) ?></span>
               </div>
               <p><?= nl2br(htmlspecialchars($activity['description'])) ?></p>
@@ -340,6 +349,7 @@ const assets = <?= $assets_json ?>;
 const groups = <?= $groups_json ?>;
 const operators = <?= $operators_json ?>;
 const opLinks = <?= $op_links_json ?>;
+const templates = <?= $templates_json ?>;
 
 function customerLabel(row) { return `${row.din || row.id} - ${row.name}`; }
 function personLabel(row) { return row.email ? `${row.lastname}, ${row.firstname} (${row.email})` : `${row.lastname}, ${row.firstname}`; }
@@ -578,6 +588,40 @@ function syncOperatorRole() {
   refreshOperatorLookups(false);
 }
 
+function currentTemplates() {
+  const categoryId = document.getElementById('category_id').value;
+  const subcategoryId = document.getElementById('subcategory_id').value;
+  const requestType = currentRequestType();
+  return templates.filter((row) => {
+    if (String(row.categoryid) !== String(categoryId)) {
+      return false;
+    }
+    if (String(row.changerequesttype || '') !== String(requestType)) {
+      return false;
+    }
+    if (!subcategoryId) {
+      return !row.subcategoryid || String(row.subcategoryid) === '';
+    }
+    return String(row.subcategoryid || '') === String(subcategoryId);
+  });
+}
+
+function refreshTemplateSelect() {
+  const templateSelect = document.getElementById('template_select');
+  if (!templateSelect) {
+    return;
+  }
+
+  const rows = currentTemplates();
+  templateSelect.innerHTML = '<option value="">Selecteer sjabloon</option>';
+  rows.forEach((row) => {
+    const option = document.createElement('option');
+    option.value = String(row.id);
+    option.textContent = row.name;
+    templateSelect.appendChild(option);
+  });
+}
+
 setDatalistOptions('customers_list', customers, customerLabel);
 setDatalistOptions('groups_list', groups, groupLabel);
 setLookupValue('customer_lookup', 'customer_id', customers, customerLabel);
@@ -589,6 +633,7 @@ refreshPersons(false);
 refreshSubcategories(false);
 refreshOperatorLookups(false);
 refreshActivityOperators(false);
+refreshTemplateSelect();
 refreshAssetType(assets.find((row) => String(row.id) === String(document.getElementById('asset_id').value)) || null);
 
 resolveLookup('customer_lookup', 'customer_id', customers, customerLabel, () => refreshPersons(true));
@@ -600,8 +645,13 @@ resolveLookup('activity_operator_lookup', 'activity_operator_id', () => currentG
 document.getElementById('category_lookup').setAttribute('list', 'categories_list');
 document.getElementById('subcategory_lookup').setAttribute('list', 'subcategories_list');
 document.getElementById('asset_lookup').setAttribute('list', 'assets_list');
-initComboBox('category_lookup', 'category_id', categories, categoryLabel, () => refreshSubcategories(true));
-initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel);
+initComboBox('category_lookup', 'category_id', categories, categoryLabel, () => {
+  refreshSubcategories(true);
+  refreshTemplateSelect();
+});
+initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel, () => {
+  refreshTemplateSelect();
+});
 initComboBox('asset_lookup', 'asset_id', assets, assetLabel, (match) => refreshAssetType(match || null));
 
 const operatorLookup = document.getElementById('operator_lookup');
@@ -619,7 +669,10 @@ if (operatorLookup) {
 }
 
 document.querySelectorAll('input[name="requesttype"]').forEach((radio) => {
-  radio.addEventListener('change', syncOperatorRole);
+  radio.addEventListener('change', () => {
+    syncOperatorRole();
+    refreshTemplateSelect();
+  });
 });
 syncOperatorRole();
 
@@ -650,6 +703,45 @@ if (toggleNewActivityButton && newActivityPanel) {
   toggleNewActivityButton.addEventListener('click', () => {
     const isOpen = newActivityPanel.style.display !== 'none';
     newActivityPanel.style.display = isOpen ? 'none' : 'block';
+  });
+}
+
+const applyTemplateButton = document.getElementById('apply_template_button');
+if (applyTemplateButton) {
+  applyTemplateButton.addEventListener('click', () => {
+    const templateSelect = document.getElementById('template_select');
+    const templateActions = document.getElementById('template_actions');
+    const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
+    if (!selected) {
+      return;
+    }
+
+    const descriptionField = document.querySelector('textarea[name="description"]');
+    const commentField = document.querySelector('textarea[name="commenttext"]');
+    const titleField = document.querySelector('input[name="title"]');
+    const appliedTemplateField = document.getElementById('applied_template_id');
+    if (selected.changerequesttype) {
+      const requestTypeRadio = document.querySelector(`input[name="requesttype"][value="${selected.changerequesttype}"]`);
+      if (requestTypeRadio) {
+        requestTypeRadio.checked = true;
+        syncOperatorRole();
+      }
+    }
+    if (titleField) {
+      titleField.value = selected.name || '';
+    }
+    if (descriptionField) {
+      descriptionField.value = selected.description || '';
+    }
+    if (commentField) {
+      commentField.value = selected.commenttext || '';
+    }
+    if (appliedTemplateField) {
+      appliedTemplateField.value = String(selected.id);
+    }
+    if (templateActions) {
+      templateActions.style.display = 'none';
+    }
   });
 }
 </script>

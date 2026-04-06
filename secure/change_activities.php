@@ -66,7 +66,7 @@ $result = mysqli_query( $con, $sql );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <a href="cm-menu.php">Ga terug</a>
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1><?= htmlspecialchars($view_labels[$view]) ?></h1>
   </center>
@@ -74,6 +74,7 @@ $result = mysqli_query( $con, $sql );
     <table border="0" class="results incident-results-table" style="width: 100%;">
       <thead>
         <tr>
+          <th style="text-align: start;">Nummer</th>
           <th style="text-align: start;">Wijziging</th>
           <th style="text-align: start;">Activiteit</th>
           <th style="text-align: start;">Status</th>
@@ -85,6 +86,7 @@ $result = mysqli_query( $con, $sql );
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
         <tr>
+          <td><?= htmlspecialchars(change_format_activity_number($row)) ?></td>
           <td><?= htmlspecialchars(change_format_display_number($row)) ?> <?= htmlspecialchars($row['change_title']) ?></td>
           <td><?= htmlspecialchars($row['title']) ?></td>
           <td><?= htmlspecialchars($row['status_name']) ?></td>

@@ -104,6 +104,9 @@ body {
 .sidebarbutton-incident {
   background-color: #3274d6;
 }
+.sidebarbutton-search {
+  background-color: #2f9e44;
+}
 .page-layout {
   display: flex;
   align-items: flex-start;
@@ -259,6 +262,10 @@ body {
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+}
+.search-card {
+  max-width: 520px;
+  min-width: 520px;
 }
 .combo-box {
   position: relative;

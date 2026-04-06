@@ -12,7 +12,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
-  <a href="<?= htmlspecialchars($back_url) ?>">Ga terug</a>
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
@@ -227,7 +227,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-          <div class="form-actions">
+          <div class="form-actions" id="template_actions">
             <select id="template_select">
               <option value="">Selecteer sjabloon</option>
             </select>
@@ -649,6 +649,7 @@ const applyTemplateButton = document.getElementById('apply_template_button');
 if (applyTemplateButton) {
   applyTemplateButton.addEventListener('click', () => {
     const templateSelect = document.getElementById('template_select');
+    const templateActions = document.getElementById('template_actions');
     const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
     if (!selected) {
       return;
@@ -656,11 +657,18 @@ if (applyTemplateButton) {
 
     const descriptionField = document.querySelector('textarea[name="description"]');
     const commentField = document.querySelector('textarea[name="commenttext"]');
+    const titleField = document.querySelector('input[name="title"]');
+    if (titleField) {
+      titleField.value = selected.name || '';
+    }
     if (descriptionField) {
       descriptionField.value = selected.description || '';
     }
     if (commentField) {
       commentField.value = selected.commenttext || '';
+    }
+    if (templateActions) {
+      templateActions.style.display = 'none';
     }
   });
 }

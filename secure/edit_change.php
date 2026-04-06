@@ -77,7 +77,8 @@ $form_values = [
   'coordinatorid' => (string)$change['coordinatorid'],
   'statusid' => (string)$change['statusid'],
   'statusready' => isset( $seed_validation['status']['ready'] ) ? (int)$seed_validation['status']['ready'] : 0,
-  'statusclosed' => isset( $seed_validation['status']['closed'] ) ? (int)$seed_validation['status']['closed'] : 0
+  'statusclosed' => isset( $seed_validation['status']['closed'] ) ? (int)$seed_validation['status']['closed'] : 0,
+  'applied_template_id' => ''
 ];
 
 $activity_values = [ 'title' => '', 'description' => '', 'operatorgroupid' => '', 'operatorid' => '', 'statusid' => '' ];
@@ -106,7 +107,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'coordinatorid' => $_POST['coordinatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'applied_template_id' => $_POST['applied_template_id'] ?? ''
   ];
 
   $requires_status = $change['approvalstate'] === 'approved';
@@ -208,14 +210,16 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           $activity_operator_id = $activity_validation['operator'] ? (int)$activity_validation['operator']['id'] : null;
           $activity_status_id = (int)$activity_validation['status']['id'];
           $created_by = (int)$operator_context['id'];
+          $activity_number = change_generate_activity_number( $con );
           $activity_stmt = mysqli_prepare( $con, "
                     INSERT INTO itsm_cm_changeactivities (
-                        changeid, title, description, operatorgroupid, operatorid, statusid, createdby
-                    ) VALUES (?,?,?,?,?,?,?)
+                        activitynumber, changeid, title, description, operatorgroupid, operatorid, statusid, createdby
+                    ) VALUES (?,?,?,?,?,?,?,?)
                 " );
           mysqli_stmt_bind_param(
             $activity_stmt,
-            "issiiii",
+            "sissiiii",
+            $activity_number,
             $change_id,
             $activity_values['title'],
             $activity_values['description'],
@@ -282,6 +286,12 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           $comment_operator_id = (int)$operator_context['id'];
           mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $comment_operator_id, $form_values['commenttext'], $form_values['internalonly'] );
           mysqli_stmt_execute( $comment_stmt );
+          mysqli_stmt_close( $comment_stmt );
+        }
+
+        $applied_template = change_find_by_id( $reference_data['templates'], (int)$form_values['applied_template_id'] );
+        if ( $applied_template && $form_values['requesttype'] === 'extended' && ($applied_template['changerequesttype'] ?? '') === 'extended' ) {
+          change_copy_template_activities_to_change( $con, (int)$applied_template['id'], $change_id, (int)$operator_context['id'] );
         }
         header( 'Location: edit_change.php?id=' . $change_id );
         exit;
@@ -312,7 +322,7 @@ if ( $change['requesttype'] === 'extended' ) {
       LEFT JOIN itsm_ob_operatorgroups g ON a.operatorgroupid = g.id
       LEFT JOIN itsm_ob_operators o ON a.operatorid = o.id
       WHERE a.changeid = " . $change_id . "
-      ORDER BY a.updatedat DESC, a.id DESC
+      ORDER BY a.title ASC, a.id ASC
   " );
   while ( $row = mysqli_fetch_assoc( $activities_result ) ) {
     $activities[] = $row;

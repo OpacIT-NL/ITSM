@@ -60,6 +60,14 @@ function change_format_display_number( $change ) {
   return '#' . $change['id'];
 }
 
+function change_format_activity_number( $activity ) {
+  if ( !empty( $activity['activitynumber'] ) ) {
+    return $activity['activitynumber'];
+  }
+
+  return '#' . $activity['id'];
+}
+
 function change_generate_number( $con ) {
   $prefix = 'W' . date( 'ym' );
   $like_prefix = $prefix . ' %';
@@ -80,6 +88,32 @@ function change_generate_number( $con ) {
   $next_number = 1;
   if ( $row && !empty( $row['changenumber'] ) ) {
     $last_sequence = (int)substr( $row['changenumber'], -4 );
+    $next_number = $last_sequence + 1;
+  }
+
+  return sprintf( '%s %04d', $prefix, $next_number );
+}
+
+function change_generate_activity_number( $con ) {
+  $prefix = 'WA' . date( 'ym' );
+  $like_prefix = $prefix . ' %';
+
+  $stmt = mysqli_prepare( $con, "
+        SELECT activitynumber
+        FROM itsm_cm_changeactivities
+        WHERE activitynumber LIKE ?
+        ORDER BY activitynumber DESC
+        LIMIT 1
+    " );
+  mysqli_stmt_bind_param( $stmt, "s", $like_prefix );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $row = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  $next_number = 1;
+  if ( $row && !empty( $row['activitynumber'] ) ) {
+    $last_sequence = (int)substr( $row['activitynumber'], -4 );
     $next_number = $last_sequence + 1;
   }
 
@@ -187,10 +221,15 @@ function change_load_reference_data( $con ) {
   $op_links = mysqli_query( $con, "SELECT groupid, operatorid FROM itsm_ob_opgrouplinks" )->fetch_all( MYSQLI_ASSOC );
   $statuses = mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'CHANGE' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC );
   $templates = mysqli_query( $con, "
-        SELECT id, name, type, categoryid, subcategoryid, description, commenttext
+        SELECT id, name, type, changerequesttype, categoryid, subcategoryid, description, commenttext
         FROM itsm_core_templates
         WHERE type = 'CHANGE'
         ORDER BY name ASC
+    " )->fetch_all( MYSQLI_ASSOC );
+  $template_activities = mysqli_query( $con, "
+        SELECT id, templateid, title, description, operatorgroupid, operatorid, statusid
+        FROM itsm_core_templateactivities
+        ORDER BY id ASC
     " )->fetch_all( MYSQLI_ASSOC );
 
   return [
@@ -203,7 +242,8 @@ function change_load_reference_data( $con ) {
     'operators' => $operators,
     'op_links' => $op_links,
     'statuses' => $statuses,
-    'templates' => $templates
+    'templates' => $templates,
+    'template_activities' => $template_activities
   ];
 }
 
@@ -315,4 +355,44 @@ function change_validate_activity_form( $data, $reference_data ) {
     'operator' => $operator,
     'status' => $status
   ];
+}
+
+function change_copy_template_activities_to_change( $con, $template_id, $change_id, $created_by ) {
+  $stmt = mysqli_prepare( $con, "
+        SELECT title, description, operatorgroupid, operatorid, statusid
+        FROM itsm_core_templateactivities
+        WHERE templateid = ?
+        ORDER BY id ASC
+    " );
+  mysqli_stmt_bind_param( $stmt, "i", $template_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+
+  while ( $row = mysqli_fetch_assoc( $result ) ) {
+    $activity_number = change_generate_activity_number( $con );
+    $insert_stmt = mysqli_prepare( $con, "
+            INSERT INTO itsm_cm_changeactivities (
+                activitynumber, changeid, title, description, operatorgroupid, operatorid, statusid, createdby
+            ) VALUES (?,?,?,?,?,?,?,?)
+        " );
+    $group_id = $row['operatorgroupid'] !== null ? (int)$row['operatorgroupid'] : null;
+    $operator_id = $row['operatorid'] !== null ? (int)$row['operatorid'] : null;
+    $status_id = $row['statusid'] !== null ? (int)$row['statusid'] : null;
+    mysqli_stmt_bind_param(
+      $insert_stmt,
+      "sissiiii",
+      $activity_number,
+      $change_id,
+      $row['title'],
+      $row['description'],
+      $group_id,
+      $operator_id,
+      $status_id,
+      $created_by
+    );
+    mysqli_stmt_execute( $insert_stmt );
+    mysqli_stmt_close( $insert_stmt );
+  }
+
+  mysqli_stmt_close( $stmt );
 }

@@ -234,7 +234,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
 <div class="content">
 
-<a href="assets.php?filtertype=<?= htmlspecialchars((string)$type_id) ?>">Ga terug</a>
+<a href='javascript:history.back(1)'>Ga terug</a>
 
 <center>
   <h1>Nieuw asset (<?= htmlspecialchars($type_name) ?>)</h1>

@@ -43,6 +43,7 @@ CREATE TABLE `itsm_cm_changecomments` (
 
 CREATE TABLE `itsm_cm_changeactivities` (
   `id` int(11) NOT NULL,
+  `activitynumber` varchar(11) NOT NULL,
   `changeid` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `description` longtext DEFAULT NULL,
@@ -96,6 +97,7 @@ ALTER TABLE `itsm_cm_changecomments`
 
 ALTER TABLE `itsm_cm_changeactivities`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `activitynumber` (`activitynumber`),
   ADD KEY `changeid` (`changeid`),
   ADD KEY `operatorgroupid` (`operatorgroupid`),
   ADD KEY `operatorid` (`operatorid`),

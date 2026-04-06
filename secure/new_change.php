@@ -45,7 +45,8 @@ $form_values = [
   'coordinatorid' => '',
   'statusid' => '',
   'statusready' => 0,
-  'statusclosed' => 0
+  'statusclosed' => 0,
+  'applied_template_id' => ''
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
@@ -70,7 +71,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'coordinatorid' => $_POST['coordinatorid'] ?? '',
     'statusid' => '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'applied_template_id' => $_POST['applied_template_id'] ?? ''
   ];
 
   $validation = change_validate_form(
@@ -156,6 +158,12 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, commenttext, internalonly) VALUES (?,?,?,?)" );
         mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
         mysqli_stmt_execute( $comment_stmt );
+        mysqli_stmt_close( $comment_stmt );
+      }
+
+      $applied_template = change_find_by_id( $reference_data['templates'], (int)$form_values['applied_template_id'] );
+      if ( $applied_template && $form_values['requesttype'] === 'extended' && ($applied_template['changerequesttype'] ?? '') === 'extended' ) {
+        change_copy_template_activities_to_change( $con, (int)$applied_template['id'], $change_id, $created_by );
       }
       header( 'Location: edit_change.php?id=' . $change_id );
       exit;

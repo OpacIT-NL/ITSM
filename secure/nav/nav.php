@@ -18,5 +18,7 @@
 <!-- Sidebar -->
 <div class="sidebar">
   <a href="/secure/index.php" class="homebutton"> <i class="fa-solid fa-home fa-lg"></i> </a>
+	  <a href="/secure/search.php" class="sidebarbutton sidebarbutton-search"> <i class="fa-solid fa-magnifying-glass"></i> </a>
   <a href="/secure/new_incident.php?mode=firstline" class="sidebarbutton sidebarbutton-incident"> <i class="fa-solid fa-phone"></i> </a>
+<a href="/secure/new_change.php" class="sidebarbutton sidebarbutton-incident"> <i class="fa-solid fa-pen"></i> </a>
 </div>
