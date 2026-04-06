@@ -9,15 +9,17 @@ if ( $con->connect_error ) {
 if ( !isset( $_POST[ 'username' ], $_POST[ 'password' ] ) ) {
   exit( 'Vul AUB alle velden in!' );
 }
+$username = (string)$_POST[ 'username' ];
+$password_input = (string)$_POST[ 'password' ];
 
 if ( $stmt = $con->prepare( 'SELECT id, firstname, lastname, email, password FROM itsm_ob_persons WHERE `email` = ? AND `allowssp` = 1' ) ) {
-  $stmt->bind_param( 's', $_POST[ 'username' ] );
+  $stmt->bind_param( 's', $username );
   $stmt->execute();
   $stmt->store_result();
   if ( $stmt->num_rows > 0 ) {
     $stmt->bind_result( $id, $firstname, $lastname, $email, $password );
     $stmt->fetch();
-    if ( password_verify( $_POST[ 'password' ], $password ) ) {
+    if ( password_verify( $password_input, $password ) ) {
       session_regenerate_id();
       $_SESSION[ 'ssploggedin' ] = TRUE;
       $_SESSION[ 'name' ] = trim( $firstname . ' ' . $lastname );

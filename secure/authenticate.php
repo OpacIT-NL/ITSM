@@ -8,18 +8,20 @@ if ( $con->connect_error ) {
 if ( !isset( $_POST[ 'username' ], $_POST[ 'password' ] ) ) {
   exit( 'Vul AUB alle velden in!' );
 }
+$username = (string)$_POST[ 'username' ];
+$password_input = (string)$_POST[ 'password' ];
 
 if ( $stmt = $con->prepare( 'SELECT id, password FROM itsm_ob_operators WHERE `username` = ? AND `allowlogin` = 1' ) ) {
-  $stmt->bind_param( 's', $_POST[ 'username' ] );
+  $stmt->bind_param( 's', $username );
   $stmt->execute();
   $stmt->store_result();
   if ( $stmt->num_rows > 0 ) {
     $stmt->bind_result( $id, $password );
     $stmt->fetch();
-    if ( password_verify( $_POST[ 'password' ], $password ) ) {
+    if ( password_verify( $password_input, $password ) ) {
       session_regenerate_id();
       $_SESSION[ 'operatorloggedin' ] = TRUE;
-      $_SESSION[ 'name' ] = $_POST[ 'username' ];
+      $_SESSION[ 'name' ] = $username;
       $_SESSION[ 'id' ] = $id;
       $_SESSION[ 'expires_at' ] = time() + ( 12 * 60 * 60 );
       header( 'Location: index.php' );

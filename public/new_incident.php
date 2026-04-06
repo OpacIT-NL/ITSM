@@ -23,8 +23,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'commenttext' => trim( $_POST['commenttext'] ?? '' )
   ];
   $category = $default_category;
-  $subcategory = null;
-  $asset = null;
 
   if ( $form_values['title'] === '' ) {
     $errors[] = 'Titel is verplicht.';
@@ -41,8 +39,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
   if ( empty( $errors ) ) {
     $incident_number = ssp_incident_generate_number( $con );
-    $subcategory_id = $subcategory ? (int)$subcategory['id'] : null;
-    $asset_id = $asset ? (int)$asset['id'] : null;
+    $subcategory_id = null;
+    $asset_id = null;
     $customer_id = (int)$person['customerid'];
     $person_id = (int)$person['id'];
     $person_email = $person['email'] ?? '';
