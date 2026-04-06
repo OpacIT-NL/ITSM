@@ -58,10 +58,21 @@ CREATE TABLE `itsm_core_templates` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `type` varchar(16) NOT NULL,
+  `changerequesttype` varchar(16) DEFAULT NULL,
   `categoryid` int(11) NOT NULL,
   `subcategoryid` int(11) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
   `commenttext` longtext DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_templateactivities` (
+  `id` int(11) NOT NULL,
+  `templateid` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext DEFAULT NULL,
+  `operatorgroupid` int(11) DEFAULT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `statusid` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 ALTER TABLE `itsm_cm_changes`
@@ -96,6 +107,13 @@ ALTER TABLE `itsm_core_templates`
   ADD KEY `categoryid` (`categoryid`),
   ADD KEY `subcategoryid` (`subcategoryid`);
 
+ALTER TABLE `itsm_core_templateactivities`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `templateid` (`templateid`),
+  ADD KEY `operatorgroupid` (`operatorgroupid`),
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `statusid` (`statusid`);
+
 ALTER TABLE `itsm_cm_changes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -106,6 +124,9 @@ ALTER TABLE `itsm_cm_changeactivities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_templateactivities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_cm_changes`
@@ -134,6 +155,12 @@ ALTER TABLE `itsm_cm_changeactivities`
 ALTER TABLE `itsm_core_templates`
   ADD CONSTRAINT `itsm_core_templates_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_core_templates_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
+
+ALTER TABLE `itsm_core_templateactivities`
+  ADD CONSTRAINT `itsm_core_templateactivities_ibfk_1` FOREIGN KEY (`templateid`) REFERENCES `itsm_core_templates` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_core_templateactivities_ibfk_2` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
+  ADD CONSTRAINT `itsm_core_templateactivities_ibfk_3` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_core_templateactivities_ibfk_4` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`);
 
 COMMIT;
 
