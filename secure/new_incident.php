@@ -60,6 +60,30 @@ $form_values = [
   'template_used' => ''
 ];
 
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+  $prefill_customer_id = isset( $_GET['customerid'] ) && is_numeric( $_GET['customerid'] ) ? (int)$_GET['customerid'] : 0;
+  $prefill_person_id = isset( $_GET['personid'] ) && is_numeric( $_GET['personid'] ) ? (int)$_GET['personid'] : 0;
+  if ( $prefill_customer_id > 0 ) {
+    $form_values['customerid'] = (string)$prefill_customer_id;
+  }
+  if ( $prefill_person_id > 0 ) {
+    $form_values['personid'] = (string)$prefill_person_id;
+    foreach ( $reference_data['persons'] as $person_row ) {
+      if ( (int)$person_row['id'] === $prefill_person_id && (int)$person_row['customerid'] === $prefill_customer_id ) {
+        $form_values['personemail'] = $person_row['email'] ?? '';
+        $form_values['personphone'] = $person_row['phone'] ?? '';
+        break;
+      }
+    }
+  }
+  if ( isset( $_GET['title'] ) ) {
+    $form_values['title'] = trim( (string)$_GET['title'] );
+  }
+  if ( isset( $_GET['description'] ) ) {
+    $form_values['description'] = trim( (string)$_GET['description'] );
+  }
+}
+
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $form_values = [
     'commentid' => '',

@@ -1,9 +1,11 @@
 <?php
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
+require_once( __DIR__ . '/../secure/include/news_helpers.php' );
 
 $person = ssp_require_login( $con );
 $counts = ssp_dashboard_counts( $con, $person );
+$news_items = news_fetch_items( $con, 'public', 6 );
 
 ssp_page_title( 'ITSM Selfservice' );
 ssp_render_header( $person, 'dashboard' );
@@ -19,6 +21,15 @@ ssp_render_header( $person, 'dashboard' );
     <a class="ssp-button ssp-button-secondary" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i> Wijziging aanvragen</a>
   </div>
 </section>
+
+<?php if ( !empty( $news_items ) ): ?>
+<section class="ssp-panel" style="margin-top: 22px;">
+  <div class="ssp-panel-head">
+    <h3>Nieuws</h3>
+  </div>
+  <?= news_render_cards( $news_items ) ?>
+</section>
+<?php endif; ?>
 
 <section class="ssp-card-grid">
   <a class="ssp-stat-card" href="incidents.php?view=open">
@@ -63,6 +74,7 @@ ssp_render_header( $person, 'dashboard' );
     <div class="ssp-quick-actions">
       <a class="ssp-quick-link" href="incidents.php"><i class="fa-solid fa-triangle-exclamation"></i><span>Mijn incidenten</span></a>
       <a class="ssp-quick-link" href="changes.php"><i class="fa-solid fa-pen-to-square"></i><span>Mijn wijzigingen</span></a>
+      <a class="ssp-quick-link" href="knowledge.php"><i class="fa-solid fa-book-open"></i><span>Kennisbank</span></a>
       <a class="ssp-quick-link" href="assets.php"><i class="fa-solid fa-laptop"></i><span>Mijn assets</span></a>
       <a class="ssp-quick-link" href="new_incident.php"><i class="fa-solid fa-phone"></i><span>Nieuwe melding</span></a>
       <a class="ssp-quick-link" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i><span>Nieuwe wijziging</span></a>

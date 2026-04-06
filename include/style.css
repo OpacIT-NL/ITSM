@@ -1,11 +1,13 @@
 .login-page {
   margin: 0;
-  height: 100vh;
+  min-height: 100vh;
   background: url("/content/images/back.jpeg") no-repeat center center/cover;
   font-family: Verdana;
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 72px 0 20px;
+  box-sizing: border-box;
 }
 .login-box {
   background: rgba(255, 255, 255, 0.9);
@@ -16,6 +18,12 @@
   display: flex;
   flex-direction: column;
   gap: 30px;
+}
+.status-box {
+  width: min(960px, calc(100vw - 40px));
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  text-align: left;
 }
 .login-link {
   display: block;
@@ -36,4 +44,63 @@ hr {
 }
 sub {
   font-size: 14px;
+}
+.news-banner-stack {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+.news-banner {
+  padding: 12px 18px;
+  text-align: center;
+  font-family: Verdana;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.news-banner-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+.news-banner-link:hover {
+  filter: brightness(0.98);
+}
+.news-major-outage {
+  background: #f3c9c9;
+  color: #6d1f1f;
+}
+.news-outage {
+  background: #f7d9b5;
+  color: #784718;
+}
+.news-maintenance {
+  background: #cfe0f6;
+  color: #254b77;
+}
+.news-general {
+  background: #e3e3e3;
+  color: #414141;
+}
+.status-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.status-news-item {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.status-news-item h2 {
+  margin: 10px 0 8px;
+}
+.status-news-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.status-news-body {
+  line-height: 1.6;
 }

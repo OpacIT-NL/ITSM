@@ -19,6 +19,12 @@
 <div class="sidebar">
   <a href="/secure/index.php" class="homebutton"> <i class="fa-solid fa-home fa-lg"></i> </a>
   <a href="/secure/search.php" class="sidebarbutton sidebarbutton-search"> <i class="fa-solid fa-magnifying-glass"></i> </a>
+  <a href="/secure/callercard.php" class="sidebarbutton sidebarbutton-caller">
+    <span class="fa-stack fa-sm">
+      <i class="fa-solid fa-globe fa-stack-2x"></i>
+      <i class="fa-solid fa-phone fa-stack-1x sidebarbutton-caller-phone"></i>
+    </span>
+  </a>
   <a href="/secure/new_incident.php?mode=firstline" class="sidebarbutton sidebarbutton-incident"> <i class="fa-solid fa-phone"></i> </a>
   <a href="/secure/new_change.php" class="sidebarbutton sidebarbutton-change"> <i class="fa-solid fa-pen"></i> </a>
   <a href="/secure/new_problem.php" class="sidebarbutton sidebarbutton-problem"> <i class="fa-solid fa-triangle-exclamation"></i> </a>

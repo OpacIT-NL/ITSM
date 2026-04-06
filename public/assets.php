@@ -41,12 +41,12 @@ ssp_render_header( $person, 'assets' );
     <tbody>
       <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
       <tr>
-        <td><?= htmlspecialchars($row['objectid']) ?></td>
-        <td><?= htmlspecialchars($row['typename'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['startdate'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['enddate'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['price'] ?? '') ?></td>
+        <td data-label="Object ID"><?= htmlspecialchars($row['objectid']) ?></td>
+        <td data-label="Type"><?= htmlspecialchars($row['typename'] ?? '') ?></td>
+        <td data-label="Status"><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
+        <td data-label="Startdatum"><?= htmlspecialchars($row['startdate'] ?? '') ?></td>
+        <td data-label="Einddatum"><?= htmlspecialchars($row['enddate'] ?? '') ?></td>
+        <td data-label="Prijs"><?= htmlspecialchars($row['price'] ?? '') ?></td>
       </tr>
       <?php endwhile; ?>
     </tbody>
