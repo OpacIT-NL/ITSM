@@ -59,7 +59,7 @@ CREATE TABLE `itsm_core_templates` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `type` varchar(16) NOT NULL,
-  `changerequesttype` varchar(16) DEFAULT NULL,
+  `changerequesttype` varchar(16) NOT NULL,
   `categoryid` int(11) NOT NULL,
   `subcategoryid` int(11) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
