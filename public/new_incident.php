@@ -8,43 +8,27 @@ $default_status_id = ssp_default_status_id( $reference_data['statuses'] );
 $default_operator_id = ssp_get_default_operator_id( $con );
 $default_group_id = ssp_default_operator_group_id( $con );
 $errors = [];
+$default_category = !empty( $reference_data['categories'] ) ? $reference_data['categories'][0] : null;
 
 $form_values = [
   'title' => '',
   'description' => '',
-  'commenttext' => '',
-  'categoryid' => '',
-  'subcategoryid' => '',
-  'assetid' => ''
+  'commenttext' => ''
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $form_values = [
     'title' => trim( $_POST['title'] ?? '' ),
     'description' => trim( $_POST['description'] ?? '' ),
-    'commenttext' => trim( $_POST['commenttext'] ?? '' ),
-    'categoryid' => $_POST['categoryid'] ?? '',
-    'subcategoryid' => $_POST['subcategoryid'] ?? '',
-    'assetid' => $_POST['assetid'] ?? ''
+    'commenttext' => trim( $_POST['commenttext'] ?? '' )
   ];
-
-  $category = ssp_find_by_id( $reference_data['categories'], (int)$form_values['categoryid'] );
-  $subcategory = $form_values['subcategoryid'] !== '' ? ssp_find_by_id( $reference_data['subcategories'], (int)$form_values['subcategoryid'] ) : null;
-  $asset = $form_values['assetid'] !== '' ? ssp_find_by_id( $reference_data['assets'], (int)$form_values['assetid'] ) : null;
+  $category = $default_category;
 
   if ( $form_values['title'] === '' ) {
     $errors[] = 'Titel is verplicht.';
   }
   if ( !$category ) {
-    $errors[] = 'Selecteer een geldige categorie.';
-  }
-  if ( $form_values['subcategoryid'] !== '' && !$subcategory ) {
-    $errors[] = 'Selecteer een geldige subcategorie.';
-  } elseif ( $subcategory && $category && (int)$subcategory['parent'] !== (int)$category['id'] ) {
-    $errors[] = 'De subcategorie hoort niet bij de gekozen categorie.';
-  }
-  if ( $form_values['assetid'] !== '' && !$asset ) {
-    $errors[] = 'Selecteer een geldig object.';
+    $errors[] = 'Er is geen incidentcategorie beschikbaar voor selfservice meldingen.';
   }
   if ( $default_status_id === 0 ) {
     $errors[] = 'Er is geen incidentstatus beschikbaar.';
@@ -55,8 +39,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
   if ( empty( $errors ) ) {
     $incident_number = ssp_incident_generate_number( $con );
-    $subcategory_id = $subcategory ? (int)$subcategory['id'] : null;
-    $asset_id = $asset ? (int)$asset['id'] : null;
+    $subcategory_id = null;
+    $asset_id = null;
     $customer_id = (int)$person['customerid'];
     $person_id = (int)$person['id'];
     $person_email = $person['email'] ?? '';
@@ -119,7 +103,7 @@ ssp_render_header( $person, 'new_incident' );
 <section class="ssp-page-head">
   <div>
     <h2>Incident melden</h2>
-    <p>Maak een nieuwe melding aan voor jezelf of een van je toegewezen objecten.</p>
+    <p>Maak een nieuwe melding aan. De servicedesk vult classificatie en object later aan.</p>
   </div>
 </section>
 
@@ -147,33 +131,6 @@ ssp_render_header( $person, 'new_incident' );
         <input id="title" name="title" type="text" value="<?= htmlspecialchars($form_values['title']) ?>" required>
       </div>
       <div class="ssp-field">
-        <label for="categoryid">Categorie</label>
-        <select id="categoryid" name="categoryid" required>
-          <option value="">Selecteer categorie</option>
-          <?php foreach ( $reference_data['categories'] as $category ): ?>
-          <option value="<?= (int)$category['id'] ?>"<?= (string)$form_values['categoryid'] === (string)$category['id'] ? ' selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="ssp-field">
-        <label for="subcategoryid">Subcategorie</label>
-        <select id="subcategoryid" name="subcategoryid">
-          <option value="">Geen subcategorie</option>
-          <?php foreach ( $reference_data['subcategories'] as $subcategory ): ?>
-          <option value="<?= (int)$subcategory['id'] ?>" data-parent="<?= (int)$subcategory['parent'] ?>"<?= (string)$form_values['subcategoryid'] === (string)$subcategory['id'] ? ' selected' : '' ?>><?= htmlspecialchars($subcategory['name']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="ssp-field">
-        <label for="assetid">Object</label>
-        <select id="assetid" name="assetid">
-          <option value="">Geen object</option>
-          <?php foreach ( $reference_data['assets'] as $asset ): ?>
-          <option value="<?= (int)$asset['id'] ?>"<?= (string)$form_values['assetid'] === (string)$asset['id'] ? ' selected' : '' ?>><?= htmlspecialchars($asset['objectid'] . (($asset['typename'] ?? '') !== '' ? ' - ' . $asset['typename'] : '')) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="ssp-field">
         <label for="description">Omschrijving</label>
         <textarea id="description" name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
       </div>
@@ -187,24 +144,4 @@ ssp_render_header( $person, 'new_incident' );
     </form>
   </article>
 </section>
-
-<script>
-const incidentCategory = document.getElementById('categoryid');
-const incidentSubcategory = document.getElementById('subcategoryid');
-function filterIncidentSubcategories() {
-  const categoryId = incidentCategory.value;
-  Array.from(incidentSubcategory.options).forEach((option) => {
-    if (!option.dataset.parent) {
-      option.hidden = false;
-      return;
-    }
-    option.hidden = categoryId !== '' && option.dataset.parent !== categoryId;
-    if (option.hidden && option.selected) {
-      incidentSubcategory.value = '';
-    }
-  });
-}
-incidentCategory.addEventListener('change', filterIncidentSubcategories);
-filterIncidentSubcategories();
-</script>
 <?php ssp_render_footer(); ?>

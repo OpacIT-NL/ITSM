@@ -31,7 +31,7 @@ body {
 }
 /* Sidebar */
 .sidebar {
-  background-color: rgba(0, 0, 0, 0.57);
+  background-color: #7a7a7a;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -112,7 +112,7 @@ body {
   align-items: center;
   width: 64px;
   height: 64px;
-  background-color: #810DAD;
+  background-color: #4a4a4a;
   color: #ffffff;
   text-decoration: none;
 }
@@ -128,8 +128,18 @@ body {
 .sidebarbutton-incident {
   background-color: #3274d6;
 }
+.sidebarbutton-change {
+  background-color: #b79ae6;
+}
+.sidebarbutton-problem {
+  background-color: #f29b38;
+}
+.sidebarbutton-initiative {
+  background-color: #e8d97a;
+  color: #3d3210;
+}
 .sidebarbutton-search {
-  background-color: #2f9e44;
+  background-color: #4a4a4a;
 }
 .page-layout {
   display: flex;

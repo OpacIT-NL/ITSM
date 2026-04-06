@@ -41,6 +41,18 @@ ssp_render_header( $person, 'dashboard' );
     <strong><?= htmlspecialchars((string)$counts['assigned_assets']) ?></strong>
     <small>Alle aan jou gekoppelde objecten</small>
   </a>
+  <?php if ( ssp_person_is_manager( $person ) ): ?>
+  <a class="ssp-stat-card" href="incidents.php?view=open&scope=customer">
+    <span>Klantincidenten</span>
+    <strong><?= htmlspecialchars((string)$counts['customer_open_incidents']) ?></strong>
+    <small>Open incidenten van alle personen van jouw klant</small>
+  </a>
+  <a class="ssp-stat-card" href="changes.php?view=open&scope=customer">
+    <span>Klantwijzigingen</span>
+    <strong><?= htmlspecialchars((string)$counts['customer_open_changes']) ?></strong>
+    <small>Open wijzigingen van alle personen van jouw klant</small>
+  </a>
+  <?php endif; ?>
 </section>
 
 <section class="ssp-dashboard-grid">
@@ -54,6 +66,10 @@ ssp_render_header( $person, 'dashboard' );
       <a class="ssp-quick-link" href="assets.php"><i class="fa-solid fa-laptop"></i><span>Mijn assets</span></a>
       <a class="ssp-quick-link" href="new_incident.php"><i class="fa-solid fa-phone"></i><span>Nieuwe melding</span></a>
       <a class="ssp-quick-link" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i><span>Nieuwe wijziging</span></a>
+      <?php if ( ssp_person_is_manager( $person ) ): ?>
+      <a class="ssp-quick-link" href="incidents.php?view=all&scope=customer"><i class="fa-solid fa-users"></i><span>Klantincidenten</span></a>
+      <a class="ssp-quick-link" href="changes.php?view=all&scope=customer"><i class="fa-solid fa-people-group"></i><span>Klantwijzigingen</span></a>
+      <?php endif; ?>
       <?php if ( ssp_person_has_group_name( $person, 'SSP_InfraShop' ) ): ?>
       <a class="ssp-quick-link" href="infra_shop.php"><i class="fa-solid fa-cart-shopping"></i><span>InfraShop</span></a>
       <?php endif; ?>

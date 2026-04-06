@@ -29,7 +29,6 @@ $page_title = 'Wijziging aanvragen';
 $page_intro = 'Klik op een formulier om direct de juiste selfservice-aanvraag te openen.';
 
 $form_values = [
-  'assetid' => '',
   'variables' => []
 ];
 
@@ -37,7 +36,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $template_id = (int)( $_POST['templateid'] ?? 0 );
   $selected_template = ssp_find_by_id( $templates, $template_id );
   $template_variables = $selected_template ? ssp_extract_template_variables( $selected_template ) : [];
-  $form_values['assetid'] = $_POST['assetid'] ?? '';
   $posted_variables = $_POST['template_values'] ?? [];
   if ( is_array( $posted_variables ) ) {
     foreach ( $posted_variables as $key => $value ) {
@@ -77,17 +75,18 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $operator_id = null;
     $coordinator_id = null;
     $status_id = null;
+    $template_used = (int)$selected_template['id'];
     $closed = 0;
 
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_cm_changes (
                 changenumber, requesttype, approvalstate, changetype, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, closed, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, template_used, closed, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
     mysqli_stmt_bind_param(
       $stmt,
-      "ssssssiissiiiiiiiii",
+      "ssssssiissiiiiiiiiii",
       $change_number,
       $requesttype,
       $approval_state,
@@ -105,6 +104,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $operator_id,
       $coordinator_id,
       $status_id,
+      $template_used,
       $closed,
       $default_operator_id
     );

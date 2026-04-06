@@ -187,30 +187,13 @@ function ssp_default_operator_group_id( $con, $default_name = 'Servicedesk' ) {
 }
 
 function ssp_incident_reference_data( $con, $person ) {
-  $assets_stmt = mysqli_prepare( $con, "
-        SELECT a.id, a.objectid, t.type AS typename
-        FROM itsm_am_assets a
-        LEFT JOIN itsm_am_types t ON a.type = t.id
-        WHERE a.owner = ?
-        ORDER BY a.objectid ASC
-    " );
-  mysqli_stmt_bind_param( $assets_stmt, "i", $person['id'] );
-  mysqli_stmt_execute( $assets_stmt );
-  $assets_result = mysqli_stmt_get_result( $assets_stmt );
-  $assets = mysqli_fetch_all( $assets_result, MYSQLI_ASSOC );
-  mysqli_stmt_close( $assets_stmt );
-
   $categories_result = mysqli_query( $con, "SELECT id, name FROM itsm_core_category WHERE type = 'INCIDENT' ORDER BY name ASC" );
   $categories = $categories_result ? mysqli_fetch_all( $categories_result, MYSQLI_ASSOC ) : [];
-  $subcategories_result = mysqli_query( $con, "SELECT id, parent, name FROM itsm_core_subcategory ORDER BY name ASC" );
-  $subcategories = $subcategories_result ? mysqli_fetch_all( $subcategories_result, MYSQLI_ASSOC ) : [];
   $statuses_result = mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'INCIDENT' ORDER BY name ASC" );
   $statuses = $statuses_result ? mysqli_fetch_all( $statuses_result, MYSQLI_ASSOC ) : [];
 
   return [
-    'assets' => $assets,
     'categories' => $categories,
-    'subcategories' => $subcategories,
     'statuses' => $statuses
   ];
 }
@@ -275,13 +258,43 @@ function ssp_default_status_id( $statuses ) {
   return isset( $statuses[0] ) ? (int)$statuses[0]['id'] : 0;
 }
 
+function ssp_person_is_manager( $person ) {
+  return ssp_person_has_group_name( $person, 'SSP_Manager' );
+}
+
+function ssp_scope_from_request( $person, $requested_scope ) {
+  if ( $requested_scope === 'customer' && ssp_person_is_manager( $person ) ) {
+    return 'customer';
+  }
+
+  return 'mine';
+}
+
+function ssp_incident_scope_clause( $scope ) {
+  if ( $scope === 'customer' ) {
+    return 'i.customerid = ?';
+  }
+
+  return 'i.personid = ?';
+}
+
+function ssp_change_scope_clause( $scope ) {
+  if ( $scope === 'customer' ) {
+    return 'c.customerid = ?';
+  }
+
+  return 'c.personid = ?';
+}
+
 function ssp_dashboard_counts( $con, $person ) {
   $person_id = (int)$person['id'];
   $counts = [
     'open_incidents' => 0,
     'open_changes' => 0,
     'open_change_requests' => 0,
-    'assigned_assets' => 0
+    'assigned_assets' => 0,
+    'customer_open_incidents' => 0,
+    'customer_open_changes' => 0
   ];
 
   $stmt = mysqli_prepare( $con, "
@@ -325,6 +338,38 @@ function ssp_dashboard_counts( $con, $person ) {
   mysqli_stmt_bind_result( $stmt, $counts['assigned_assets'] );
   mysqli_stmt_fetch( $stmt );
   mysqli_stmt_close( $stmt );
+
+  if ( ssp_person_is_manager( $person ) ) {
+    $customer_id = (int)$person['customerid'];
+
+    $stmt = mysqli_prepare( $con, "
+        SELECT COUNT(*)
+        FROM itsm_im_incidents i
+        LEFT JOIN itsm_core_status s ON i.statusid = s.id
+        WHERE i.customerid = ? AND IFNULL(s.closed, 0) = 0
+    " );
+    mysqli_stmt_bind_param( $stmt, "i", $customer_id );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_bind_result( $stmt, $counts['customer_open_incidents'] );
+    mysqli_stmt_fetch( $stmt );
+    mysqli_stmt_close( $stmt );
+
+    $stmt = mysqli_prepare( $con, "
+        SELECT COUNT(*)
+        FROM itsm_cm_changes c
+        LEFT JOIN itsm_core_status s ON c.statusid = s.id
+        WHERE c.customerid = ?
+          AND (
+            c.approvalstate = 'request'
+            OR (c.approvalstate = 'approved' AND c.closed = 0 AND IFNULL(s.closed, 0) = 0)
+          )
+    " );
+    mysqli_stmt_bind_param( $stmt, "i", $customer_id );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_bind_result( $stmt, $counts['customer_open_changes'] );
+    mysqli_stmt_fetch( $stmt );
+    mysqli_stmt_close( $stmt );
+  }
 
   return $counts;
 }

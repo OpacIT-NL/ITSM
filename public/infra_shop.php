@@ -76,17 +76,18 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $operator_id = null;
     $coordinator_id = null;
     $status_id = null;
+    $template_used = (int)$selected_template['id'];
     $closed = 0;
 
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_cm_changes (
                 changenumber, requesttype, approvalstate, changetype, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, closed, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, template_used, closed, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
     mysqli_stmt_bind_param(
       $stmt,
-      "ssssssiissiiiiiiiii",
+      "ssssssiissiiiiiiiiii",
       $change_number,
       $requesttype,
       $approval_state,
@@ -104,6 +105,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $operator_id,
       $coordinator_id,
       $status_id,
+      $template_used,
       $closed,
       $default_operator_id
     );
@@ -169,9 +171,6 @@ foreach ( $templates as $template ) {
 
 <?php if ( !$selected_template ): ?>
 <section class="ssp-panel" style="margin-top: 22px;">
-  <div class="ssp-panel-head">
-   
-  </div>
   <?php foreach ( $grouped_templates as $category_label => $subgroups ): ?>
   <div class="ssp-panel-head" style="margin-top: 10px;">
     <h2><?= htmlspecialchars($category_label) ?></h2>
@@ -220,7 +219,7 @@ foreach ( $templates as $template ) {
       </div>
       <?php endforeach; ?>
       <div class="ssp-form-actions">
-        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Aanvraag versturen </button>
+        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Aanvraag versturen</button>
       </div>
     </form>
   </article>
