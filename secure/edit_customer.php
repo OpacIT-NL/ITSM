@@ -121,7 +121,7 @@ if ( !$result ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"> <a href="customers.php">Ga terug</a>
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Klant Bewerken:
       <?= htmlspecialchars($row2['name']) ?>

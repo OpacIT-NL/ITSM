@@ -92,7 +92,7 @@ if ( !$result ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href="set-ls-cat.php">Ga terug</a>
+<a href='javascript:history.back(1)'>Ga terug</a>
 </p>
 <center>
   <h1>Categorie Bewerken:

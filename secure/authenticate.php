@@ -24,10 +24,10 @@ if ( $stmt = $con->prepare( 'SELECT id, password FROM itsm_ob_operators WHERE `u
       $_SESSION[ 'expires_at' ] = time() + ( 12 * 60 * 60 );
       header( 'Location: index.php' );
     } else {
-      echo 'Gebruikersnaam/wachtwoord incorrect. <a href="login.php">Ga terug</a>';
+      echo 'Gebruikersnaam/wachtwoord incorrect. <a href="javascript:history.back(1)">Ga terug</a>';
     }
   } else {
-    echo 'Gebruikersnaam/wachtwoord incorrect. <a href="login.php">Ga terug</a>';
+    echo 'Gebruikersnaam/wachtwoord incorrect. <a href="javascript:history.back(1)">Ga terug</a>';
   }
 
   $stmt->close();

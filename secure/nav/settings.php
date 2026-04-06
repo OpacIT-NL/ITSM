@@ -8,6 +8,7 @@
     <center>
       <h3>Module instellingen</h3>
     </center>
-    <a href="./set-am.php"> Asset Management </a> </div>
+    <a href="./set-am.php"> Asset Management </a>
+    <a href="./set-templates.php"> Sjablonen </a> </div>
 </div>
 <div class="page-content">

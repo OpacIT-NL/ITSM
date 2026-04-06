@@ -62,7 +62,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"> <a href="suppliers.php">Ga terug</a>
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Nieuwe leverancier</h1>
   </center>

@@ -93,7 +93,7 @@ if ( !$operator ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"> <a href="operatorgroups.php">Ga terug</a>
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Behandelaarsgroep bewerken:
       <?= htmlspecialchars($operator['groupname']) ?>
