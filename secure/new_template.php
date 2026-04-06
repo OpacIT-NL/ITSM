@@ -107,6 +107,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( empty( $errors ) ) {
     $category_id = (int)$category['id'];
     $subcategory_id = $subcategory ? (int)$subcategory['id'] : null;
+    $persongroup_id = $persongroup ? (int)$persongroup['id'] : null;
     $stmt = mysqli_prepare( $con, "
         INSERT INTO itsm_core_templates (name, type, changerequesttype, persongroupid, categoryid, subcategoryid, description, commenttext)
         VALUES (?,?,?,?,?,?,?,?)
@@ -117,7 +118,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $form_values['name'],
       $form_values['type'],
       $form_values['changerequesttype'],
-      $persongroup ? (int)$persongroup['id'] : null,
+      $persongroup_id,
       $category_id,
       $subcategory_id,
       $form_values['description'],

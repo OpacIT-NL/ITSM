@@ -1,6 +1,7 @@
 <?php
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
+require_once( __DIR__ . '/../secure/include/change_helpers.php' );
 
 $person = ssp_require_login( $con );
 $reference_data = ssp_change_reference_data( $con, $person );
@@ -122,6 +123,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         mysqli_stmt_bind_param( $comment_stmt, "iis", $change_id, $person['id'], $commenttext );
         mysqli_stmt_execute( $comment_stmt );
         mysqli_stmt_close( $comment_stmt );
+      }
+
+      if ( $requesttype === 'extended' ) {
+        change_copy_template_activities_to_change( $con, (int)$selected_template['id'], $change_id, $default_operator_id );
       }
 
       header( 'Location: view_change.php?id=' . $change_id );

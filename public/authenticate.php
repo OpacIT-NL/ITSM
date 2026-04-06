@@ -1,8 +1,7 @@
 <?php
 session_start();
 session_regenerate_id( true );
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+
 require_once( __DIR__ . '/../my.php' );
 if ( $con->connect_error ) {
   exit( 'Failed to connect to MySQL: ' . $con->connect_error );
