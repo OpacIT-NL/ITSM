@@ -78,6 +78,7 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
     'dashboard' => [ 'href' => 'index.php', 'label' => 'Overzicht', 'icon' => 'fa-house' ],
     'incidents' => [ 'href' => 'incidents.php', 'label' => 'Incidenten', 'icon' => 'fa-triangle-exclamation' ],
     'changes' => [ 'href' => 'changes.php', 'label' => 'Wijzigingen', 'icon' => 'fa-pen-to-square' ],
+    'knowledge' => [ 'href' => 'knowledge.php', 'label' => 'Kennisbank', 'icon' => 'fa-book-open' ],
     'assets' => [ 'href' => 'assets.php', 'label' => 'Assets', 'icon' => 'fa-laptop' ],
     'new_incident' => [ 'href' => 'new_incident.php', 'label' => 'Incident melden', 'icon' => 'fa-phone' ],
     'new_change' => [ 'href' => 'new_change.php', 'label' => 'Wijziging aanvragen', 'icon' => 'fa-file-circle-plus' ]

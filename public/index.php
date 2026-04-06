@@ -63,6 +63,7 @@ ssp_render_header( $person, 'dashboard' );
     <div class="ssp-quick-actions">
       <a class="ssp-quick-link" href="incidents.php"><i class="fa-solid fa-triangle-exclamation"></i><span>Mijn incidenten</span></a>
       <a class="ssp-quick-link" href="changes.php"><i class="fa-solid fa-pen-to-square"></i><span>Mijn wijzigingen</span></a>
+      <a class="ssp-quick-link" href="knowledge.php"><i class="fa-solid fa-book-open"></i><span>Kennisbank</span></a>
       <a class="ssp-quick-link" href="assets.php"><i class="fa-solid fa-laptop"></i><span>Mijn assets</span></a>
       <a class="ssp-quick-link" href="new_incident.php"><i class="fa-solid fa-phone"></i><span>Nieuwe melding</span></a>
       <a class="ssp-quick-link" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i><span>Nieuwe wijziging</span></a>

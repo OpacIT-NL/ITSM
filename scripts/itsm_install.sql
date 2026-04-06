@@ -679,6 +679,24 @@ ALTER TABLE `itsm_ubm_items`
   ADD CONSTRAINT `itsm_ubm_items_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_6` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_7` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
+
+CREATE TABLE `itsm_km_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parentid` int(11) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` longtext NOT NULL,
+  `publicaccess` int(1) NOT NULL DEFAULT 1,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `parentid` (`parentid`),
+  KEY `createdby` (`createdby`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+ALTER TABLE `itsm_km_items`
+  ADD CONSTRAINT `itsm_km_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_km_items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_km_items_ibfk_2` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

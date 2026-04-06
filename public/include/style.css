@@ -413,6 +413,124 @@ a {
   font-size: 13px;
 }
 
+.kb-tree-columns {
+  columns: 2;
+  column-gap: 18px;
+}
+
+.kb-tree-branch {
+  break-inside: avoid;
+  margin-bottom: 18px;
+}
+
+.kb-tree {
+  list-style: none;
+  margin: 10px 0 0 16px;
+  padding-left: 16px;
+  border-left: 1px solid rgba(61, 106, 144, 0.18);
+}
+
+.kb-tree > li {
+  margin-bottom: 10px;
+}
+
+.kb-node {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(61, 106, 144, 0.12);
+  border-radius: 18px;
+  padding: 14px 16px;
+}
+
+.kb-node-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.kb-node-link,
+.kb-breadcrumbs a,
+.kb-markdown a {
+  color: #2d78d0;
+  text-decoration: underline;
+}
+
+.kb-node-link {
+  font-weight: 600;
+}
+
+.kb-visibility-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: #dff1e3;
+  color: #2f7a41;
+  white-space: nowrap;
+}
+
+.kb-markdown {
+  line-height: 1.65;
+}
+
+.kb-markdown h1,
+.kb-markdown h2,
+.kb-markdown h3,
+.kb-markdown h4,
+.kb-markdown h5,
+.kb-markdown h6 {
+  margin: 1.1em 0 0.45em;
+}
+
+.kb-markdown p:first-child,
+.kb-markdown h1:first-child,
+.kb-markdown h2:first-child,
+.kb-markdown h3:first-child {
+  margin-top: 0;
+}
+
+.kb-markdown pre {
+  overflow-x: auto;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(19, 52, 79, 0.08);
+}
+
+.kb-markdown code {
+  font-family: Consolas, monospace;
+}
+
+.kb-markdown blockquote {
+  margin: 1em 0;
+  padding: 8px 14px;
+  border-left: 4px solid #b8d4ef;
+  background: rgba(240, 246, 252, 0.92);
+}
+
+.kb-markdown ul,
+.kb-markdown ol {
+  padding-left: 24px;
+}
+
+.kb-spoiler {
+  background: #3e3e3e;
+  color: #3e3e3e;
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.kb-spoiler:hover {
+  color: #ffffff;
+}
+
+.kb-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 @media (max-width: 1200px) {
   .ssp-card-grid,
   .ssp-dashboard-grid,
@@ -449,5 +567,9 @@ a {
   .ssp-detail-grid,
   .ssp-quick-actions {
     grid-template-columns: 1fr;
+  }
+
+  .kb-tree-columns {
+    columns: 1;
   }
 }
