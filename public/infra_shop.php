@@ -27,7 +27,7 @@ $selected_template = $template_id > 0 ? ssp_find_by_id( $templates, $template_id
 $template_variables = $selected_template ? ssp_extract_template_variables( $selected_template ) : [];
 $page_key = 'infra_shop';
 $page_title = 'InfraShop';
-$page_intro = 'Klik op een formulier om direct de juiste InfraShop-aanvraag te openen.';
+$page_intro = 'Welkom op de InfraShop. Hier kan je virtuele machines, netwerkwijzigingen en nog veel meer aanvragen.';
 
 $form_values = [
   'variables' => []
@@ -170,11 +170,11 @@ foreach ( $templates as $template ) {
 <?php if ( !$selected_template ): ?>
 <section class="ssp-panel" style="margin-top: 22px;">
   <div class="ssp-panel-head">
-    <h3>SSP_InfraShop formulieren</h3>
+   
   </div>
   <?php foreach ( $grouped_templates as $category_label => $subgroups ): ?>
   <div class="ssp-panel-head" style="margin-top: 10px;">
-    <h3><?= htmlspecialchars($category_label) ?></h3>
+    <h2><?= htmlspecialchars($category_label) ?></h2>
   </div>
   <?php foreach ( $subgroups as $subcategory_label => $items ): ?>
   <div class="ssp-panel-head" style="margin-top: 10px;">
@@ -220,7 +220,7 @@ foreach ( $templates as $template ) {
       </div>
       <?php endforeach; ?>
       <div class="ssp-form-actions">
-        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> InfraShop aanvraag opslaan</button>
+        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Aanvraag versturen </button>
       </div>
     </form>
   </article>
