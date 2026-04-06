@@ -4,6 +4,7 @@ require_once( __DIR__ . '/include/portal_helpers.php' );
 require_once( __DIR__ . '/../secure/include/task_helpers.php' );
 
 $person = ssp_require_login( $con );
+$is_manager = ssp_person_is_manager( $person );
 $change_id = isset( $_GET['id'] ) ? (int)$_GET['id'] : 0;
 if ( $change_id === 0 && !empty( $_GET['tasknumber'] ) ) {
   $task = task_find_by_number( $con, $_GET['tasknumber'], 'public' );
@@ -21,10 +22,15 @@ $stmt = mysqli_prepare( $con, "
     LEFT JOIN itsm_core_status s ON c.statusid = s.id
     LEFT JOIN itsm_am_assets a ON c.assetid = a.id
     LEFT JOIN itsm_am_types t ON a.type = t.id
-    WHERE c.id = ? AND c.personid = ?
+    WHERE c.id = ? AND (
+      c.personid = ?
+      OR (? = 1 AND c.customerid = ?)
+    )
     LIMIT 1
 " );
-mysqli_stmt_bind_param( $stmt, "ii", $change_id, $person['id'] );
+$manager_flag = $is_manager ? 1 : 0;
+$customer_id = (int)$person['customerid'];
+mysqli_stmt_bind_param( $stmt, "iiii", $change_id, $person['id'], $manager_flag, $customer_id );
 mysqli_stmt_execute( $stmt );
 $result = mysqli_stmt_get_result( $stmt );
 $change = mysqli_fetch_assoc( $result );
@@ -88,7 +94,7 @@ ssp_render_header( $person, 'changes' );
     <h2><?= htmlspecialchars($change['changenumber'] ?: ('#' . $change['id'])) ?> - <?= htmlspecialchars($change['title']) ?></h2>
     <p>Volg hier de voortgang van je wijziging.</p>
   </div>
-  <a class="ssp-ghost-link" href="changes.php">Terug naar wijzigingen</a>
+  <a class="ssp-ghost-link" href="changes.php<?= $is_manager ? '?scope=customer' : '' ?>">Terug naar wijzigingen</a>
 </section>
 
 <section class="ssp-detail-grid">

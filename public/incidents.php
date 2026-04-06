@@ -4,6 +4,7 @@ require_once( __DIR__ . '/include/portal_helpers.php' );
 
 $person = ssp_require_login( $con );
 $view = $_GET['view'] ?? 'open';
+$scope = ssp_scope_from_request( $person, $_GET['scope'] ?? 'mine' );
 $view_labels = [
   'open' => 'Open incidenten',
   'all' => 'Alle incidenten'
@@ -13,11 +14,12 @@ if ( !isset( $view_labels[ $view ] ) ) {
 }
 
 $sql = "
-    SELECT i.*, cat.name AS category_name, s.name AS status_name
+    SELECT i.*, cat.name AS category_name, s.name AS status_name, p.firstname, p.lastname
     FROM itsm_im_incidents i
     LEFT JOIN itsm_core_category cat ON i.categoryid = cat.id
     LEFT JOIN itsm_core_status s ON i.statusid = s.id
-    WHERE i.personid = ?
+    LEFT JOIN itsm_ob_persons p ON i.personid = p.id
+    WHERE " . ssp_incident_scope_clause( $scope ) . "
 ";
 if ( $view === 'open' ) {
   $sql .= " AND IFNULL(s.closed, 0) = 0";
@@ -25,7 +27,8 @@ if ( $view === 'open' ) {
 $sql .= " ORDER BY i.updatedat DESC, i.id DESC";
 
 $stmt = mysqli_prepare( $con, $sql );
-mysqli_stmt_bind_param( $stmt, "i", $person['id'] );
+$scope_id = $scope === 'customer' ? (int)$person['customerid'] : (int)$person['id'];
+mysqli_stmt_bind_param( $stmt, "i", $scope_id );
 mysqli_stmt_execute( $stmt );
 $result = mysqli_stmt_get_result( $stmt );
 
@@ -35,14 +38,18 @@ ssp_render_header( $person, 'incidents' );
 <section class="ssp-page-head">
   <div>
     <h2><?= htmlspecialchars($view_labels[$view]) ?></h2>
-    <p>Alle meldingen die op jouw naam staan.</p>
+    <p><?= htmlspecialchars($scope === 'customer' ? 'Alle meldingen van alle personen van jouw klant.' : 'Alle meldingen die op jouw naam staan.') ?></p>
   </div>
   <a class="ssp-button" href="new_incident.php"><i class="fa-solid fa-phone"></i> Incident melden</a>
 </section>
 
 <div class="ssp-filter-bar">
-  <a class="ssp-chip<?= $view === 'open' ? ' is-active' : '' ?>" href="incidents.php?view=open">Open</a>
-  <a class="ssp-chip<?= $view === 'all' ? ' is-active' : '' ?>" href="incidents.php?view=all">Alle</a>
+  <a class="ssp-chip<?= $view === 'open' ? ' is-active' : '' ?>" href="incidents.php?view=open&amp;scope=<?= htmlspecialchars($scope) ?>">Open</a>
+  <a class="ssp-chip<?= $view === 'all' ? ' is-active' : '' ?>" href="incidents.php?view=all&amp;scope=<?= htmlspecialchars($scope) ?>">Alle</a>
+  <?php if ( ssp_person_is_manager( $person ) ): ?>
+  <a class="ssp-chip<?= $scope === 'mine' ? ' is-active' : '' ?>" href="incidents.php?view=<?= htmlspecialchars($view) ?>&amp;scope=mine">Mijn incidenten</a>
+  <a class="ssp-chip<?= $scope === 'customer' ? ' is-active' : '' ?>" href="incidents.php?view=<?= htmlspecialchars($view) ?>&amp;scope=customer">Klantincidenten</a>
+  <?php endif; ?>
 </div>
 
 <section class="ssp-table-wrap">
@@ -50,6 +57,7 @@ ssp_render_header( $person, 'incidents' );
     <thead>
       <tr>
         <th>Nummer</th>
+        <th>Persoon</th>
         <th>Titel</th>
         <th>Categorie</th>
         <th>Status</th>
@@ -61,6 +69,7 @@ ssp_render_header( $person, 'incidents' );
       <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
       <tr>
         <td><?= htmlspecialchars($row['incidentnumber'] ?: ('#' . $row['id'])) ?></td>
+        <td><?= htmlspecialchars(trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''))) ?></td>
         <td><?= htmlspecialchars($row['title']) ?></td>
         <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
         <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>

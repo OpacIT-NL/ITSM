@@ -4,6 +4,7 @@ require_once( __DIR__ . '/include/portal_helpers.php' );
 require_once( __DIR__ . '/../secure/include/task_helpers.php' );
 
 $person = ssp_require_login( $con );
+$is_manager = ssp_person_is_manager( $person );
 $incident_id = isset( $_GET['id'] ) ? (int)$_GET['id'] : 0;
 if ( $incident_id === 0 && !empty( $_GET['tasknumber'] ) ) {
   $task = task_find_by_number( $con, $_GET['tasknumber'], 'public' );
@@ -21,10 +22,15 @@ $stmt = mysqli_prepare( $con, "
     LEFT JOIN itsm_core_status s ON i.statusid = s.id
     LEFT JOIN itsm_am_assets a ON i.assetid = a.id
     LEFT JOIN itsm_am_types t ON a.type = t.id
-    WHERE i.id = ? AND i.personid = ?
+    WHERE i.id = ? AND (
+      i.personid = ?
+      OR (? = 1 AND i.customerid = ?)
+    )
     LIMIT 1
 " );
-mysqli_stmt_bind_param( $stmt, "ii", $incident_id, $person['id'] );
+$manager_flag = $is_manager ? 1 : 0;
+$customer_id = (int)$person['customerid'];
+mysqli_stmt_bind_param( $stmt, "iiii", $incident_id, $person['id'], $manager_flag, $customer_id );
 mysqli_stmt_execute( $stmt );
 $result = mysqli_stmt_get_result( $stmt );
 $incident = mysqli_fetch_assoc( $result );
@@ -88,7 +94,7 @@ ssp_render_header( $person, 'incidents' );
     <h2><?= htmlspecialchars($incident['incidentnumber'] ?: ('#' . $incident['id'])) ?> - <?= htmlspecialchars($incident['title']) ?></h2>
     <p>Bekijk de status en communicatie van je melding.</p>
   </div>
-  <a class="ssp-ghost-link" href="incidents.php">Terug naar incidenten</a>
+  <a class="ssp-ghost-link" href="incidents.php<?= $is_manager ? '?scope=customer' : '' ?>">Terug naar incidenten</a>
 </section>
 
 <section class="ssp-detail-grid">

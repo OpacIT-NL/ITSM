@@ -275,13 +275,43 @@ function ssp_default_status_id( $statuses ) {
   return isset( $statuses[0] ) ? (int)$statuses[0]['id'] : 0;
 }
 
+function ssp_person_is_manager( $person ) {
+  return ssp_person_has_group_name( $person, 'SSP_Manager' );
+}
+
+function ssp_scope_from_request( $person, $requested_scope ) {
+  if ( $requested_scope === 'customer' && ssp_person_is_manager( $person ) ) {
+    return 'customer';
+  }
+
+  return 'mine';
+}
+
+function ssp_incident_scope_clause( $scope ) {
+  if ( $scope === 'customer' ) {
+    return 'i.customerid = ?';
+  }
+
+  return 'i.personid = ?';
+}
+
+function ssp_change_scope_clause( $scope ) {
+  if ( $scope === 'customer' ) {
+    return 'c.customerid = ?';
+  }
+
+  return 'c.personid = ?';
+}
+
 function ssp_dashboard_counts( $con, $person ) {
   $person_id = (int)$person['id'];
   $counts = [
     'open_incidents' => 0,
     'open_changes' => 0,
     'open_change_requests' => 0,
-    'assigned_assets' => 0
+    'assigned_assets' => 0,
+    'customer_open_incidents' => 0,
+    'customer_open_changes' => 0
   ];
 
   $stmt = mysqli_prepare( $con, "
@@ -325,6 +355,38 @@ function ssp_dashboard_counts( $con, $person ) {
   mysqli_stmt_bind_result( $stmt, $counts['assigned_assets'] );
   mysqli_stmt_fetch( $stmt );
   mysqli_stmt_close( $stmt );
+
+  if ( ssp_person_is_manager( $person ) ) {
+    $customer_id = (int)$person['customerid'];
+
+    $stmt = mysqli_prepare( $con, "
+        SELECT COUNT(*)
+        FROM itsm_im_incidents i
+        LEFT JOIN itsm_core_status s ON i.statusid = s.id
+        WHERE i.customerid = ? AND IFNULL(s.closed, 0) = 0
+    " );
+    mysqli_stmt_bind_param( $stmt, "i", $customer_id );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_bind_result( $stmt, $counts['customer_open_incidents'] );
+    mysqli_stmt_fetch( $stmt );
+    mysqli_stmt_close( $stmt );
+
+    $stmt = mysqli_prepare( $con, "
+        SELECT COUNT(*)
+        FROM itsm_cm_changes c
+        LEFT JOIN itsm_core_status s ON c.statusid = s.id
+        WHERE c.customerid = ?
+          AND (
+            c.approvalstate = 'request'
+            OR (c.approvalstate = 'approved' AND c.closed = 0 AND IFNULL(s.closed, 0) = 0)
+          )
+    " );
+    mysqli_stmt_bind_param( $stmt, "i", $customer_id );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_bind_result( $stmt, $counts['customer_open_changes'] );
+    mysqli_stmt_fetch( $stmt );
+    mysqli_stmt_close( $stmt );
+  }
 
   return $counts;
 }
