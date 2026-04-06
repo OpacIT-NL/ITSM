@@ -1,0 +1,31 @@
+<?php
+session_start();
+
+require_once( __DIR__ . '/../my.php' );
+require_once( __DIR__ . '/include/news_helpers.php' );
+
+if ( !isset( $_SESSION['operatorloggedin'] ) ) {
+  header( 'Location: login.php' );
+  exit;
+}
+if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
+  session_unset();
+  session_destroy();
+  header( 'Location: login.php?expired=1' );
+  exit;
+}
+
+$logged_in_user = $_SESSION['name'];
+news_require_admin( $con, $logged_in_user );
+?>
+<?php require_once(__DIR__ . '/nav/nav.php'); ?>
+<?php require_once(__DIR__ . '/nav/modules.php'); ?>
+<div class="module-section">
+  <h1>Nieuws</h1>
+  <div class="module-grid">
+    <a href="new_news.php">Nieuw bericht</a>
+    <a href="news.php">Alle berichten</a>
+  </div>
+</div>
+</div>
+<?php require_once(__DIR__ . '/nav/end.php'); ?>

@@ -697,6 +697,24 @@ CREATE TABLE `itsm_km_items` (
 ALTER TABLE `itsm_km_items`
   ADD CONSTRAINT `itsm_km_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_km_items` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_km_items_ibfk_2` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+CREATE TABLE `itsm_core_news` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `newstype` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` longtext NOT NULL,
+  `showssp` int(1) NOT NULL DEFAULT 0,
+  `showoperatorhome` int(1) NOT NULL DEFAULT 0,
+  `showlogin` int(1) NOT NULL DEFAULT 0,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `createdby` (`createdby`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+ALTER TABLE `itsm_core_news`
+  ADD CONSTRAINT `itsm_core_news_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

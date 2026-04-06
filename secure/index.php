@@ -2,6 +2,7 @@
 session_start();
 
 require_once( __DIR__ . '/../my.php' );
+require_once( __DIR__ . '/include/news_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -77,6 +78,7 @@ while ( $group_row = mysqli_fetch_assoc( $group_result ) ) {
 mysqli_stmt_close( $group_stmt );
 
 $group_sql_list = !empty( $group_ids ) ? implode( ',', array_map( 'intval', $group_ids ) ) : '';
+$news_items = news_fetch_items( $con, 'secure', 6 );
 $incident_group_clause = 'i.operatorid = ' . $operator_id;
 if ( $group_sql_list !== '' ) {
   $incident_group_clause .= ' OR i.operatorgroupid IN (' . $group_sql_list . ')';
@@ -318,16 +320,26 @@ if ( (int)$operator['ubm'] === 1 ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <h1>ITSM Dashboard - Welkom terug <?= htmlspecialchars($firstname . ' ' . $lastname) ?></h1>
-  <h2>Hoofdmenu</h2>
-  <div class="quicklinks">
-    <a href="./modules.php"> <i class="fa-solid fa-cubes-stacked fa-2xl"></i><br>
-    <span>Modules</span> </a>
-    <?php if ( $isadmin == 1 ): ?>
-    <a href="./settings.php"> <i class="fa-solid fa-screwdriver-wrench fa-2xl"></i><br>
-    <span>Instellingen</span> </a>
-    <?php endif; ?>
-    <a href="./profile.php"> <i class="fa-solid fa-user fa-2xl"></i><br>
-    <span>Profiel</span> </a>
+  <div class="dashboard-top-grid">
+    <div>
+      <h2>Hoofdmenu</h2>
+      <div class="quicklinks">
+        <a href="./modules.php"> <i class="fa-solid fa-cubes-stacked fa-2xl"></i><br>
+        <span>Modules</span> </a>
+        <?php if ( $isadmin == 1 ): ?>
+        <a href="./settings.php"> <i class="fa-solid fa-screwdriver-wrench fa-2xl"></i><br>
+        <span>Instellingen</span> </a>
+        <?php endif; ?>
+        <a href="./profile.php"> <i class="fa-solid fa-user fa-2xl"></i><br>
+        <span>Profiel</span> </a>
+      </div>
+    </div>
+    <div>
+      <h2>Nieuws</h2>
+      <div class="news-dashboard-panel">
+        <?= news_render_cards( $news_items ) ?>
+      </div>
+    </div>
   </div>
 
   <br>
