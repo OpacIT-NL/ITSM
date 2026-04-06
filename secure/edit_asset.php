@@ -254,7 +254,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
 <div class="content">
 
-<a href="assets.php?filtertype=<?= htmlspecialchars((string)$asset['type']) ?>">Ga terug</a>
+<a href='javascript:history.back(1)'>Ga terug</a>
 
 <center>
   <h1>Asset bewerken (<?= htmlspecialchars($asset['typename'] ?? (string)$asset['type']) ?>)</h1>

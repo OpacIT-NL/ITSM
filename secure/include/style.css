@@ -104,6 +104,9 @@ body {
 .sidebarbutton-incident {
   background-color: #3274d6;
 }
+.sidebarbutton-search {
+  background-color: #2f9e44;
+}
 .page-layout {
   display: flex;
   align-items: flex-start;
@@ -260,6 +263,10 @@ body {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+.search-card {
+  max-width: 520px;
+  min-width: 520px;
+}
 .combo-box {
   position: relative;
   display: flex;
@@ -328,6 +335,17 @@ body {
 }
 .btn-primary:hover {
   background-color: #255bb5;
+}
+.btn-success {
+  background-color: #2f9e44;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-success:hover {
+  background-color: #237736;
 }
 .btn-danger {
   background-color: #d63232;
@@ -432,6 +450,20 @@ body {
 }
 .incident-main-card {
   min-width: 0;
+}
+.change-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.change-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.change-radio-group input[type="radio"] {
+  width: auto;
 }
 .incident-left-card .form-group {
   display: grid;

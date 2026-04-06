@@ -120,6 +120,12 @@ function incident_load_reference_data( $con ) {
   $operators = mysqli_query( $con, "SELECT id, firstname, lastname FROM itsm_ob_operators ORDER BY lastname ASC, firstname ASC" )->fetch_all( MYSQLI_ASSOC );
   $op_links = mysqli_query( $con, "SELECT groupid, operatorid FROM itsm_ob_opgrouplinks" )->fetch_all( MYSQLI_ASSOC );
   $statuses = mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'INCIDENT' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC );
+  $templates = mysqli_query( $con, "
+        SELECT id, name, type, categoryid, subcategoryid, description, commenttext
+        FROM itsm_core_templates
+        WHERE type = 'INCIDENT'
+        ORDER BY name ASC
+    " )->fetch_all( MYSQLI_ASSOC );
   $major_incidents = mysqli_query( $con, "
         SELECT i.id, i.incidentnumber, i.title
         FROM itsm_im_incidents i
@@ -139,6 +145,7 @@ function incident_load_reference_data( $con ) {
     'operators' => $operators,
     'op_links' => $op_links,
     'statuses' => $statuses,
+    'templates' => $templates,
     'major_incidents' => $major_incidents
   ];
 }

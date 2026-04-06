@@ -57,7 +57,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href="set-ls-cat.php">Ga terug</a>
+<a href='javascript:history.back(1)'>Ga terug</a>
 <center>
   <h1>Nieuwe categorie</h1>
 </center>

@@ -44,7 +44,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
     die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  echo "Gebouw verwijderd. <a href='buildings.php'>Ga terug</a>";
+  echo "Gebouw verwijderd. <a href='javascript:history.back(1)'>Ga terug</a>";
   exit;
 }
 
@@ -77,7 +77,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   // Only update password if a new one is entered
 
 
-  echo "Gebouw aangepast! <a href='buildings.php'>Ga terug</a>";
+  echo "Gebouw aangepast! <a href='javascript:history.back(1)'>Ga terug</a>";
   exit;
 }
 
@@ -105,7 +105,7 @@ if ( !$result ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"> <a href="buildings.php">Ga terug</a>
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1> Gebouw Bewerken:
       <?= htmlspecialchars($row2['address'] . ', ' . $row2['postalcode'] . ', ' . $row2['city']) ?>
