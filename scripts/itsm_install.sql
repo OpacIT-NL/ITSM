@@ -119,6 +119,19 @@ CREATE TABLE `itsm_core_category` (
   `type` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_news` (
+  `id` int(11) NOT NULL,
+  `newstype` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` longtext NOT NULL,
+  `showssp` int(1) NOT NULL DEFAULT 0,
+  `showoperatorhome` int(1) NOT NULL DEFAULT 0,
+  `showlogin` int(1) NOT NULL DEFAULT 0,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_core_status` (
   `id` int(11) NOT NULL,
   `type` varchar(255) NOT NULL,
@@ -212,6 +225,17 @@ CREATE TABLE `itsm_im_incidents` (
   `createdby` int(11) NOT NULL,
   `createdat` datetime NOT NULL DEFAULT current_timestamp(),
   `updatedat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_km_items` (
+  `id` int(11) NOT NULL,
+  `parentid` int(11) DEFAULT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` longtext NOT NULL,
+  `publicaccess` int(1) NOT NULL DEFAULT 1,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_ob_buildings` (
@@ -398,6 +422,10 @@ ALTER TABLE `itsm_cm_changes`
 ALTER TABLE `itsm_core_category`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `itsm_core_news`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `createdby` (`createdby`);
+
 ALTER TABLE `itsm_core_status`
   ADD PRIMARY KEY (`id`);
 
@@ -451,6 +479,11 @@ ALTER TABLE `itsm_im_incidents`
   ADD KEY `itsm_im_incidents_ibfk_9` (`createdby`),
   ADD KEY `majorincidentid` (`majorincidentid`),
   ADD KEY `template_used` (`template_used`);
+
+ALTER TABLE `itsm_km_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `parentid` (`parentid`),
+  ADD KEY `createdby` (`createdby`);
 
 ALTER TABLE `itsm_ob_buildings`
   ADD PRIMARY KEY (`id`);
@@ -530,6 +563,9 @@ ALTER TABLE `itsm_cm_changes`
 ALTER TABLE `itsm_core_category`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_core_news`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_core_status`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -552,6 +588,9 @@ ALTER TABLE `itsm_im_incidentcomments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_im_incidents`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_km_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_ob_buildings`
@@ -616,6 +655,9 @@ ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
+ALTER TABLE `itsm_core_news`
+  ADD CONSTRAINT `itsm_core_news_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
 ALTER TABLE `itsm_core_tasklinks`
   ADD CONSTRAINT `itsm_core_tasklinks_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
@@ -654,6 +696,10 @@ ALTER TABLE `itsm_im_incidents`
   ADD CONSTRAINT `itsm_im_incidents_ibfk_7` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_km_items`
+  ADD CONSTRAINT `itsm_km_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_km_items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_km_items_ibfk_2` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
 ALTER TABLE `itsm_pm_problemcomments`
   ADD CONSTRAINT `itsm_pm_problemcomments_ibfk_1` FOREIGN KEY (`problemid`) REFERENCES `itsm_pm_problems` (`id`) ON DELETE CASCADE,
