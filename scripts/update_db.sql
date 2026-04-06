@@ -54,6 +54,16 @@ CREATE TABLE `itsm_cm_changeactivities` (
   `updatedat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_templates` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(16) NOT NULL,
+  `categoryid` int(11) NOT NULL,
+  `subcategoryid` int(11) DEFAULT NULL,
+  `description` longtext DEFAULT NULL,
+  `commenttext` longtext DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 ALTER TABLE `itsm_cm_changes`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `changenumber` (`changenumber`),
@@ -81,6 +91,11 @@ ALTER TABLE `itsm_cm_changeactivities`
   ADD KEY `statusid` (`statusid`),
   ADD KEY `createdby` (`createdby`);
 
+ALTER TABLE `itsm_core_templates`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `categoryid` (`categoryid`),
+  ADD KEY `subcategoryid` (`subcategoryid`);
+
 ALTER TABLE `itsm_cm_changes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -88,6 +103,9 @@ ALTER TABLE `itsm_cm_changecomments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_cm_changeactivities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_templates`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_cm_changes`
@@ -112,6 +130,10 @@ ALTER TABLE `itsm_cm_changeactivities`
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_3` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_4` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_templates`
+  ADD CONSTRAINT `itsm_core_templates_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
+  ADD CONSTRAINT `itsm_core_templates_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
 
 COMMIT;
 
