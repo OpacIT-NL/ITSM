@@ -284,3 +284,42 @@ function ssp_dashboard_counts( $con, $person ) {
 
   return $counts;
 }
+
+function ssp_extract_template_variables( $template ) {
+  $matches = [];
+  $sources = [
+    $template['description'] ?? '',
+    $template['commenttext'] ?? '',
+    $template['name'] ?? ''
+  ];
+
+  foreach ( $sources as $source ) {
+    preg_match_all( '/%([a-zA-Z0-9_]+)%/', (string)$source, $found );
+    if ( !empty( $found[1] ) ) {
+      foreach ( $found[1] as $variable ) {
+        $matches[ $variable ] = true;
+      }
+    }
+  }
+
+  return array_keys( $matches );
+}
+
+function ssp_template_has_variables( $template ) {
+  return count( ssp_extract_template_variables( $template ) ) > 0;
+}
+
+function ssp_template_variable_label( $variable ) {
+  return ucwords( str_replace( '_', ' ', $variable ) );
+}
+
+function ssp_apply_template_variables( $text, $values ) {
+  return preg_replace_callback(
+    '/%([a-zA-Z0-9_]+)%/',
+    function( $matches ) use ( $values ) {
+      $key = $matches[1];
+      return $values[ $key ] ?? '';
+    },
+    (string)$text
+  );
+}
