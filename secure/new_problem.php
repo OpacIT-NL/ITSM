@@ -2,35 +2,34 @@
 session_start();
 
 require_once( __DIR__ . '/../my.php' );
-require_once( __DIR__ . '/include/change_helpers.php' );
+require_once( __DIR__ . '/include/problem_helpers.php' );
 require_once( __DIR__ . '/include/task_helpers.php' );
 
-if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
+if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
+if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
   session_unset();
   session_destroy();
   header( 'Location: login.php?expired=1' );
   exit;
 }
 
-$logged_in_user = $_SESSION[ 'name' ];
-change_require_request_authorization( $con, $logged_in_user );
-$operator_context = change_get_operator_context( $con, $logged_in_user );
-change_require_access( $operator_context );
+$logged_in_user = $_SESSION['name'];
+$operator_context = problem_get_operator_context( $con, $logged_in_user );
+problem_require_access( $operator_context );
 
-$reference_data = change_load_reference_data( $con );
-$default_group_id = change_default_group_id( $reference_data['groups'] );
+$reference_data = problem_load_reference_data( $con );
+$default_status_id = problem_default_status_id( $reference_data['statuses'] );
+$default_group_id = problem_default_group_id( $reference_data['groups'] );
 $errors = [];
+$comments = [];
 $source_type = $_GET['source_type'] ?? '';
 $source_id = isset( $_GET['source_id'] ) && is_numeric( $_GET['source_id'] ) ? (int)$_GET['source_id'] : 0;
 
 $form_values = [
   'commentid' => '',
-  'requesttype' => 'simple',
-  'changetype' => 'standard',
   'title' => '',
   'description' => '',
   'commenttext' => '',
@@ -45,15 +44,14 @@ $form_values = [
   'assettype' => '',
   'operatorgroupid' => $default_group_id > 0 ? (string)$default_group_id : '',
   'operatorid' => '',
-  'coordinatorid' => '',
-  'statusid' => '',
+  'statusid' => (string)$default_status_id,
   'statusready' => 0,
   'statusclosed' => 0,
   'applied_template_id' => '',
   'template_used' => ''
 ];
 
-if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && in_array( $source_type, [ 'incident', 'problem' ], true ) ) {
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && $source_type === 'incident' ) {
   $source_item = task_prefill_from_source( $con, $source_type, $source_id );
   if ( $source_item ) {
     $form_values['title'] = $source_item['title'] ?? '';
@@ -71,8 +69,6 @@ if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && in_array( $sourc
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $form_values = [
     'commentid' => '',
-    'requesttype' => $_POST['requesttype'] ?? 'simple',
-    'changetype' => $_POST['changetype'] ?? 'standard',
     'title' => trim( $_POST['title'] ?? '' ),
     'description' => trim( $_POST['description'] ?? '' ),
     'commenttext' => trim( $_POST['commenttext'] ?? '' ),
@@ -87,18 +83,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'assettype' => '',
     'operatorgroupid' => ($_POST['operatorgroupid'] ?? '') !== '' ? $_POST['operatorgroupid'] : ( $default_group_id > 0 ? (string)$default_group_id : '' ),
     'operatorid' => $_POST['operatorid'] ?? '',
-    'coordinatorid' => $_POST['coordinatorid'] ?? '',
-    'statusid' => '',
+    'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
     'statusclosed' => 0,
     'applied_template_id' => $_POST['applied_template_id'] ?? '',
     'template_used' => $_POST['applied_template_id'] ?? ''
   ];
 
-  $validation = change_validate_form(
+  $validation = problem_validate_form(
     [
-      'requesttype' => $form_values['requesttype'],
-      'changetype' => $form_values['changetype'],
       'title' => $form_values['title'],
       'customerid' => (int)$form_values['customerid'],
       'personid' => (int)$form_values['personid'],
@@ -107,20 +100,23 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       'assetid' => (int)$form_values['assetid'],
       'operatorgroupid' => (int)$form_values['operatorgroupid'],
       'operatorid' => (int)$form_values['operatorid'],
-      'coordinatorid' => (int)$form_values['coordinatorid'],
-      'statusid' => 0,
-      'requires_status' => false
+      'statusid' => (int)$form_values['statusid']
     ],
     $reference_data
   );
 
   $errors = $validation['errors'];
+
   if ( $validation['person'] ) {
     $form_values['personemail'] = $validation['person']['email'] ?? '';
     $form_values['personphone'] = $validation['person']['phone'] ?? '';
   }
   if ( $validation['asset'] ) {
     $form_values['assettype'] = $validation['asset']['typename'] ?? '';
+  }
+  if ( $validation['status'] ) {
+    $form_values['statusready'] = (int)$validation['status']['ready'];
+    $form_values['statusclosed'] = (int)$validation['status']['closed'];
   }
 
   if ( empty( $errors ) ) {
@@ -130,30 +126,24 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $subcategory_id = $validation['subcategory'] ? (int)$validation['subcategory']['id'] : null;
     $asset_id = $validation['asset'] ? (int)$validation['asset']['id'] : null;
     $group_id = $validation['group'] ? (int)$validation['group']['id'] : null;
-    $operator_id = $form_values['requesttype'] === 'simple' && $validation['operator'] ? (int)$validation['operator']['id'] : null;
-    $coordinator_id = $form_values['requesttype'] === 'extended' && $validation['coordinator'] ? (int)$validation['coordinator']['id'] : null;
+    $operator_id = $validation['operator'] ? (int)$validation['operator']['id'] : null;
+    $status_id = (int)$validation['status']['id'];
+    $created_by = (int)$operator_context['id'];
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
-    $created_by = (int)$operator_context['id'];
-    $change_number = change_generate_number( $con );
+    $problem_number = problem_generate_number( $con );
 
     $stmt = mysqli_prepare( $con, "
-            INSERT INTO itsm_cm_changes (
-                changenumber, requesttype, approvalstate, changetype, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, template_used, closed, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO itsm_pm_problems (
+                problemnumber, title, description, customerid, personid, personemail, personphone,
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, template_used, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
-    $approval_state = 'request';
-    $status_id = null;
     $template_used = ($form_values['applied_template_id'] ?? '') !== '' ? (int)$form_values['applied_template_id'] : null;
-    $closed = 0;
     mysqli_stmt_bind_param(
       $stmt,
-      "ssssssiissiiiiiiiiii",
-      $change_number,
-      $form_values['requesttype'],
-      $approval_state,
-      $form_values['changetype'],
+      "sssiissiiiiiiii",
+      $problem_number,
       $form_values['title'],
       $form_values['description'],
       $customer_id,
@@ -165,47 +155,37 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $asset_id,
       $group_id,
       $operator_id,
-      $coordinator_id,
       $status_id,
       $template_used,
-      $closed,
       $created_by
     );
 
     if ( !mysqli_stmt_execute( $stmt ) ) {
-      $errors[] = 'Wijzigingsaanvraag opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+      $errors[] = 'Probleem opslaan mislukt: ' . mysqli_stmt_error( $stmt );
     } else {
-      $change_id = mysqli_insert_id( $con );
+      $problem_id = mysqli_insert_id( $con );
       if ( $form_values['commenttext'] !== '' ) {
-        $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,?,NULL,?,?)" );
-        mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
+        $comment_stmt = mysqli_prepare( $con, "
+                    INSERT INTO itsm_pm_problemcomments (problemid, operatorid, commenttext, internalonly)
+                    VALUES (?, ?, ?, ?)
+                " );
+        mysqli_stmt_bind_param( $comment_stmt, "iisi", $problem_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
         mysqli_stmt_execute( $comment_stmt );
-        mysqli_stmt_close( $comment_stmt );
+      }
+      if ( $source_id > 0 && $source_type === 'incident' ) {
+        task_create_link( $con, 'problem', $problem_id, 'Afgeleid van', 'incident', $source_id, $created_by );
       }
 
-      $applied_template = change_find_by_id( $reference_data['templates'], (int)$form_values['applied_template_id'] );
-      if ( $applied_template && $form_values['requesttype'] === 'extended' && ($applied_template['changerequesttype'] ?? '') === 'extended' ) {
-        change_copy_template_activities_to_change( $con, (int)$applied_template['id'], $change_id, $created_by );
-      }
-      if ( $source_id > 0 && in_array( $source_type, [ 'incident', 'problem' ], true ) ) {
-        task_create_link( $con, 'change', $change_id, 'Afgeleid van', $source_type, $source_id, $created_by );
-      }
-      header( 'Location: edit_change.php?id=' . $change_id );
+      header( 'Location: edit_problem.php?id=' . $problem_id );
       exit;
     }
   }
 }
 
-$page_title = 'Wijzigingsaanvraag aanmaken';
-$list_back_url = change_get_list_back_url( 'changes.php?section=requests&view=all' );
-$show_status_block = false;
+$page_title = 'Probleem aanmaken';
+$submit_label = 'Probleem opslaan';
 $show_history = false;
-$show_activities = false;
-$comments = [];
-$activities = [];
-$activity_values = [ 'title' => '', 'description' => '', 'operatorgroupid' => '', 'operatorid' => '', 'statusid' => '' ];
-$action_buttons = [
-  [ 'value' => 'save', 'label' => 'Wijzigingsaanvraag opslaan', 'class' => 'btn-primary' ]
-];
+$problem_id = 0;
+$list_back_url = problem_get_list_back_url( 'problems.php?view=open' );
 ?>
-<?php require_once(__DIR__ . '/include/change_form.php'); ?>
+<?php require_once(__DIR__ . '/include/problem_form.php'); ?>

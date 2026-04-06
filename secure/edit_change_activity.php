@@ -3,6 +3,7 @@ session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
+require_once( __DIR__ . '/include/task_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -48,6 +49,30 @@ if ( !$activity ) {
 $reference_data = change_load_reference_data( $con );
 $errors = [];
 
+if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
+  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  header( 'Location: edit_change_activity.php?id=' . $activity_id );
+  exit;
+}
+if ( isset( $_POST['add_task_link'] ) ) {
+  $relation = trim( $_POST['link_relationtype'] ?? '' );
+  $tasknumber = trim( $_POST['link_tasknumber'] ?? '' );
+  if ( $relation === '' || $tasknumber === '' ) {
+    $errors[] = 'Selecteer een linktype en vul een taaknummer in.';
+  } else {
+    $target = task_find_by_number( $con, $tasknumber, 'secure' );
+    if ( !$target ) {
+      $errors[] = 'Taaknummer niet gevonden.';
+    } elseif ( $target['type'] === 'changeactivity' && (int)$target['id'] === $activity_id ) {
+      $errors[] = 'Een wijzigingsactiviteit kan niet aan zichzelf gekoppeld worden.';
+    } else {
+      task_create_link( $con, 'changeactivity', $activity_id, $relation, $target['type'], (int)$target['id'], (int)$operator_context['id'] );
+      header( 'Location: edit_change_activity.php?id=' . $activity_id );
+      exit;
+    }
+  }
+}
+
 $form_values = [
   'title' => $activity['title'],
   'description' => $activity['description'],
@@ -56,7 +81,7 @@ $form_values = [
   'statusid' => (string)$activity['statusid']
 ];
 
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
   $form_values = [
     'title' => trim( $_POST['title'] ?? '' ),
     'description' => trim( $_POST['description'] ?? '' ),
@@ -144,7 +169,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
 
         <div class="form-group">
           <label>Omschrijving</label>
-          <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
+        <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
         </div>
 
         <div class="form-group">
@@ -178,6 +203,19 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
         </div>
       </div>
     </form>
+  </div>
+  <div class="form-wrapper">
+    <div class="form-card">
+      <h3>Omschrijving voorbeeld</h3>
+      <p><?= task_linkify_text($form_values['description'], 'secure') ?></p>
+    </div>
+  </div>
+  <div class="form-wrapper">
+    <div class="form-card">
+      <form method="post">
+        <?= task_render_links_section( task_load_links( $con, 'changeactivity', $activity_id, 'secure' ) ) ?>
+      </form>
+    </div>
   </div>
 </div>
 

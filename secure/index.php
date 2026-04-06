@@ -43,7 +43,10 @@ $sql = "
       secondlineincidents,
       reqforchange,
       simplechange,
-      extchange
+      extchange,
+      problems,
+      events,
+      ubm
     FROM itsm_ob_operators
     WHERE username = ?
 ";
@@ -86,6 +89,14 @@ $change_group_clause .= ')';
 $activity_group_clause = 'a.operatorid = ' . $operator_id;
 if ( $group_sql_list !== '' ) {
   $activity_group_clause .= ' OR a.operatorgroupid IN (' . $group_sql_list . ')';
+}
+$problem_group_clause = 'p.operatorid = ' . $operator_id;
+if ( $group_sql_list !== '' ) {
+  $problem_group_clause .= ' OR p.operatorgroupid IN (' . $group_sql_list . ')';
+}
+$ubm_group_clause = 'u.operatorid = ' . $operator_id;
+if ( $group_sql_list !== '' ) {
+  $ubm_group_clause .= ' OR u.operatorgroupid IN (' . $group_sql_list . ')';
 }
 
 $task_rows = [];
@@ -236,6 +247,72 @@ if ( (int)$operator['reqforchange'] === 1 || (int)$operator['simplechange'] === 
     ),
     'group_link' => './change_activities.php?view=minegroups'
   ];
+}
+
+if ( (int)$operator['problems'] === 1 ) {
+  $task_rows[] = [
+    'label' => 'Problems',
+    'mine_count' => dashboard_fetch_count(
+      $con,
+      "SELECT COUNT(*) FROM itsm_pm_problems p WHERE p.operatorid = ?",
+      'i',
+      [ $operator_id ]
+    ),
+    'mine_link' => './problems.php?view=mine',
+    'group_count' => dashboard_fetch_count(
+      $con,
+      "SELECT COUNT(*) FROM itsm_pm_problems p WHERE (" . $problem_group_clause . ")"
+    ),
+    'group_link' => './problems.php?view=minegroups'
+  ];
+}
+
+if ( (int)$operator['events'] === 1 ) {
+  $task_rows[] = [
+    'label' => 'Events',
+    'mine_count' => dashboard_fetch_count(
+      $con,
+      "SELECT COUNT(*) FROM itsm_em_events e WHERE e.closed = 0"
+    ),
+    'mine_link' => './events.php?view=open',
+    'group_count' => dashboard_fetch_count(
+      $con,
+      "SELECT COUNT(*) FROM itsm_em_events e WHERE e.closed = 0"
+    ),
+    'group_link' => './events.php?view=open'
+  ];
+}
+
+if ( (int)$operator['ubm'] === 1 ) {
+  $ubm_rows = [
+    [ 'label' => 'UBM Initiatives', 'itemtype' => 'initiative', 'view' => 'initiatives', 'open_only' => false ],
+    [ 'label' => 'UBM Epics', 'itemtype' => 'epic', 'view' => 'epics', 'open_only' => true ],
+    [ 'label' => 'UBM Features', 'itemtype' => 'feature', 'view' => 'features', 'open_only' => true ],
+    [ 'label' => 'UBM Stories', 'itemtype' => 'story', 'view' => 'stories', 'open_only' => true ],
+    [ 'label' => 'UBM Subtasks', 'itemtype' => 'subtask', 'view' => 'subtasks', 'open_only' => true ]
+  ];
+
+  foreach ( $ubm_rows as $ubm_row ) {
+    $mine_sql = "SELECT COUNT(*) FROM itsm_ubm_items u LEFT JOIN itsm_core_status s ON u.statusid = s.id WHERE u.itemtype = ? AND u.operatorid = ?";
+    $mine_types = 'si';
+    $mine_params = [ $ubm_row['itemtype'], $operator_id ];
+    $group_sql = "SELECT COUNT(*) FROM itsm_ubm_items u LEFT JOIN itsm_core_status s ON u.statusid = s.id WHERE u.itemtype = ? AND (" . $ubm_group_clause . ")";
+    $group_types = 's';
+    $group_params = [ $ubm_row['itemtype'] ];
+
+    if ( $ubm_row['open_only'] ) {
+      $mine_sql .= ' AND IFNULL(s.closed, 0) = 0';
+      $group_sql .= ' AND IFNULL(s.closed, 0) = 0';
+    }
+
+    $task_rows[] = [
+      'label' => $ubm_row['label'],
+      'mine_count' => dashboard_fetch_count( $con, $mine_sql, $mine_types, $mine_params ),
+      'mine_link' => './ubm_items.php?view=' . urlencode( $ubm_row['view'] ) . '&ownership=mine',
+      'group_count' => dashboard_fetch_count( $con, $group_sql, $group_types, $group_params ),
+      'group_link' => './ubm_items.php?view=' . urlencode( $ubm_row['view'] ) . '&ownership=minegroups'
+    ];
+  }
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>

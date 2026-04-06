@@ -55,7 +55,9 @@ $form_values = [
   'operatorid' => '',
   'statusid' => (string)$default_status_id,
   'statusready' => 0,
-  'statusclosed' => 0
+  'statusclosed' => 0,
+  'applied_template_id' => '',
+  'template_used' => ''
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
@@ -78,7 +80,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'applied_template_id' => $_POST['applied_template_id'] ?? '',
+    'template_used' => $_POST['applied_template_id'] ?? ''
   ];
 
   $validation = incident_validate_form(
@@ -131,12 +135,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_im_incidents (
                 incidentnumber, incidenttype, majorincidentid, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, template_used, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
+    $template_used = ($form_values['applied_template_id'] ?? '') !== '' ? (int)$form_values['applied_template_id'] : null;
     mysqli_stmt_bind_param(
       $stmt,
-      "ssissiissiiiiiii",
+      "ssissiissiiiiiiii",
       $incident_number,
       $mode,
       $major_incident_id,
@@ -152,6 +157,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $group_id,
       $assigned_operator_id,
       $status_id,
+      $template_used,
       $created_by
     );
 

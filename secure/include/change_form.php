@@ -1,4 +1,5 @@
 <?php
+require_once( __DIR__ . '/task_helpers.php' );
 $customers_json = json_encode( $reference_data['customers'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $categories_json = json_encode( $reference_data['categories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
@@ -8,6 +9,7 @@ $groups_json = json_encode( $reference_data['groups'], JSON_HEX_TAG | JSON_HEX_A
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$show_template_actions = empty( $form_values['template_used'] );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
@@ -226,6 +228,7 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
             </label>
           </div>
 
+          <?php if ( $show_template_actions ): ?>
           <div class="form-actions" id="template_actions">
             <input type="hidden" name="applied_template_id" id="applied_template_id" value="<?= htmlspecialchars((string)($form_values['applied_template_id'] ?? '')) ?>">
             <select id="template_select">
@@ -233,6 +236,7 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
             </select>
             <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
           </div>
+          <?php endif; ?>
 
           <div class="form-group">
             <label>
@@ -255,7 +259,7 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
                 <span><?= htmlspecialchars($comment['createdat']) ?></span>
               </div>
               <span class="incident-badge"><?= (int)$comment['internalonly'] === 1 ? 'Niet voor klant' : 'Klant zichtbaar' ?></span>
-              <p><?= nl2br(htmlspecialchars($comment['commenttext'])) ?></p>
+              <p><?= task_linkify_text($comment['commenttext'], 'secure') ?></p>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
@@ -275,7 +279,7 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
                 <span><?= htmlspecialchars(change_format_activity_number($activity)) ?> - <?= htmlspecialchars($activity['title']) ?></span>
                 <span><?= htmlspecialchars($activity['status_name']) ?></span>
               </div>
-              <p><?= nl2br(htmlspecialchars($activity['description'])) ?></p>
+              <p><?= task_linkify_text($activity['description'], 'secure') ?></p>
               <p>Groep: <?= htmlspecialchars($activity['groupname']) ?> | Behandelaar: <?= htmlspecialchars($activity['operator_name']) ?></p>
               <a href="edit_change_activity.php?id=<?= htmlspecialchars((string)$activity['id']) ?>">Open wijzigingsactiviteit</a>
             </div>
@@ -333,6 +337,10 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
               </div>
             </div>
           </div>
+          <?php endif; ?>
+
+          <?php if ( !empty( $links_html ) ): ?>
+          <?= $links_html ?>
           <?php endif; ?>
         </div>
       </div>

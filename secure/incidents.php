@@ -23,6 +23,7 @@ incident_require_access( $operator_context );
 $view = $_GET['view'] ?? 'open';
 $mode = incident_normalize_mode( $_GET['mode'] ?? '' );
 $major_target = isset( $_GET['major_target'] ) && is_numeric( $_GET['major_target'] ) ? (int)$_GET['major_target'] : 0;
+$problem_target = isset( $_GET['problem_target'] ) && is_numeric( $_GET['problem_target'] ) ? (int)$_GET['problem_target'] : 0;
 $view_labels = [
   'open' => 'Open incidenten',
   'all' => 'Alle incidenten',
@@ -131,6 +132,9 @@ $result = mysqli_stmt_get_result( $stmt );
             <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>"> Open Incident </a>
             <?php if ( $major_target > 0 && $row['incidenttype'] !== 'major' && (int)$row['id'] !== $major_target ): ?>
             <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>&set_major=<?= $major_target ?>"> Koppel aan major </a>
+            <?php endif; ?>
+            <?php if ( $problem_target > 0 ): ?>
+            <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>&set_problem=<?= $problem_target ?>"> Koppel aan problem </a>
             <?php endif; ?>
           </td>
         </tr>

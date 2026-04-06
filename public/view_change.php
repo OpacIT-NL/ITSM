@@ -1,9 +1,16 @@
 <?php
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
+require_once( __DIR__ . '/../secure/include/task_helpers.php' );
 
 $person = ssp_require_login( $con );
 $change_id = isset( $_GET['id'] ) ? (int)$_GET['id'] : 0;
+if ( $change_id === 0 && !empty( $_GET['tasknumber'] ) ) {
+  $task = task_find_by_number( $con, $_GET['tasknumber'], 'public' );
+  if ( $task && $task['type'] === 'change' ) {
+    $change_id = (int)$task['id'];
+  }
+}
 $errors = [];
 
 $stmt = mysqli_prepare( $con, "
@@ -110,7 +117,7 @@ ssp_render_header( $person, 'changes' );
 
   <article class="ssp-detail-card">
     <h3>Omschrijving</h3>
-    <p><?= nl2br(htmlspecialchars($change['description'] ?? '')) ?></p>
+    <p><?= task_linkify_text($change['description'] ?? '', 'public') ?></p>
   </article>
 </section>
 
@@ -139,7 +146,7 @@ ssp_render_header( $person, 'changes' );
         <strong><?= htmlspecialchars((int)($comment['personid'] ?? 0) > 0 ? (trim(($comment['person_firstname'] ?? '') . ' ' . ($comment['person_lastname'] ?? '')) ?: 'Klant') : (trim(($comment['operator_firstname'] ?? '') . ' ' . ($comment['operator_lastname'] ?? '')) ?: 'Behandelaar')) ?></strong>
         <span><?= htmlspecialchars($comment['createdat']) ?></span>
       </div>
-      <div><?= nl2br(htmlspecialchars($comment['commenttext'])) ?></div>
+      <div><?= task_linkify_text($comment['commenttext'], 'public') ?></div>
     </article>
     <?php endwhile; ?>
     <?php if ( mysqli_num_rows( $comments_result ) === 0 ): ?>

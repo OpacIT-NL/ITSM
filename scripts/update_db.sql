@@ -31,7 +31,19 @@ ALTER TABLE `itsm_core_templates`
 
 ALTER TABLE `itsm_im_incidents`
   MODIFY `customerid` int(11) DEFAULT NULL,
-  MODIFY `personid` int(11) DEFAULT NULL;
+  MODIFY `personid` int(11) DEFAULT NULL,
+  ADD COLUMN `template_used` int(11) DEFAULT NULL AFTER `statusid`,
+  ADD KEY `template_used` (`template_used`);
+
+ALTER TABLE `itsm_im_incidents`
+  ADD CONSTRAINT `itsm_im_incidents_ibfk_10` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`);
+
+ALTER TABLE `itsm_cm_changes`
+  ADD COLUMN `template_used` int(11) DEFAULT NULL AFTER `statusid`,
+  ADD KEY `template_used` (`template_used`);
+
+ALTER TABLE `itsm_cm_changes`
+  ADD CONSTRAINT `itsm_cm_changes_ibfk_11` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`);
 
 CREATE TABLE `itsm_core_tasklinks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -63,6 +75,7 @@ CREATE TABLE `itsm_pm_problems` (
   `operatorgroupid` int(11) DEFAULT NULL,
   `operatorid` int(11) DEFAULT NULL,
   `statusid` int(11) DEFAULT NULL,
+  `template_used` int(11) DEFAULT NULL,
   `createdby` int(11) NOT NULL,
   `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -76,6 +89,7 @@ CREATE TABLE `itsm_pm_problems` (
   KEY `operatorgroupid` (`operatorgroupid`),
   KEY `operatorid` (`operatorid`),
   KEY `statusid` (`statusid`),
+  KEY `template_used` (`template_used`),
   KEY `createdby` (`createdby`),
   CONSTRAINT `itsm_pm_problems_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
   CONSTRAINT `itsm_pm_problems_ibfk_2` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`),
@@ -85,7 +99,8 @@ CREATE TABLE `itsm_pm_problems` (
   CONSTRAINT `itsm_pm_problems_ibfk_6` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
   CONSTRAINT `itsm_pm_problems_ibfk_7` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   CONSTRAINT `itsm_pm_problems_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
-  CONSTRAINT `itsm_pm_problems_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`)
+  CONSTRAINT `itsm_pm_problems_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`),
+  CONSTRAINT `itsm_pm_problems_ibfk_10` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_pm_problemcomments` (
