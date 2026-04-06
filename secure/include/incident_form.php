@@ -550,6 +550,7 @@ setDatalistOptions('major_incidents_list', majorIncidents, majorIncidentLabel);
 
 setLookupValue('customer_lookup', 'customer_id', customers, customerLabel);
 setLookupValue('category_lookup', 'category_id', categories, categoryLabel);
+setLookupValue('asset_lookup', 'asset_id', assets, assetLabel);
 setLookupValue('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel);
 setLookupValue('majorincident_lookup', 'majorincident_id', majorIncidents, majorIncidentLabel);
 refreshPersons(false);
