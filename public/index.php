@@ -54,6 +54,9 @@ ssp_render_header( $person, 'dashboard' );
       <a class="ssp-quick-link" href="assets.php"><i class="fa-solid fa-laptop"></i><span>Mijn assets</span></a>
       <a class="ssp-quick-link" href="new_incident.php"><i class="fa-solid fa-phone"></i><span>Nieuwe melding</span></a>
       <a class="ssp-quick-link" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i><span>Nieuwe wijziging</span></a>
+      <?php if ( ssp_person_has_group_name( $person, 'SSP_InfraShop' ) ): ?>
+      <a class="ssp-quick-link" href="infra_shop.php"><i class="fa-solid fa-cart-shopping"></i><span>InfraShop</span></a>
+      <?php endif; ?>
     </div>
   </article>
 

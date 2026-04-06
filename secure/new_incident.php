@@ -32,6 +32,7 @@ if ( in_array( $mode, [ 'secondline', 'major' ], true ) && (int)$operator_contex
 
 $reference_data = incident_load_reference_data( $con );
 $default_status_id = incident_default_status_id( $reference_data['statuses'] );
+$default_group_id = incident_default_group_id( $reference_data['groups'] );
 $errors = [];
 $comments = [];
 
@@ -50,7 +51,7 @@ $form_values = [
   'assetid' => '',
   'assettype' => '',
   'majorincidentid' => '',
-  'operatorgroupid' => '',
+  'operatorgroupid' => $default_group_id > 0 ? (string)$default_group_id : '',
   'operatorid' => '',
   'statusid' => (string)$default_status_id,
   'statusready' => 0,
@@ -73,7 +74,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'assetid' => $_POST['assetid'] ?? '',
     'assettype' => '',
     'majorincidentid' => $_POST['majorincidentid'] ?? '',
-    'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
+    'operatorgroupid' => ($_POST['operatorgroupid'] ?? '') !== '' ? $_POST['operatorgroupid'] : ( $default_group_id > 0 ? (string)$default_group_id : '' ),
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,

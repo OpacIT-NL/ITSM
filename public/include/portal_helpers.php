@@ -82,6 +82,9 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
     'new_incident' => [ 'href' => 'new_incident.php', 'label' => 'Incident melden', 'icon' => 'fa-phone' ],
     'new_change' => [ 'href' => 'new_change.php', 'label' => 'Wijziging aanvragen', 'icon' => 'fa-file-circle-plus' ]
   ];
+  if ( ssp_person_has_group_name( $person, 'SSP_InfraShop' ) ) {
+    $links['infra_shop'] = [ 'href' => 'infra_shop.php', 'label' => 'InfraShop', 'icon' => 'fa-cart-shopping' ];
+  }
 
   echo "<div class=\"ssp-shell\">\n";
   echo "  <aside class=\"ssp-sidebar\">\n";
@@ -170,6 +173,17 @@ function ssp_change_generate_number( $con ) {
   }
 
   return sprintf( '%s %04d', $prefix, $next_number );
+}
+
+function ssp_default_operator_group_id( $con, $default_name = 'Servicedesk' ) {
+  $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_ob_operatorgroups WHERE groupname = ? LIMIT 1" );
+  mysqli_stmt_bind_param( $stmt, "s", $default_name );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $row = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  return $row ? (int)$row['id'] : 0;
 }
 
 function ssp_incident_reference_data( $con, $person ) {
@@ -313,6 +327,36 @@ function ssp_dashboard_counts( $con, $person ) {
   mysqli_stmt_close( $stmt );
 
   return $counts;
+}
+
+function ssp_person_has_group_name( $person, $group_name ) {
+  foreach ( $person['persongroups'] ?? [] as $group ) {
+    if ( strcasecmp( (string)( $group['groupname'] ?? '' ), (string)$group_name ) === 0 ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function ssp_find_group_id_by_name( $person, $group_name ) {
+  foreach ( $person['persongroups'] ?? [] as $group ) {
+    if ( strcasecmp( (string)( $group['groupname'] ?? '' ), (string)$group_name ) === 0 ) {
+      return (int)$group['persongroup'];
+    }
+  }
+
+  return 0;
+}
+
+function ssp_find_group_name_by_id( $person, $group_id ) {
+  foreach ( $person['persongroups'] ?? [] as $group ) {
+    if ( (int)( $group['persongroup'] ?? 0 ) === (int)$group_id ) {
+      return (string)( $group['groupname'] ?? '' );
+    }
+  }
+
+  return '';
 }
 
 function ssp_extract_template_variables( $template ) {

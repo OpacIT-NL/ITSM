@@ -4,32 +4,32 @@ require_once( __DIR__ . '/include/portal_helpers.php' );
 require_once( __DIR__ . '/../secure/include/change_helpers.php' );
 
 $person = ssp_require_login( $con );
+if ( !ssp_person_has_group_name( $person, 'SSP_InfraShop' ) ) {
+  header( 'Location: index.php' );
+  exit;
+}
+
 $reference_data = ssp_change_reference_data( $con, $person );
 $default_operator_id = ssp_get_default_operator_id( $con );
 $default_group_id = ssp_default_operator_group_id( $con );
 $errors = [];
+$infra_group_id = ssp_find_group_id_by_name( $person, 'SSP_InfraShop' );
 
 $templates = array_values( array_filter(
   $reference_data['templates'],
-  function( $template ) use ( $person ) {
-    if ( !ssp_template_has_variables( $template ) ) {
-      return false;
-    }
-
-    $group_name = ssp_find_group_name_by_id( $person, (int)( $template['persongroupid'] ?? 0 ) );
-    return strcasecmp( $group_name, 'SSP_InfraShop' ) !== 0;
+  function( $template ) use ( $infra_group_id ) {
+    return ssp_template_has_variables( $template ) && (int)( $template['persongroupid'] ?? 0 ) === $infra_group_id;
   }
 ) );
 
 $template_id = isset( $_GET['template'] ) ? (int)$_GET['template'] : 0;
 $selected_template = $template_id > 0 ? ssp_find_by_id( $templates, $template_id ) : null;
 $template_variables = $selected_template ? ssp_extract_template_variables( $selected_template ) : [];
-$page_key = 'new_change';
-$page_title = 'Wijziging aanvragen';
-$page_intro = 'Klik op een formulier om direct de juiste selfservice-aanvraag te openen.';
+$page_key = 'infra_shop';
+$page_title = 'InfraShop';
+$page_intro = 'Klik op een formulier om direct de juiste InfraShop-aanvraag te openen.';
 
 $form_values = [
-  'assetid' => '',
   'variables' => []
 ];
 
@@ -37,7 +37,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $template_id = (int)( $_POST['templateid'] ?? 0 );
   $selected_template = ssp_find_by_id( $templates, $template_id );
   $template_variables = $selected_template ? ssp_extract_template_variables( $selected_template ) : [];
-  $form_values['assetid'] = $_POST['assetid'] ?? '';
   $posted_variables = $_POST['template_values'] ?? [];
   if ( is_array( $posted_variables ) ) {
     foreach ( $posted_variables as $key => $value ) {
@@ -46,7 +45,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   }
 
   if ( !$selected_template ) {
-    $errors[] = 'Selecteer een geldig wijzigingssjabloon.';
+    $errors[] = 'Selecteer een geldig InfraShop-formulier.';
   }
   if ( $default_operator_id === 0 ) {
     $errors[] = 'Er is geen behandelaar beschikbaar om deze wijzigingsaanvraag te registreren.';
@@ -133,6 +132,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   }
 }
 
+ssp_page_title( $page_title );
+ssp_render_header( $person, $page_key );
+
 $grouped_templates = [];
 foreach ( $templates as $template ) {
   $category = ssp_find_by_id( $reference_data['categories'], (int)$template['categoryid'] );
@@ -148,9 +150,6 @@ foreach ( $templates as $template ) {
   }
   $grouped_templates[ $category_label ][ $subcategory_label ][] = $template;
 }
-
-ssp_page_title( $page_title );
-ssp_render_header( $person, $page_key );
 ?>
 <section class="ssp-page-head">
   <div>
@@ -158,7 +157,7 @@ ssp_render_header( $person, $page_key );
     <p><?= htmlspecialchars($page_intro) ?></p>
   </div>
   <?php if ( $selected_template ): ?>
-  <a class="ssp-ghost-link" href="new_change.php">Terug naar formulieren</a>
+  <a class="ssp-ghost-link" href="infra_shop.php">Terug naar formulieren</a>
   <?php endif; ?>
 </section>
 
@@ -169,9 +168,12 @@ ssp_render_header( $person, $page_key );
 <?php endif; ?>
 
 <?php if ( !$selected_template ): ?>
-<?php foreach ( $grouped_templates as $category_label => $subgroups ): ?>
 <section class="ssp-panel" style="margin-top: 22px;">
   <div class="ssp-panel-head">
+    <h3>SSP_InfraShop formulieren</h3>
+  </div>
+  <?php foreach ( $grouped_templates as $category_label => $subgroups ): ?>
+  <div class="ssp-panel-head" style="margin-top: 10px;">
     <h3><?= htmlspecialchars($category_label) ?></h3>
   </div>
   <?php foreach ( $subgroups as $subcategory_label => $items ): ?>
@@ -180,15 +182,15 @@ ssp_render_header( $person, $page_key );
   </div>
   <div class="ssp-quick-actions">
     <?php foreach ( $items as $template ): ?>
-    <a class="ssp-quick-link" href="new_change.php?template=<?= (int)$template['id'] ?>">
-      <i class="fa-solid fa-file-circle-plus"></i>
+    <a class="ssp-quick-link" href="infra_shop.php?template=<?= (int)$template['id'] ?>">
+      <i class="fa-solid fa-cart-shopping"></i>
       <span><?= htmlspecialchars($template['name']) ?></span>
     </a>
     <?php endforeach; ?>
   </div>
   <?php endforeach; ?>
+  <?php endforeach; ?>
 </section>
-<?php endforeach; ?>
 <?php else: ?>
 <section class="ssp-form-grid">
   <article class="ssp-form-card">
@@ -218,7 +220,7 @@ ssp_render_header( $person, $page_key );
       </div>
       <?php endforeach; ?>
       <div class="ssp-form-actions">
-        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Wijzigingsaanvraag opslaan</button>
+        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> InfraShop aanvraag opslaan</button>
       </div>
     </form>
   </article>

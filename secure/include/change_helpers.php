@@ -171,6 +171,16 @@ function change_default_status_id( $statuses ) {
   return isset( $statuses[0] ) ? (int)$statuses[0]['id'] : 0;
 }
 
+function change_default_group_id( $groups, $default_name = 'Servicedesk' ) {
+  foreach ( $groups as $group ) {
+    if ( strcasecmp( (string)( $group['groupname'] ?? '' ), $default_name ) === 0 ) {
+      return (int)$group['id'];
+    }
+  }
+
+  return 0;
+}
+
 function change_find_by_id( $rows, $id ) {
   foreach ( $rows as $row ) {
     if ( (int)$row['id'] === (int)$id ) {

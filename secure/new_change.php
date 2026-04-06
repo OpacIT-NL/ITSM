@@ -21,6 +21,7 @@ $operator_context = change_get_operator_context( $con, $logged_in_user );
 change_require_access( $operator_context );
 
 $reference_data = change_load_reference_data( $con );
+$default_group_id = change_default_group_id( $reference_data['groups'] );
 $errors = [];
 
 $form_values = [
@@ -39,7 +40,7 @@ $form_values = [
   'subcategoryid' => '',
   'assetid' => '',
   'assettype' => '',
-  'operatorgroupid' => '',
+  'operatorgroupid' => $default_group_id > 0 ? (string)$default_group_id : '',
   'operatorid' => '',
   'coordinatorid' => '',
   'statusid' => '',
@@ -65,7 +66,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'subcategoryid' => $_POST['subcategoryid'] ?? '',
     'assetid' => $_POST['assetid'] ?? '',
     'assettype' => '',
-    'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
+    'operatorgroupid' => ($_POST['operatorgroupid'] ?? '') !== '' ? $_POST['operatorgroupid'] : ( $default_group_id > 0 ? (string)$default_group_id : '' ),
     'operatorid' => $_POST['operatorid'] ?? '',
     'coordinatorid' => $_POST['coordinatorid'] ?? '',
     'statusid' => '',

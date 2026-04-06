@@ -6,6 +6,7 @@ $person = ssp_require_login( $con );
 $reference_data = ssp_incident_reference_data( $con, $person );
 $default_status_id = ssp_default_status_id( $reference_data['statuses'] );
 $default_operator_id = ssp_get_default_operator_id( $con );
+$default_group_id = ssp_default_operator_group_id( $con );
 $errors = [];
 
 $form_values = [
@@ -62,7 +63,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $person_phone = $person['phone'] ?? '';
     $mode = 'firstline';
     $major_incident_id = null;
-    $group_id = null;
+    $group_id = $default_group_id > 0 ? $default_group_id : null;
     $operator_id = null;
 
     $stmt = mysqli_prepare( $con, "
