@@ -112,7 +112,7 @@ $markdown_preview = markdown_to_html( $form_values['content'] );
       <div class="form-group">
         <label for="content">Inhoud (Markdown)</label>
         <textarea id="content" name="content" class="kb-editor" rows="24" required><?= htmlspecialchars($form_values['content']) ?></textarea>
-        <p class="info-note">Ondersteunt Discord-achtige Markdown zoals `# koppen`, `**vet**`, `*cursief*`, `__onderstreept__`, `~~doorgestreept~~`, `> quotes`, lijstjes, links en codeblokken.</p>
+        <p class="info-note">Ondersteunt Markdown</p>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn-primary">Kennisitem opslaan</button>
