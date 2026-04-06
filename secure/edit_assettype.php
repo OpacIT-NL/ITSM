@@ -91,11 +91,7 @@ if ( !$result ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<<<<<<< Updated upstream
-<a href="set-am-types.php">Ga terug</a>
-=======
-<?php $list_back_url = 'set-am-types.php'; require(__DIR__ . '/include/back_links.php'); ?>
->>>>>>> Stashed changes
+<a href='javascript:history.back(1)'>Ga terug</a>
 </p>
 <center>
   <h1>Asset type bewerken:

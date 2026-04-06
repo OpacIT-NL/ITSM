@@ -7,15 +7,12 @@ $assets_json = json_encode( $reference_data['assets'], JSON_HEX_TAG | JSON_HEX_A
 $groups_json = json_encode( $reference_data['groups'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
-<<<<<<< Updated upstream
-  <a href="<?= htmlspecialchars($back_url) ?>">Ga terug</a>
-=======
-  <?php require(__DIR__ . '/back_links.php'); ?>
->>>>>>> Stashed changes
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
@@ -124,37 +121,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
-          <div class="form-group">
-            <label class="incident-meta-label">Status</label>
-            <label>
-              <select name="statusid" id="status_id" required>
-                <option value="">Selecteer een status</option>
-                <?php foreach ( $reference_data['statuses'] as $status ): ?>
-                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($status['name']) ?>
-                </option>
-                <?php endforeach; ?>
-              </select>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Gereed</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
-
-          <div class="form-group">
-            <label class="incident-meta-label">Afgemeld</label>
-            <label>
-              <div>
-                <input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled>
-              </div>
-            </label>
-          </div>
+         
 
           <?php if ( $show_major_link_control ): ?>
           <div class="form-group">
@@ -186,7 +153,37 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
               <datalist id="operators_list"></datalist>
             </label>
           </div>
+ <div class="form-group">
+            <label class="incident-meta-label">Status</label>
+            <label>
+              <select name="statusid" id="status_id" required>
+                <option value="">Selecteer een status</option>
+                <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                <option value="<?= htmlspecialchars((string)$status['id']) ?>" data-ready="<?= htmlspecialchars((string)$status['ready']) ?>" data-closed="<?= htmlspecialchars((string)$status['closed']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($status['name']) ?>
+                </option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
 
+          <div class="form-group">
+            <label class="incident-meta-label">Gereed</label>
+            <label>
+              <div>
+                <input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Afgemeld</label>
+            <label>
+              <div>
+                <input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled>
+              </div>
+            </label>
+          </div>
           <input type="hidden" name="incidenttype" value="<?= htmlspecialchars($current_mode) ?>">
         </div>
       </div>
@@ -228,6 +225,13 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
               <input type="hidden" name="commentid" value="<?= htmlspecialchars((string)$form_values['commentid']) ?>">
               <textarea name="commenttext"><?= htmlspecialchars($form_values['commenttext']) ?></textarea>
             </label>
+          </div>
+
+          <div class="form-actions" id="template_actions">
+            <select id="template_select">
+              <option value="">Selecteer sjabloon</option>
+            </select>
+            <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
           </div>
 
           <div class="form-group">
@@ -301,6 +305,7 @@ const assets = <?= $assets_json ?>;
 const groups = <?= $groups_json ?>;
 const operators = <?= $operators_json ?>;
 const opLinks = <?= $op_links_json ?>;
+const templates = <?= $templates_json ?>;
 const majorIncidents = <?= $major_incidents_json ?>;
 
 function customerLabel(row) {
@@ -548,17 +553,49 @@ function refreshOperators(resetSelection) {
   }
 }
 
+function currentTemplates() {
+  const categoryId = document.getElementById('category_id').value;
+  const subcategoryId = document.getElementById('subcategory_id').value;
+  return templates.filter((row) => {
+    if (String(row.categoryid) !== String(categoryId)) {
+      return false;
+    }
+    if (!subcategoryId) {
+      return !row.subcategoryid || String(row.subcategoryid) === '';
+    }
+    return String(row.subcategoryid || '') === String(subcategoryId);
+  });
+}
+
+function refreshTemplateSelect() {
+  const templateSelect = document.getElementById('template_select');
+  if (!templateSelect) {
+    return;
+  }
+
+  const rows = currentTemplates();
+  templateSelect.innerHTML = '<option value="">Selecteer sjabloon</option>';
+  rows.forEach((row) => {
+    const option = document.createElement('option');
+    option.value = String(row.id);
+    option.textContent = row.name;
+    templateSelect.appendChild(option);
+  });
+}
+
 setDatalistOptions('customers_list', customers, customerLabel);
 setDatalistOptions('groups_list', groups, groupLabel);
 setDatalistOptions('major_incidents_list', majorIncidents, majorIncidentLabel);
 
 setLookupValue('customer_lookup', 'customer_id', customers, customerLabel);
 setLookupValue('category_lookup', 'category_id', categories, categoryLabel);
+setLookupValue('asset_lookup', 'asset_id', assets, assetLabel);
 setLookupValue('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel);
 setLookupValue('majorincident_lookup', 'majorincident_id', majorIncidents, majorIncidentLabel);
 refreshPersons(false);
 refreshSubcategories(false);
 refreshOperators(false);
+refreshTemplateSelect();
 setLookupValue('operator_lookup', 'operator_id', currentGroupOperators(), operatorLabel);
 refreshAssetType(assets.find((row) => String(row.id) === document.getElementById('asset_id').value) || null);
 
@@ -578,8 +615,11 @@ document.getElementById('subcategory_lookup').setAttribute('list', 'subcategorie
 document.getElementById('asset_lookup').setAttribute('list', 'assets_list');
 initComboBox('category_lookup', 'category_id', categories, categoryLabel, () => {
   refreshSubcategories(true);
+  refreshTemplateSelect();
 });
-initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel);
+initComboBox('subcategory_lookup', 'subcategory_id', currentCategorySubcategories, categoryLabel, () => {
+  refreshTemplateSelect();
+});
 initComboBox('asset_lookup', 'asset_id', assets, assetLabel, (match) => {
   refreshAssetType(match || null);
 });
@@ -603,6 +643,34 @@ const statusSelect = document.getElementById('status_id');
 if (statusSelect) {
   refreshStatusFlags();
   statusSelect.addEventListener('change', refreshStatusFlags);
+}
+
+const applyTemplateButton = document.getElementById('apply_template_button');
+if (applyTemplateButton) {
+  applyTemplateButton.addEventListener('click', () => {
+    const templateSelect = document.getElementById('template_select');
+    const templateActions = document.getElementById('template_actions');
+    const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
+    if (!selected) {
+      return;
+    }
+
+    const descriptionField = document.querySelector('textarea[name="description"]');
+    const commentField = document.querySelector('textarea[name="commenttext"]');
+    const titleField = document.querySelector('input[name="title"]');
+    if (titleField) {
+      titleField.value = selected.name || '';
+    }
+    if (descriptionField) {
+      descriptionField.value = selected.description || '';
+    }
+    if (commentField) {
+      commentField.value = selected.commenttext || '';
+    }
+    if (templateActions) {
+      templateActions.style.display = 'none';
+    }
+  });
 }
 </script>
 

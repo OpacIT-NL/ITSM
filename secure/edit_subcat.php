@@ -44,7 +44,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
     die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  echo "Categorie verwijderd. <a href='set-ls-cat.php'>Ga terug</a>";
+  echo "Categorie verwijderd. <a href='javascript:history.back(1)'>Ga terug</a>";
   exit;
 }
 
@@ -94,11 +94,7 @@ if ( !$result ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<<<<<<< Updated upstream
-<div class="content"> <a href="edit_cat.php?id=<?= $parent ?>">Ga terug</a>
-=======
-<div class="content"> <?php $list_back_url = 'edit_cat.php?id=' . urlencode( (string)$parent ); require(__DIR__ . '/include/back_links.php'); ?>
->>>>>>> Stashed changes
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Subcategorie Bewerken:
       <?= htmlspecialchars($row2['name']) ?>

@@ -224,7 +224,7 @@ $subcategories_json = json_encode( $subcategories, JSON_HEX_TAG | JSON_HEX_APOS 
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <?php $list_back_url = 'set-templates.php?type=' . urlencode( $form_values['type'] ); require(__DIR__ . '/include/back_links.php'); ?>
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Sjabloon bewerken</h1>
   </center>

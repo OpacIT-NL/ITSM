@@ -97,11 +97,7 @@ if ( !$result ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<<<<<<< Updated upstream
-<div class="content"> <a href="suppliers.php">Ga terug</a>
-=======
-<div class="content"> <?php $list_back_url = 'suppliers.php'; require(__DIR__ . '/include/back_links.php'); ?>
->>>>>>> Stashed changes
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Leverancier Bewerken:
       <?= htmlspecialchars($row2['name']) ?>

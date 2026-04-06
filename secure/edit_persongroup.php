@@ -93,11 +93,7 @@ if ( !$operator ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<<<<<<< Updated upstream
-<div class="content"> <a href="persongroups.php">Ga terug</a>
-=======
-<div class="content"> <?php $list_back_url = 'persongroups.php'; require(__DIR__ . '/include/back_links.php'); ?>
->>>>>>> Stashed changes
+<div class="content"> <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1>Persoonsgroep bewerken:
       <?= htmlspecialchars($operator['groupname']) ?>

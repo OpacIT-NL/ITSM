@@ -3,7 +3,7 @@ session_start();
 error_reporting( E_ALL );
 ini_set( 'display_errors', 1 );
 require_once( __DIR__ . '/../my.php' );
-require_once( __DIR__ . '/include/incident_helpers.php' );
+require_once( __DIR__ . '/include/change_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -17,22 +17,17 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 }
 
 $logged_in_user = $_SESSION[ 'name' ];
-incident_require_firstline_authorization( $con, $logged_in_user );
-$operator_context = incident_get_operator_context( $con, $logged_in_user );
-incident_require_access( $operator_context );
+$operator_context = change_get_operator_context( $con, $logged_in_user );
+change_require_access( $operator_context );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/modules.php'); ?>
 <div class="module-section">
-  <h1>Incident Management</h1>
+  <h1>Change Management</h1>
   <h2>Aanmaken</h2>
   <div class="module-grid">
-    <?php if ( (int)$operator_context['firstlineincidents'] === 1 ): ?>
-    <a href="new_incident.php?mode=firstline">Eerstelijns incident</a>
-    <?php endif; ?>
-    <?php if ( (int)$operator_context['secondlineincidents'] === 1 ): ?>
-    <a href="new_incident.php?mode=secondline">Tweedelijns incident</a>
-    <a href="new_incident.php?mode=major">Major incident</a>
+    <?php if ( (int)$operator_context['reqforchange'] === 1 ): ?>
+    <a href="new_change.php">Wijzigingsaanvraag</a>
     <?php endif; ?>
   </div>
   <br>
@@ -85,33 +80,30 @@ incident_require_access( $operator_context );
   </style>
   <div class="incident-view-columns">
     <div class="incident-view-column">
-      <h3>Eerstelijns</h3>
+      <h3>Wijzigingsaanvragen</h3>
       <div class="incident-view-links">
-        <a href="incidents.php?view=open&mode=firstline">Open incidenten</a>
-        <a href="incidents.php?view=all&mode=firstline">Alle incidenten</a>
-        <a href="incidents.php?view=ready&mode=firstline">Gereede incidenten</a>
-        <a href="incidents.php?view=mine&mode=firstline">Incidenten op mijn naam</a>
-        <a href="incidents.php?view=minegroups&mode=firstline">Incidenten op mijn naam en groepen</a>
+        <a href="changes.php?section=requests&view=open">Open</a>
+        <a href="changes.php?section=requests&view=rejected">Afgewezen</a>
+        <a href="changes.php?section=requests&view=all">Alle</a>
+        <a href="changes.php?section=requests&view=mine">Op mijn naam</a>
+        <a href="changes.php?section=requests&view=minegroups">Mijn naam of groepen</a>
       </div>
     </div>
     <div class="incident-view-column">
-      <h3>Tweedelijns</h3>
+      <h3>Wijzigingen</h3>
       <div class="incident-view-links">
-        <a href="incidents.php?view=open&mode=secondline">Open incidenten</a>
-        <a href="incidents.php?view=all&mode=secondline">Alle incidenten</a>
-        <a href="incidents.php?view=ready&mode=secondline">Gereede incidenten</a>
-        <a href="incidents.php?view=mine&mode=secondline">Incidenten op mijn naam</a>
-        <a href="incidents.php?view=minegroups&mode=secondline">Incidenten op mijn naam en groepen</a>
+        <a href="changes.php?section=changes&view=open&mode=simple">Open EW</a>
+        <a href="changes.php?section=changes&view=open&mode=extended">Open UW</a>
+        <a href="changes.php?section=changes&view=all">Alle Wijzigingen</a>
+        <a href="changes.php?section=changes&view=mine">Op mijn naam</a>
+        <a href="changes.php?section=changes&view=minegroups">Mijn naam of groepen</a>
       </div>
     </div>
     <div class="incident-view-column">
-      <h3>Major</h3>
+      <h3>Wijzigingsactiviteiten</h3>
       <div class="incident-view-links">
-        <a href="incidents.php?view=open&mode=major">Open incidenten</a>
-        <a href="incidents.php?view=all&mode=major">Alle incidenten</a>
-        <a href="incidents.php?view=ready&mode=major">Gereede incidenten</a>
-        <a href="incidents.php?view=mine&mode=major">Incidenten op mijn naam</a>
-        <a href="incidents.php?view=minegroups&mode=major">Incidenten op mijn naam en groepen</a>
+        <a href="change_activities.php?view=mine">Op mijn naam</a>
+        <a href="change_activities.php?view=minegroups">Mijn naam of groepen</a>
       </div>
     </div>
   </div>

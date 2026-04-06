@@ -11,7 +11,7 @@ $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
-  <?php require(__DIR__ . '/back_links.php'); ?>
+  <a href='javascript:history.back(1)'>Ga terug</a>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
