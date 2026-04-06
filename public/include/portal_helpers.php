@@ -40,6 +40,20 @@ function ssp_require_login( $con ) {
   $_SESSION['name'] = trim( ($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? '') );
   $_SESSION['email'] = $person['email'] ?? '';
 
+  $group_stmt = mysqli_prepare( $con, "
+        SELECT l.persongroup, g.groupname
+        FROM itsm_ob_persongrouplinks l
+        LEFT JOIN itsm_ob_persongroups g ON l.persongroup = g.id
+        WHERE l.person = ?
+        ORDER BY g.groupname ASC
+    " );
+  mysqli_stmt_bind_param( $group_stmt, "i", $person_id );
+  mysqli_stmt_execute( $group_stmt );
+  $group_result = mysqli_stmt_get_result( $group_stmt );
+  $person_groups = mysqli_fetch_all( $group_result, MYSQLI_ASSOC );
+  mysqli_stmt_close( $group_stmt );
+  $person['persongroups'] = $person_groups;
+
   return $person;
 }
 
@@ -206,12 +220,28 @@ function ssp_change_reference_data( $con, $person ) {
   $subcategories_result = mysqli_query( $con, "SELECT id, parent, name FROM itsm_core_subcategory ORDER BY name ASC" );
   $subcategories = $subcategories_result ? mysqli_fetch_all( $subcategories_result, MYSQLI_ASSOC ) : [];
   $templates_result = mysqli_query( $con, "
-        SELECT id, name, changerequesttype, categoryid, subcategoryid, description, commenttext
+        SELECT id, name, changerequesttype, persongroupid, categoryid, subcategoryid, description, commenttext
         FROM itsm_core_templates
         WHERE type = 'CHANGE'
         ORDER BY name ASC
     " );
   $templates = $templates_result ? mysqli_fetch_all( $templates_result, MYSQLI_ASSOC ) : [];
+  $allowed_group_ids = array_map(
+    function( $row ) {
+      return (int)$row['persongroup'];
+    },
+    $person['persongroups'] ?? []
+  );
+  $templates = array_values( array_filter(
+    $templates,
+    function( $template ) use ( $allowed_group_ids ) {
+      if ( empty( $template['persongroupid'] ) ) {
+        return true;
+      }
+
+      return in_array( (int)$template['persongroupid'], $allowed_group_ids, true );
+    }
+  ) );
 
   return [
     'assets' => $assets,

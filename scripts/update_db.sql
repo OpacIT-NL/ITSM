@@ -21,3 +21,10 @@ ALTER TABLE `itsm_cm_changecomments`
 ALTER TABLE `itsm_cm_changecomments`
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
+
+ALTER TABLE `itsm_core_templates`
+  ADD COLUMN `persongroupid` int(11) DEFAULT NULL AFTER `changerequesttype`,
+  ADD KEY `persongroupid` (`persongroupid`);
+
+ALTER TABLE `itsm_core_templates`
+  ADD CONSTRAINT `itsm_core_templates_ibfk_0` FOREIGN KEY (`persongroupid`) REFERENCES `itsm_ob_persongroups` (`id`);

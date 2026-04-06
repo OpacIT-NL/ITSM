@@ -147,6 +147,7 @@ CREATE TABLE `itsm_core_templates` (
   `name` varchar(255) NOT NULL,
   `type` varchar(16) NOT NULL,
   `changerequesttype` varchar(16) NOT NULL,
+  `persongroupid` int(11) DEFAULT NULL,
   `categoryid` int(11) NOT NULL,
   `subcategoryid` int(11) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
@@ -337,6 +338,7 @@ ALTER TABLE `itsm_core_templateactivities`
 
 ALTER TABLE `itsm_core_templates`
   ADD PRIMARY KEY (`id`),
+  ADD KEY `persongroupid` (`persongroupid`),
   ADD KEY `categoryid` (`categoryid`),
   ADD KEY `subcategoryid` (`subcategoryid`);
 
@@ -486,6 +488,7 @@ ALTER TABLE `itsm_core_templateactivities`
   ADD CONSTRAINT `itsm_core_templateactivities_ibfk_4` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`);
 
 ALTER TABLE `itsm_core_templates`
+  ADD CONSTRAINT `itsm_core_templates_ibfk_0` FOREIGN KEY (`persongroupid`) REFERENCES `itsm_ob_persongroups` (`id`),
   ADD CONSTRAINT `itsm_core_templates_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_core_templates_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
 

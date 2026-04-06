@@ -1,3 +1,10 @@
+ALTER TABLE `itsm_core_templates`
+  ADD COLUMN `persongroupid` int(11) DEFAULT NULL AFTER `changerequesttype`,
+  ADD KEY `persongroupid` (`persongroupid`);
+
+ALTER TABLE `itsm_core_templates`
+  ADD CONSTRAINT `itsm_core_templates_ibfk_0` FOREIGN KEY (`persongroupid`) REFERENCES `itsm_ob_persongroups` (`id`);
+
 ALTER TABLE `itsm_im_incidentcomments`
   DROP FOREIGN KEY `itsm_im_incidentcomments_ibfk_2`;
 
