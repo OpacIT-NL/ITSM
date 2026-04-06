@@ -86,6 +86,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
             <option value="INCIDENT">Incident</option>
             <option value="PROBLEM">Problem</option>
             <option value="EVENT">Event</option>
+            <option value="UBM">UBM</option>
             <option value="ASSET">Asset</option>
           </select>
         </div>

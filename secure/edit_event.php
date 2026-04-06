@@ -177,47 +177,53 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
   <div class="form-wrapper">
-    <div class="form-card">
+    <div class="form-card form-card-wide">
       <form method="post">
-        <label>Categorie</label>
-        <select name="categoryid" id="category_id" required>
-          <option value="">Selecteer een categorie</option>
-          <?php foreach ( $reference_data['categories'] as $category ): ?>
-          <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$event['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <br><br>
-        <label>Subcategorie</label>
-        <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
-        <br><br>
-        <label>Object ID</label>
-        <select name="assetid">
-          <option value="">Selecteer een object</option>
-          <?php foreach ( $reference_data['assets'] as $asset ): ?>
-          <option value="<?= htmlspecialchars((string)$asset['id']) ?>" <?= (string)$event['assetid'] === (string)$asset['id'] ? 'selected' : '' ?>><?= htmlspecialchars($asset['objectid']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <br><br>
-        <label>Omschrijving</label>
-        <textarea name="description" required><?= htmlspecialchars($event['description']) ?></textarea>
-        <br><br>
-        <div class="form-actions">
-          <?php if ( (int)$event['incidentid'] === 0 && (int)$event['closed'] === 0 ): ?>
-          <button type="submit" name="event_action" value="create_incident">Incident maken van event</button>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Categorie</label>
+            <select name="categoryid" id="category_id" required>
+              <option value="">Selecteer een categorie</option>
+              <?php foreach ( $reference_data['categories'] as $category ): ?>
+              <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$event['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subcategorie</label>
+            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+          </div>
+          <div class="form-group">
+            <label>Object ID</label>
+            <select name="assetid">
+              <option value="">Selecteer een object</option>
+              <?php foreach ( $reference_data['assets'] as $asset ): ?>
+              <option value="<?= htmlspecialchars((string)$asset['id']) ?>" <?= (string)$event['assetid'] === (string)$asset['id'] ? 'selected' : '' ?>><?= htmlspecialchars($asset['objectid']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Omschrijving</label>
+            <textarea name="description" required><?= htmlspecialchars($event['description']) ?></textarea>
+          </div>
+          <?php if ( (int)$event['incidentid'] > 0 ): ?>
+          <p class="info-note">Gekoppeld incident ID: <?= htmlspecialchars((string)$event['incidentid']) ?></p>
           <?php endif; ?>
-          <?php if ( (int)$event['closed'] === 0 ): ?>
-          <button type="submit" name="event_action" value="close">Bevestigen en sluiten</button>
-          <?php endif; ?>
-          <button type="submit" name="event_action" value="save">Opslaan</button>
+          <div class="form-actions">
+            <?php if ( (int)$event['incidentid'] === 0 && (int)$event['closed'] === 0 ): ?>
+            <button type="submit" name="event_action" value="create_incident" class="btn-primary">Incident maken van event</button>
+            <?php endif; ?>
+            <?php if ( (int)$event['closed'] === 0 ): ?>
+            <button type="submit" name="event_action" value="close" class="btn-danger">Bevestigen en sluiten</button>
+            <?php endif; ?>
+            <button type="submit" name="event_action" value="save" class="btn-primary">Opslaan</button>
+          </div>
         </div>
-        <?php if ( (int)$event['incidentid'] > 0 ): ?>
-        <p>Gekoppeld incident ID: <?= htmlspecialchars((string)$event['incidentid']) ?></p>
-        <?php endif; ?>
       </form>
     </div>
   </div>
   <div class="form-wrapper">
-    <div class="form-card">
+    <div class="form-card form-card-wide">
       <form method="post">
         <?= task_render_links_section( task_load_links( $con, 'event', $event_id, 'secure' ) ) ?>
       </form>

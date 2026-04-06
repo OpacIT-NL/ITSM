@@ -6,7 +6,8 @@ function task_supported_types() {
     'change' => [ 'prefix' => 'W', 'number_field' => 'changenumber', 'table' => 'itsm_cm_changes', 'title_field' => 'title', 'route' => 'edit_change.php' ],
     'changeactivity' => [ 'prefix' => 'WA', 'number_field' => 'activitynumber', 'table' => 'itsm_cm_changeactivities', 'title_field' => 'title', 'route' => 'edit_change_activity.php' ],
     'problem' => [ 'prefix' => 'P', 'number_field' => 'problemnumber', 'table' => 'itsm_pm_problems', 'title_field' => 'title', 'route' => 'edit_problem.php' ],
-    'event' => [ 'prefix' => 'E', 'number_field' => 'eventnumber', 'table' => 'itsm_em_events', 'title_field' => 'description', 'route' => 'edit_event.php' ]
+    'event' => [ 'prefix' => 'E', 'number_field' => 'eventnumber', 'table' => 'itsm_em_events', 'title_field' => 'description', 'route' => 'edit_event.php' ],
+    'ubm' => [ 'prefix' => 'UBM', 'number_field' => null, 'table' => 'itsm_ubm_items', 'title_field' => 'title', 'route' => 'edit_ubm_item.php' ]
   ];
 }
 
@@ -65,6 +66,9 @@ function task_find_by_number( $con, $number, $context = 'secure' ) {
   }
 
   $config = $types[$type];
+  if ( empty( $config['number_field'] ) ) {
+    return null;
+  }
   $stmt = mysqli_prepare( $con, "SELECT id, {$config['number_field']} AS tasknumber, {$config['title_field']} AS tasktitle FROM {$config['table']} WHERE {$config['number_field']} = ? LIMIT 1" );
   mysqli_stmt_bind_param( $stmt, "s", $number );
   mysqli_stmt_execute( $stmt );
@@ -177,7 +181,11 @@ function task_get_display_by_type_id( $con, $type, $id, $context = 'secure' ) {
   }
 
   $config = $types[$type];
-  $stmt = mysqli_prepare( $con, "SELECT id, {$config['number_field']} AS tasknumber, {$config['title_field']} AS tasktitle FROM {$config['table']} WHERE id = ? LIMIT 1" );
+  if ( !empty( $config['number_field'] ) ) {
+    $stmt = mysqli_prepare( $con, "SELECT id, {$config['number_field']} AS tasknumber, {$config['title_field']} AS tasktitle FROM {$config['table']} WHERE id = ? LIMIT 1" );
+  } else {
+    $stmt = mysqli_prepare( $con, "SELECT id, {$config['title_field']} AS tasktitle FROM {$config['table']} WHERE id = ? LIMIT 1" );
+  }
   mysqli_stmt_bind_param( $stmt, "i", $id );
   mysqli_stmt_execute( $stmt );
   $result = mysqli_stmt_get_result( $stmt );
@@ -191,7 +199,7 @@ function task_get_display_by_type_id( $con, $type, $id, $context = 'secure' ) {
   return [
     'type' => $type,
     'id' => (int)$row['id'],
-    'number' => $row['tasknumber'],
+    'number' => !empty( $config['number_field'] ) ? $row['tasknumber'] : 'UBM #' . (int)$row['id'],
     'title' => $row['tasktitle'] ?? '',
     'url' => task_build_url( $type, (int)$row['id'], $context )
   ];
@@ -274,6 +282,13 @@ function task_prefill_from_source( $con, $source_type, $source_id ) {
     $stmt = mysqli_prepare( $con, "
             SELECT id, title, description, customerid, personid, personemail, personphone, categoryid, subcategoryid, assetid
             FROM itsm_pm_problems
+            WHERE id = ?
+            LIMIT 1
+        " );
+  } elseif ( $source_type === 'ubm' ) {
+    $stmt = mysqli_prepare( $con, "
+            SELECT id, title, description, categoryid, subcategoryid
+            FROM itsm_ubm_items
             WHERE id = ?
             LIMIT 1
         " );

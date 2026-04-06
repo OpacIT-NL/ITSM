@@ -92,11 +92,15 @@ if ( $parent_id === 0 ) {
 $sql = "
     SELECT
       u.*,
+      c.name AS category_name,
+      sub.name AS subcategory_name,
       s.name AS status_name,
       g.groupname,
       CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
       p.title AS parent_title
     FROM itsm_ubm_items u
+    LEFT JOIN itsm_core_category c ON u.categoryid = c.id
+    LEFT JOIN itsm_core_subcategory sub ON u.subcategoryid = sub.id
     LEFT JOIN itsm_core_status s ON u.statusid = s.id
     LEFT JOIN itsm_ob_operatorgroups g ON u.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON u.operatorid = o.id
@@ -140,6 +144,8 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Laag</th>
           <th style="text-align: start;">Titel</th>
           <th style="text-align: start;">Bovenliggend</th>
+          <th style="text-align: start;">Categorie</th>
+          <th style="text-align: start;">Subcategorie</th>
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Team</th>
           <th style="text-align: start;">Behandelaar</th>
@@ -152,6 +158,8 @@ $result = mysqli_query( $con, $sql );
           <td><?= htmlspecialchars(ubm_type_label($row['itemtype'])) ?></td>
           <td><?= htmlspecialchars($row['title']) ?></td>
           <td><?= htmlspecialchars($row['parent_title'] ?? '') ?></td>
+          <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
+          <td><?= htmlspecialchars($row['subcategory_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['groupname'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['operator_name'] ?? '') ?></td>

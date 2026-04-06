@@ -53,6 +53,7 @@ if ( $operators == 0 ) {
       <option value="CHANGE" <?= ($_GET['type'] ?? '') === 'CHANGE' ? 'selected' : '' ?>> CHANGE </option>
       <option value="PROBLEM" <?= ($_GET['type'] ?? '') === 'PROBLEM' ? 'selected' : '' ?>> PROBLEM </option>
       <option value="EVENT" <?= ($_GET['type'] ?? '') === 'EVENT' ? 'selected' : '' ?>> EVENT </option>
+      <option value="UBM" <?= ($_GET['type'] ?? '') === 'UBM' ? 'selected' : '' ?>> UBM </option>
     </select>
   </form>
   <div class="results">

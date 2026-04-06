@@ -106,6 +106,7 @@ CREATE TABLE `itsm_cm_changes` (
   `operatorid` int(11) DEFAULT NULL,
   `coordinatorid` int(11) DEFAULT NULL,
   `statusid` int(11) DEFAULT NULL,
+  `template_used` int(11) DEFAULT NULL,
   `closed` int(1) NOT NULL DEFAULT 0,
   `createdby` int(11) NOT NULL,
   `createdat` datetime NOT NULL DEFAULT current_timestamp(),
@@ -132,6 +133,17 @@ CREATE TABLE `itsm_core_subcategory` (
   `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_tasklinks` (
+  `id` int(11) NOT NULL,
+  `lefttype` varchar(32) NOT NULL,
+  `leftid` int(11) NOT NULL,
+  `relationtype` varchar(64) NOT NULL,
+  `righttype` varchar(32) NOT NULL,
+  `rightid` int(11) NOT NULL,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_core_templateactivities` (
   `id` int(11) NOT NULL,
   `templateid` int(11) NOT NULL,
@@ -154,6 +166,21 @@ CREATE TABLE `itsm_core_templates` (
   `commenttext` longtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_em_events` (
+  `id` int(11) NOT NULL,
+  `eventnumber` varchar(20) NOT NULL,
+  `categoryid` int(11) DEFAULT NULL,
+  `subcategoryid` int(11) DEFAULT NULL,
+  `assetid` int(11) DEFAULT NULL,
+  `description` longtext NOT NULL,
+  `incidentid` int(11) DEFAULT NULL,
+  `acknowledged` int(1) NOT NULL DEFAULT 0,
+  `closed` int(1) NOT NULL DEFAULT 0,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_im_incidentcomments` (
   `id` int(11) NOT NULL,
   `incidentid` int(11) NOT NULL,
@@ -171,8 +198,8 @@ CREATE TABLE `itsm_im_incidents` (
   `majorincidentid` int(11) DEFAULT NULL,
   `title` varchar(255) NOT NULL,
   `description` longtext DEFAULT NULL,
-  `customerid` int(11) NOT NULL,
-  `personid` int(11) NOT NULL,
+  `customerid` int(11) DEFAULT NULL,
+  `personid` int(11) DEFAULT NULL,
   `personemail` varchar(255) DEFAULT NULL,
   `personphone` varchar(15) DEFAULT NULL,
   `categoryid` int(11) NOT NULL,
@@ -181,6 +208,7 @@ CREATE TABLE `itsm_im_incidents` (
   `operatorgroupid` int(11) DEFAULT NULL,
   `operatorid` int(11) DEFAULT NULL,
   `statusid` int(11) NOT NULL,
+  `template_used` int(11) DEFAULT NULL,
   `createdby` int(11) NOT NULL,
   `createdat` datetime NOT NULL DEFAULT current_timestamp(),
   `updatedat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -280,6 +308,52 @@ CREATE TABLE `itsm_ob_suppliers` (
   `primaryphone` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_pm_problemcomments` (
+  `id` int(11) NOT NULL,
+  `problemid` int(11) NOT NULL,
+  `operatorid` int(11) NOT NULL,
+  `commenttext` longtext NOT NULL,
+  `internalonly` int(1) NOT NULL DEFAULT 0,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_pm_problems` (
+  `id` int(11) NOT NULL,
+  `problemnumber` varchar(20) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `customerid` int(11) DEFAULT NULL,
+  `personid` int(11) DEFAULT NULL,
+  `personemail` varchar(255) DEFAULT NULL,
+  `personphone` varchar(255) DEFAULT NULL,
+  `categoryid` int(11) DEFAULT NULL,
+  `subcategoryid` int(11) DEFAULT NULL,
+  `assetid` int(11) DEFAULT NULL,
+  `operatorgroupid` int(11) DEFAULT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `statusid` int(11) DEFAULT NULL,
+  `template_used` int(11) DEFAULT NULL,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_ubm_items` (
+  `id` int(11) NOT NULL,
+  `parentid` int(11) DEFAULT NULL,
+  `itemtype` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` longtext NOT NULL,
+  `categoryid` int(11) DEFAULT NULL,
+  `subcategoryid` int(11) DEFAULT NULL,
+  `operatorgroupid` int(11) DEFAULT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `statusid` int(11) DEFAULT NULL,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 
 ALTER TABLE `itsm_am_assets`
   ADD PRIMARY KEY (`id`),
@@ -318,7 +392,8 @@ ALTER TABLE `itsm_cm_changes`
   ADD KEY `operatorid` (`operatorid`),
   ADD KEY `coordinatorid` (`coordinatorid`),
   ADD KEY `statusid` (`statusid`),
-  ADD KEY `createdby` (`createdby`);
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `template_used` (`template_used`);
 
 ALTER TABLE `itsm_core_category`
   ADD PRIMARY KEY (`id`);
@@ -329,6 +404,11 @@ ALTER TABLE `itsm_core_status`
 ALTER TABLE `itsm_core_subcategory`
   ADD PRIMARY KEY (`id`);
 
+ALTER TABLE `itsm_core_tasklinks`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `link_unique` (`lefttype`,`leftid`,`relationtype`,`righttype`,`rightid`),
+  ADD KEY `createdby` (`createdby`);
+
 ALTER TABLE `itsm_core_templateactivities`
   ADD PRIMARY KEY (`id`),
   ADD KEY `templateid` (`templateid`),
@@ -338,9 +418,18 @@ ALTER TABLE `itsm_core_templateactivities`
 
 ALTER TABLE `itsm_core_templates`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `persongroupid` (`persongroupid`),
   ADD KEY `categoryid` (`categoryid`),
-  ADD KEY `subcategoryid` (`subcategoryid`);
+  ADD KEY `subcategoryid` (`subcategoryid`),
+  ADD KEY `persongroupid` (`persongroupid`);
+
+ALTER TABLE `itsm_em_events`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `eventnumber` (`eventnumber`),
+  ADD KEY `categoryid` (`categoryid`),
+  ADD KEY `subcategoryid` (`subcategoryid`),
+  ADD KEY `assetid` (`assetid`),
+  ADD KEY `incidentid` (`incidentid`),
+  ADD KEY `createdby` (`createdby`);
 
 ALTER TABLE `itsm_im_incidentcomments`
   ADD PRIMARY KEY (`id`),
@@ -360,7 +449,8 @@ ALTER TABLE `itsm_im_incidents`
   ADD KEY `itsm_im_incidents_ibfk_4` (`subcategoryid`),
   ADD KEY `itsm_im_incidents_ibfk_5` (`assetid`),
   ADD KEY `itsm_im_incidents_ibfk_9` (`createdby`),
-  ADD KEY `majorincidentid` (`majorincidentid`);
+  ADD KEY `majorincidentid` (`majorincidentid`),
+  ADD KEY `template_used` (`template_used`);
 
 ALTER TABLE `itsm_ob_buildings`
   ADD PRIMARY KEY (`id`);
@@ -388,6 +478,35 @@ ALTER TABLE `itsm_ob_persons`
 
 ALTER TABLE `itsm_ob_suppliers`
   ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_pm_problemcomments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `problemid` (`problemid`),
+  ADD KEY `operatorid` (`operatorid`);
+
+ALTER TABLE `itsm_pm_problems`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `problemnumber` (`problemnumber`),
+  ADD KEY `customerid` (`customerid`),
+  ADD KEY `personid` (`personid`),
+  ADD KEY `categoryid` (`categoryid`),
+  ADD KEY `subcategoryid` (`subcategoryid`),
+  ADD KEY `assetid` (`assetid`),
+  ADD KEY `operatorgroupid` (`operatorgroupid`),
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `statusid` (`statusid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `template_used` (`template_used`);
+
+ALTER TABLE `itsm_ubm_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `parentid` (`parentid`),
+  ADD KEY `operatorgroupid` (`operatorgroupid`),
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `statusid` (`statusid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `categoryid` (`categoryid`),
+  ADD KEY `subcategoryid` (`subcategoryid`);
 
 
 ALTER TABLE `itsm_am_assets`
@@ -417,10 +536,16 @@ ALTER TABLE `itsm_core_status`
 ALTER TABLE `itsm_core_subcategory`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_core_tasklinks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_core_templateactivities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_em_events`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_im_incidentcomments`
@@ -456,6 +581,15 @@ ALTER TABLE `itsm_ob_persons`
 ALTER TABLE `itsm_ob_suppliers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_pm_problemcomments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_pm_problems`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ubm_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 
 ALTER TABLE `itsm_cm_changeactivities`
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_1` FOREIGN KEY (`changeid`) REFERENCES `itsm_cm_changes` (`id`) ON DELETE CASCADE,
@@ -472,6 +606,7 @@ ALTER TABLE `itsm_cm_changecomments`
 ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_10` FOREIGN KEY (`coordinatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_cm_changes_ibfk_11` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_2` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_3` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_4` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
@@ -480,6 +615,9 @@ ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_7` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_tasklinks`
+  ADD CONSTRAINT `itsm_core_tasklinks_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
 ALTER TABLE `itsm_core_templateactivities`
   ADD CONSTRAINT `itsm_core_templateactivities_ibfk_1` FOREIGN KEY (`templateid`) REFERENCES `itsm_core_templates` (`id`) ON DELETE CASCADE,
@@ -492,6 +630,13 @@ ALTER TABLE `itsm_core_templates`
   ADD CONSTRAINT `itsm_core_templates_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_core_templates_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
 
+ALTER TABLE `itsm_em_events`
+  ADD CONSTRAINT `itsm_em_events_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
+  ADD CONSTRAINT `itsm_em_events_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
+  ADD CONSTRAINT `itsm_em_events_ibfk_3` FOREIGN KEY (`assetid`) REFERENCES `itsm_am_assets` (`id`),
+  ADD CONSTRAINT `itsm_em_events_ibfk_4` FOREIGN KEY (`incidentid`) REFERENCES `itsm_im_incidents` (`id`),
+  ADD CONSTRAINT `itsm_em_events_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
 ALTER TABLE `itsm_im_incidentcomments`
   ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_1` FOREIGN KEY (`incidentid`) REFERENCES `itsm_im_incidents` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
@@ -500,6 +645,7 @@ ALTER TABLE `itsm_im_incidentcomments`
 ALTER TABLE `itsm_im_incidents`
   ADD CONSTRAINT `itsm_im_incidents_ibfk_0` FOREIGN KEY (`majorincidentid`) REFERENCES `itsm_im_incidents` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `itsm_im_incidents_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
+  ADD CONSTRAINT `itsm_im_incidents_ibfk_10` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_2` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_3` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_4` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
@@ -508,6 +654,31 @@ ALTER TABLE `itsm_im_incidents`
   ADD CONSTRAINT `itsm_im_incidents_ibfk_7` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_im_incidents_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_pm_problemcomments`
+  ADD CONSTRAINT `itsm_pm_problemcomments_ibfk_1` FOREIGN KEY (`problemid`) REFERENCES `itsm_pm_problems` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_pm_problemcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_pm_problems`
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_10` FOREIGN KEY (`template_used`) REFERENCES `itsm_core_templates` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_2` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_3` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_4` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_5` FOREIGN KEY (`assetid`) REFERENCES `itsm_am_assets` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_6` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_7` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
+  ADD CONSTRAINT `itsm_pm_problems_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_ubm_items`
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_ubm_items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_2` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_3` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_4` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_6` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
+  ADD CONSTRAINT `itsm_ubm_items_ibfk_7` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

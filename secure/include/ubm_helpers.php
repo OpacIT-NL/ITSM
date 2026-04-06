@@ -69,7 +69,9 @@ function ubm_load_reference_data( $con ) {
     'groups' => mysqli_query( $con, "SELECT id, groupname FROM itsm_ob_operatorgroups ORDER BY groupname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'operators' => mysqli_query( $con, "SELECT id, firstname, lastname FROM itsm_ob_operators ORDER BY lastname ASC, firstname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'op_links' => mysqli_query( $con, "SELECT groupid, operatorid FROM itsm_ob_opgrouplinks" )->fetch_all( MYSQLI_ASSOC ),
-    'statuses' => mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'UBM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC )
+    'statuses' => mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'UBM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC ),
+    'categories' => mysqli_query( $con, "SELECT id, name FROM itsm_core_category WHERE type = 'UBM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC ),
+    'subcategories' => mysqli_query( $con, "SELECT id, parent, name FROM itsm_core_subcategory ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC )
   ];
 }
 
@@ -122,6 +124,8 @@ function ubm_validate_form( $data, $reference_data, $parent_item = null ) {
   $status = ubm_find_by_id( $reference_data['statuses'], $data['statusid'] );
   $group = $data['operatorgroupid'] ? ubm_find_by_id( $reference_data['groups'], $data['operatorgroupid'] ) : null;
   $operator = $data['operatorid'] ? ubm_find_by_id( $reference_data['operators'], $data['operatorid'] ) : null;
+  $category = $data['categoryid'] ? ubm_find_by_id( $reference_data['categories'], $data['categoryid'] ) : null;
+  $subcategory = $data['subcategoryid'] ? ubm_find_by_id( $reference_data['subcategories'], $data['subcategoryid'] ) : null;
 
   if ( !array_key_exists( $data['itemtype'], ubm_type_map() ) ) {
     $errors[] = 'Selecteer een geldig type.';
@@ -131,6 +135,14 @@ function ubm_validate_form( $data, $reference_data, $parent_item = null ) {
   }
   if ( !$status ) {
     $errors[] = 'Selecteer een geldige status.';
+  }
+  if ( $data['categoryid'] && !$category ) {
+    $errors[] = 'Selecteer een geldige categorie.';
+  }
+  if ( $data['subcategoryid'] && !$subcategory ) {
+    $errors[] = 'Selecteer een geldige subcategorie.';
+  } elseif ( $category && $subcategory && (int)$subcategory['parent'] !== (int)$category['id'] ) {
+    $errors[] = 'De subcategorie hoort niet bij de gekozen categorie.';
   }
   if ( $data['operatorgroupid'] && !$group ) {
     $errors[] = 'Selecteer een geldige groep.';
@@ -154,6 +166,8 @@ function ubm_validate_form( $data, $reference_data, $parent_item = null ) {
   return [
     'errors' => $errors,
     'status' => $status,
+    'category' => $category,
+    'subcategory' => $subcategory,
     'group' => $group,
     'operator' => $operator
   ];

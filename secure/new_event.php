@@ -87,31 +87,39 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
   <div class="form-wrapper">
-    <div class="form-card">
+    <div class="form-card form-card-wide">
       <form method="post">
-        <label>Categorie</label>
-        <select name="categoryid" id="category_id" required>
-          <option value="">Selecteer een categorie</option>
-          <?php foreach ( $reference_data['categories'] as $category ): ?>
-          <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$form_values['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <br><br>
-        <label>Subcategorie</label>
-        <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
-        <br><br>
-        <label>Object ID</label>
-        <select name="assetid">
-          <option value="">Selecteer een object</option>
-          <?php foreach ( $reference_data['assets'] as $asset ): ?>
-          <option value="<?= htmlspecialchars((string)$asset['id']) ?>" <?= (string)$form_values['assetid'] === (string)$asset['id'] ? 'selected' : '' ?>><?= htmlspecialchars($asset['objectid']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        <br><br>
-        <label>Omschrijving</label>
-        <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
-        <br><br>
-        <button type="submit">Event opslaan</button>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Categorie</label>
+            <select name="categoryid" id="category_id" required>
+              <option value="">Selecteer een categorie</option>
+              <?php foreach ( $reference_data['categories'] as $category ): ?>
+              <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$form_values['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subcategorie</label>
+            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+          </div>
+          <div class="form-group">
+            <label>Object ID</label>
+            <select name="assetid">
+              <option value="">Selecteer een object</option>
+              <?php foreach ( $reference_data['assets'] as $asset ): ?>
+              <option value="<?= htmlspecialchars((string)$asset['id']) ?>" <?= (string)$form_values['assetid'] === (string)$asset['id'] ? 'selected' : '' ?>><?= htmlspecialchars($asset['objectid']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Omschrijving</label>
+            <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Event opslaan</button>
+          </div>
+        </div>
       </form>
     </div>
   </div>

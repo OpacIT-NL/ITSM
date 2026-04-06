@@ -53,7 +53,7 @@ $form_values = [
   'template_used' => ''
 ];
 
-if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && in_array( $source_type, [ 'incident', 'problem' ], true ) ) {
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && in_array( $source_type, [ 'incident', 'problem', 'ubm' ], true ) ) {
   $source_item = task_prefill_from_source( $con, $source_type, $source_id );
   if ( $source_item ) {
     $form_values['title'] = $source_item['title'] ?? '';
@@ -187,7 +187,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       if ( $applied_template && $form_values['requesttype'] === 'extended' && ($applied_template['changerequesttype'] ?? '') === 'extended' ) {
         change_copy_template_activities_to_change( $con, (int)$applied_template['id'], $change_id, $created_by );
       }
-      if ( $source_id > 0 && in_array( $source_type, [ 'incident', 'problem' ], true ) ) {
+      if ( $source_id > 0 && in_array( $source_type, [ 'incident', 'problem', 'ubm' ], true ) ) {
         task_create_link( $con, 'change', $change_id, 'Afgeleid van', $source_type, $source_id, $created_by );
       }
       header( 'Location: edit_change.php?id=' . $change_id );
