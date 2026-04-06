@@ -68,13 +68,13 @@ ssp_render_header( $person, 'incidents' );
     <tbody>
       <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
       <tr>
-        <td><?= htmlspecialchars($row['incidentnumber'] ?: ('#' . $row['id'])) ?></td>
-        <td><?= htmlspecialchars(trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''))) ?></td>
-        <td><?= htmlspecialchars($row['title']) ?></td>
-        <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['updatedat']) ?></td>
-        <td><a class="ssp-table-action" href="view_incident.php?id=<?= (int)$row['id'] ?>">Open</a></td>
+        <td data-label="Nummer"><?= htmlspecialchars($row['incidentnumber'] ?: ('#' . $row['id'])) ?></td>
+        <td data-label="Persoon"><?= htmlspecialchars(trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''))) ?></td>
+        <td data-label="Titel"><?= htmlspecialchars($row['title']) ?></td>
+        <td data-label="Categorie"><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
+        <td data-label="Status"><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
+        <td data-label="Bijgewerkt"><?= htmlspecialchars($row['updatedat']) ?></td>
+        <td data-label="Actie"><a class="ssp-table-action" href="view_incident.php?id=<?= (int)$row['id'] ?>">Open</a></td>
       </tr>
       <?php endwhile; ?>
     </tbody>

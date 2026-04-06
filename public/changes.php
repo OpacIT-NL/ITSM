@@ -73,9 +73,9 @@ ssp_render_header( $person, 'changes' );
     <tbody>
       <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
       <tr>
-        <td><?= htmlspecialchars($row['changenumber'] ?: ('#' . $row['id'])) ?></td>
-        <td><?= htmlspecialchars(trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''))) ?></td>
-        <td>
+        <td data-label="Nummer"><?= htmlspecialchars($row['changenumber'] ?: ('#' . $row['id'])) ?></td>
+        <td data-label="Persoon"><?= htmlspecialchars(trim(($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? ''))) ?></td>
+        <td data-label="Fase">
           <?php
           if ( $row['approvalstate'] === 'request' ) {
             echo 'Wijzigingsaanvraag';
@@ -86,11 +86,11 @@ ssp_render_header( $person, 'changes' );
           }
           ?>
         </td>
-        <td><?= htmlspecialchars($row['title']) ?></td>
-        <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
-        <td><?= htmlspecialchars($row['approvalstate'] === 'approved' ? ($row['status_name'] ?? '') : 'Aanvraag') ?></td>
-        <td><?= htmlspecialchars($row['updatedat']) ?></td>
-        <td><a class="ssp-table-action" href="view_change.php?id=<?= (int)$row['id'] ?>">Open</a></td>
+        <td data-label="Titel"><?= htmlspecialchars($row['title']) ?></td>
+        <td data-label="Categorie"><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
+        <td data-label="Status"><?= htmlspecialchars($row['approvalstate'] === 'approved' ? ($row['status_name'] ?? '') : 'Aanvraag') ?></td>
+        <td data-label="Bijgewerkt"><?= htmlspecialchars($row['updatedat']) ?></td>
+        <td data-label="Actie"><a class="ssp-table-action" href="view_change.php?id=<?= (int)$row['id'] ?>">Open</a></td>
       </tr>
       <?php endwhile; ?>
     </tbody>

@@ -345,7 +345,7 @@ if ( (int)$operator['ubm'] === 1 ) {
   <br>
   <h2>Taken</h2>
   <div class="results incident-results">
-    <table border="0" class="results incident-results-table" style="width: 100%; max-width: 920px;">
+    <table border="0" class="results incident-results-table dashboard-task-table" style="width: 100%; max-width: 920px;">
       <thead>
         <tr>
           <th style="text-align: start;">Module</th>
@@ -361,9 +361,9 @@ if ( (int)$operator['ubm'] === 1 ) {
         <?php else: ?>
         <?php foreach ( $task_rows as $row ): ?>
         <tr>
-          <td><?= htmlspecialchars($row['label']) ?></td>
-          <td><a class="btn" href="<?= htmlspecialchars($row['mine_link']) ?>"><?= htmlspecialchars((string)$row['mine_count']) ?></a></td>
-          <td><a class="btn" href="<?= htmlspecialchars($row['group_link']) ?>"><?= htmlspecialchars((string)$row['group_count']) ?></a></td>
+          <td data-label="Module"><?= htmlspecialchars($row['label']) ?></td>
+          <td data-label="Op mijn naam"><a class="btn" href="<?= htmlspecialchars($row['mine_link']) ?>"><?= htmlspecialchars((string)$row['mine_count']) ?></a></td>
+          <td data-label="Mijn naam of groepen"><a class="btn" href="<?= htmlspecialchars($row['group_link']) ?>"><?= htmlspecialchars((string)$row['group_count']) ?></a></td>
         </tr>
         <?php endforeach; ?>
         <?php endif; ?>

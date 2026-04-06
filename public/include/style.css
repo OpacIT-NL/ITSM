@@ -5,6 +5,7 @@ body.ssp-body {
   background:
     radial-gradient(circle at top left, rgba(78, 149, 217, 0.18), transparent 30%),
     linear-gradient(135deg, #eef5fb 0%, #f8fbff 55%, #e6f0f9 100%);
+  overflow-x: hidden;
 }
 
 * {
@@ -28,6 +29,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  min-width: 0;
 }
 
 .ssp-brand {
@@ -63,6 +65,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .ssp-nav-link {
@@ -84,6 +87,7 @@ a {
 
 .ssp-main {
   padding: 28px;
+  min-width: 0;
 }
 
 .ssp-topbar {
@@ -94,11 +98,23 @@ a {
   margin-bottom: 24px;
 }
 
+.ssp-topbar-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .ssp-topbar h1,
 .ssp-hero h2,
 .ssp-panel h3,
 .ssp-page-head h2 {
   margin: 0;
+}
+
+.ssp-topbar h1,
+.ssp-hero h2,
+.ssp-page-head h2 {
+  line-height: 1.15;
 }
 
 .ssp-topbar p,
@@ -220,6 +236,7 @@ a {
   margin: 10px 0 8px;
   font-size: 34px;
   color: #0f406d;
+  line-height: 1;
 }
 
 .ssp-stat-card small {
@@ -228,6 +245,16 @@ a {
 
 .ssp-panel {
   padding: 24px;
+}
+
+.ssp-panel,
+.ssp-hero,
+.ssp-form-card,
+.ssp-detail-card,
+.ssp-stat-card,
+.ssp-quick-link,
+.ssp-table-wrap {
+  min-width: 0;
 }
 
 .ssp-panel-head {
@@ -282,6 +309,7 @@ a {
   align-items: center;
   gap: 18px;
   margin-bottom: 18px;
+  min-width: 0;
 }
 
 .ssp-filter-bar {
@@ -305,6 +333,7 @@ a {
 
 .ssp-table-wrap {
   overflow: hidden;
+  width: 100%;
 }
 
 .ssp-table {
@@ -323,6 +352,17 @@ a {
 
 .ssp-table tbody tr:last-child td {
   border-bottom: 0;
+}
+
+.ssp-table td::before {
+  display: none;
+  content: attr(data-label);
+  font-size: 12px;
+  font-weight: 700;
+  color: #6d879d;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
 }
 
 .ssp-empty {
@@ -583,26 +623,36 @@ a {
 }
 
 @media (max-width: 1200px) {
-  .ssp-card-grid,
-  .ssp-dashboard-grid,
-  .ssp-form-grid,
-  .ssp-detail-grid,
-  .ssp-quick-actions {
-    grid-template-columns: 1fr 1fr;
+  .ssp-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 900px) {
-  .ssp-shell {
+  .ssp-dashboard-grid {
     grid-template-columns: 1fr;
   }
 
+  .ssp-quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .ssp-shell {
+    grid-template-columns: 220px 1fr;
+  }
+
   .ssp-sidebar {
-    padding-bottom: 16px;
+    padding: 22px 14px;
+    gap: 18px;
   }
 
   .ssp-main {
-    padding: 18px;
+    padding: 20px;
+  }
+
+  .ssp-form-grid,
+  .ssp-detail-grid {
+    grid-template-columns: 1fr;
   }
 
   .ssp-topbar,
@@ -612,15 +662,263 @@ a {
     align-items: flex-start;
   }
 
+  .kb-tree-columns {
+    columns: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .ssp-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .ssp-sidebar {
+    padding: 14px 12px 12px;
+    gap: 12px;
+  }
+
+  .ssp-main {
+    padding: 16px;
+  }
+
+  .ssp-brand {
+    gap: 10px;
+  }
+
+  .ssp-brand strong {
+    font-size: 16px;
+  }
+
+  .ssp-brand span {
+    font-size: 12px;
+  }
+
+  .ssp-brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
   .ssp-card-grid,
   .ssp-dashboard-grid,
-  .ssp-form-grid,
-  .ssp-detail-grid,
   .ssp-quick-actions {
     grid-template-columns: 1fr;
   }
 
-  .kb-tree-columns {
-    columns: 1;
+  .ssp-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 6px;
+    gap: 6px;
+    scrollbar-width: thin;
+  }
+
+  .ssp-nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .ssp-nav-link span {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ssp-main {
+    padding: 12px;
+  }
+
+  .ssp-hero,
+  .ssp-panel,
+  .ssp-form-card,
+  .ssp-detail-card,
+  .ssp-stat-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .ssp-topbar {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .ssp-topbar h1,
+  .ssp-hero h2,
+  .ssp-page-head h2 {
+    font-size: 24px;
+  }
+
+  .ssp-summary-list div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .ssp-comment-meta,
+  .news-card-meta,
+  .kb-node-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ssp-page-head {
+    align-items: stretch;
+  }
+
+  .ssp-page-head .ssp-button,
+  .ssp-page-head .ssp-button-secondary,
+  .ssp-topbar-actions .ssp-ghost-link,
+  .ssp-hero-actions .ssp-button,
+  .ssp-hero-actions .ssp-button-secondary {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ssp-hero-actions,
+  .ssp-form-actions,
+  .ssp-topbar-actions {
+    width: 100%;
+  }
+
+  .ssp-button,
+  .ssp-button-secondary,
+  .ssp-ghost-link,
+  .ssp-inline-button,
+  .ssp-table-action {
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .ssp-stat-card {
+    padding: 16px;
+  }
+
+  .ssp-stat-card strong {
+    font-size: 28px;
+    margin: 8px 0 6px;
+  }
+
+  .ssp-quick-link {
+    min-height: 96px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .ssp-quick-link i {
+    font-size: 20px;
+  }
+
+  .ssp-filter-bar {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .ssp-chip {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .ssp-table-wrap {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .ssp-table,
+  .ssp-table thead,
+  .ssp-table tbody,
+  .ssp-table tr,
+  .ssp-table th,
+  .ssp-table td {
+    display: block;
+  }
+
+  .ssp-table {
+    font-size: 14px;
+  }
+
+  .ssp-table thead {
+    display: none;
+  }
+
+  .ssp-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ssp-table tr {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(61, 106, 144, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(19, 52, 79, 0.06);
+    padding: 12px 14px;
+  }
+
+  .ssp-table td {
+    padding: 0;
+    border: 0;
+    margin-bottom: 10px;
+  }
+
+  .ssp-table td:last-child {
+    margin-bottom: 0;
+  }
+
+  .ssp-table td::before {
+    display: block;
+  }
+
+  .ssp-table-action {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 520px) {
+  .ssp-main {
+    padding: 10px;
+  }
+
+  .ssp-topbar h1,
+  .ssp-hero h2,
+  .ssp-page-head h2 {
+    font-size: 21px;
+  }
+
+  .ssp-hero,
+  .ssp-panel,
+  .ssp-form-card,
+  .ssp-detail-card,
+  .ssp-stat-card,
+  .ssp-quick-link {
+    padding: 12px;
+  }
+
+  .ssp-field input[type="text"],
+  .ssp-field select,
+  .ssp-field textarea {
+    padding: 10px 11px;
+    border-radius: 12px;
+  }
+
+  .ssp-nav-link {
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+
+  .ssp-nav-link span {
+    font-size: 13px;
+  }
+
+  .ssp-stat-card strong {
+    font-size: 24px;
   }
 }
