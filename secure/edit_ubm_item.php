@@ -139,7 +139,7 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
     <div class="form-card form-card-wide">
       <form method="post">
         <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></p>
+        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
         <?php endif; ?>
         <div class="form-grid">
           <div class="form-group">
