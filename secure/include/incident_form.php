@@ -659,6 +659,7 @@ if (applyTemplateButton) {
   applyTemplateButton.addEventListener('click', () => {
     const templateSelect = document.getElementById('template_select');
     const templateActions = document.getElementById('template_actions');
+    const appliedTemplateField = document.getElementById('applied_template_id');
     const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
     if (!selected) {
       return;
@@ -675,6 +676,9 @@ if (applyTemplateButton) {
     }
     if (commentField) {
       commentField.value = selected.commenttext || '';
+    }
+    if (appliedTemplateField) {
+      appliedTemplateField.value = String(selected.id || '');
     }
     if (templateActions) {
       templateActions.style.display = 'none';
