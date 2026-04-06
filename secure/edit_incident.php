@@ -1,9 +1,9 @@
 <?php
 session_start();
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
+require_once( __DIR__ . '/include/task_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -59,6 +59,21 @@ if ( isset( $_GET['set_major'] ) && is_numeric( $_GET['set_major'] ) && $inciden
   }
 }
 
+if ( isset( $_GET['set_problem'] ) && is_numeric( $_GET['set_problem'] ) ) {
+  $set_problem_id = (int)$_GET['set_problem'];
+  $problem_stmt = mysqli_prepare( $con, "SELECT id FROM itsm_pm_problems WHERE id = ?" );
+  mysqli_stmt_bind_param( $problem_stmt, "i", $set_problem_id );
+  mysqli_stmt_execute( $problem_stmt );
+  $problem_result = mysqli_stmt_get_result( $problem_stmt );
+  $problem_row = mysqli_fetch_assoc( $problem_result );
+  mysqli_stmt_close( $problem_stmt );
+  if ( $problem_row ) {
+    task_create_link( $con, 'incident', $incident_id, 'Behoort bij problem', 'problem', $set_problem_id, (int)$operator_context['id'] );
+    header( 'Location: edit_problem.php?id=' . $set_problem_id );
+    exit;
+  }
+}
+
 $reference_data = incident_load_reference_data( $con );
 $errors = [];
 $edit_comment = null;
@@ -70,6 +85,29 @@ if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_
   mysqli_stmt_execute( $delete_stmt );
   header( 'Location: edit_incident.php?id=' . $incident_id );
   exit;
+}
+if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
+  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  header( 'Location: edit_incident.php?id=' . $incident_id );
+  exit;
+}
+if ( isset( $_POST['add_task_link'] ) ) {
+  $relation = trim( $_POST['link_relationtype'] ?? '' );
+  $tasknumber = trim( $_POST['link_tasknumber'] ?? '' );
+  if ( $relation === '' || $tasknumber === '' ) {
+    $errors[] = 'Selecteer een linktype en vul een taaknummer in.';
+  } else {
+    $target = task_find_by_number( $con, $tasknumber, 'secure' );
+    if ( !$target ) {
+      $errors[] = 'Taaknummer niet gevonden.';
+    } elseif ( $target['type'] === 'incident' && (int)$target['id'] === $incident_id ) {
+      $errors[] = 'Een incident kan niet aan zichzelf gekoppeld worden.';
+    } else {
+      task_create_link( $con, 'incident', $incident_id, $relation, $target['type'], (int)$target['id'], (int)$operator_context['id'] );
+      header( 'Location: edit_incident.php?id=' . $incident_id );
+      exit;
+    }
+  }
 }
 
 $validation_seed = incident_validate_form(
@@ -119,10 +157,12 @@ $form_values = [
   'operatorid' => (string)$incident['operatorid'],
   'statusid' => (string)$incident['statusid'],
   'statusready' => isset( $validation_seed['status']['ready'] ) ? (int)$validation_seed['status']['ready'] : 0,
-  'statusclosed' => isset( $validation_seed['status']['closed'] ) ? (int)$validation_seed['status']['closed'] : 0
+  'statusclosed' => isset( $validation_seed['status']['closed'] ) ? (int)$validation_seed['status']['closed'] : 0,
+  'applied_template_id' => '',
+  'template_used' => (string)($incident['template_used'] ?? '')
 ];
 
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
   $form_values = [
     'commentid' => $_POST['commentid'] ?? '',
     'title' => trim( $_POST['title'] ?? '' ),
@@ -142,7 +182,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'applied_template_id' => $_POST['applied_template_id'] ?? '',
+    'template_used' => ( $incident['template_used'] ?? '' ) !== '' ? (string)$incident['template_used'] : ( $_POST['applied_template_id'] ?? '' )
   ];
 
   $action = $_POST['incident_action'] ?? 'save';
@@ -200,6 +242,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $status_id = (int)$validation['status']['id'];
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
+    $template_used = $form_values['template_used'] !== '' ? (int)$form_values['template_used'] : null;
 
     $update_stmt = mysqli_prepare( $con, "
             UPDATE itsm_im_incidents SET
@@ -216,12 +259,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
                 assetid = ?,
                 operatorgroupid = ?,
                 operatorid = ?,
-                statusid = ?
+                statusid = ?,
+                template_used = ?
             WHERE id = ?
         " );
     mysqli_stmt_bind_param(
       $update_stmt,
-      "sissiissiiiiiii",
+      "sissiissiiiiiiii",
       $new_mode,
       $major_incident_id,
       $form_values['title'],
@@ -236,6 +280,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $group_id,
       $assigned_operator_id,
       $status_id,
+      $template_used,
       $incident_id
     );
 
@@ -261,8 +306,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         } else {
           $comment_stmt = mysqli_prepare( $con, "
                     INSERT INTO itsm_im_incidentcomments (
-                        incidentid, operatorid, commenttext, internalonly
-                    ) VALUES (?,?,?,?)
+                        incidentid, operatorid, personid, commenttext, internalonly
+                    ) VALUES (?, ?, NULL, ?, ?)
                 " );
           $operator_id_for_comment = (int)$operator_context['id'];
           mysqli_stmt_bind_param(
@@ -284,15 +329,23 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $comments_result = mysqli_query( $con, "
-    SELECT c.*, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    SELECT
+      c.*,
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      CONCAT(p.lastname, ', ', p.firstname) AS person_name
     FROM itsm_im_incidentcomments c
     LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+    LEFT JOIN itsm_ob_persons p ON c.personid = p.id
     WHERE c.incidentid = " . $incident_id . "
     ORDER BY c.createdat DESC, c.id DESC
 " );
 $comments = [];
 while ( $row = mysqli_fetch_assoc( $comments_result ) ) {
-  $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  if ( (int)($row['personid'] ?? 0) > 0 ) {
+    $row['operator_name'] = $row['person_name'] ?: 'Klant';
+  } else {
+    $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  }
   $comments[] = $row;
 }
 
@@ -332,6 +385,15 @@ if ( $incident['incidenttype'] === 'firstline' ) {
     'label' => 'Incidenten koppelen'
   ];
 }
+$action_links[] = [
+  'href' => 'new_change.php?source_type=incident&source_id=' . $incident_id,
+  'label' => 'Wijziging aanmaken'
+];
+$action_links[] = [
+  'href' => 'new_problem.php?source_type=incident&source_id=' . $incident_id,
+  'label' => 'Problem aanmaken'
+];
 $action_buttons[] = [ 'value' => 'save', 'label' => 'Opslaan' ];
+$links_html = task_render_links_section( task_load_links( $con, 'incident', $incident_id, 'secure' ) );
 ?>
 <?php require_once(__DIR__ . '/include/incident_form.php'); ?>

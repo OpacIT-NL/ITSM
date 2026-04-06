@@ -1,7 +1,6 @@
 <?php
 session_start();
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
@@ -80,6 +79,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
       <option value="INCIDENT">Incident</option>
       <option value="PROBLEM">Problem</option>
       <option value="EVENT">Event</option>
+      <option value="UBM">UBM</option>
     </select>
   </div>
   <div class="form-actions">

@@ -28,12 +28,14 @@ if ( $operators == 0 ) {
 
 $categories = mysqli_query( $con, "SELECT id, name, type FROM itsm_core_category WHERE type IN ('INCIDENT', 'CHANGE') ORDER BY type ASC, name ASC" )->fetch_all( MYSQLI_ASSOC );
 $subcategories = mysqli_query( $con, "SELECT id, parent, name FROM itsm_core_subcategory ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC );
+$persongroups = mysqli_query( $con, "SELECT id, groupname FROM itsm_ob_persongroups ORDER BY groupname ASC" )->fetch_all( MYSQLI_ASSOC );
 $errors = [];
 
 $form_values = [
   'name' => '',
   'type' => 'INCIDENT',
   'changerequesttype' => '',
+  'persongroupid' => '',
   'categoryid' => '',
   'subcategoryid' => '',
   'description' => '',
@@ -45,6 +47,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'name' => trim( $_POST['name'] ?? '' ),
     'type' => $_POST['type'] ?? 'INCIDENT',
     'changerequesttype' => $_POST['changerequesttype'] ?? '',
+    'persongroupid' => $_POST['persongroupid'] ?? '',
     'categoryid' => $_POST['categoryid'] ?? '',
     'subcategoryid' => $_POST['subcategoryid'] ?? '',
     'description' => trim( $_POST['description'] ?? '' ),
@@ -65,6 +68,18 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $subcategory = $row;
         break;
       }
+    }
+  }
+  $persongroup = null;
+  if ( $form_values['persongroupid'] !== '' ) {
+    foreach ( $persongroups as $row ) {
+      if ( (int)$row['id'] === (int)$form_values['persongroupid'] ) {
+        $persongroup = $row;
+        break;
+      }
+    }
+    if ( !$persongroup ) {
+      $errors[] = 'Selecteer een geldige persoonsgroep.';
     }
   }
 
@@ -92,16 +107,18 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( empty( $errors ) ) {
     $category_id = (int)$category['id'];
     $subcategory_id = $subcategory ? (int)$subcategory['id'] : null;
+    $persongroup_id = $persongroup ? (int)$persongroup['id'] : null;
     $stmt = mysqli_prepare( $con, "
-        INSERT INTO itsm_core_templates (name, type, changerequesttype, categoryid, subcategoryid, description, commenttext)
-        VALUES (?,?,?,?,?,?,?)
+        INSERT INTO itsm_core_templates (name, type, changerequesttype, persongroupid, categoryid, subcategoryid, description, commenttext)
+        VALUES (?,?,?,?,?,?,?,?)
     " );
     mysqli_stmt_bind_param(
       $stmt,
-      "sssiiss",
+      "sssiiiss",
       $form_values['name'],
       $form_values['type'],
       $form_values['changerequesttype'],
+      $persongroup_id,
       $category_id,
       $subcategory_id,
       $form_values['description'],
@@ -145,6 +162,17 @@ $subcategories_json = json_encode( $subcategories, JSON_HEX_TAG | JSON_HEX_APOS 
             <option value="">Selecteer wijzigingssoort</option>
             <option value="simple" <?= $form_values['changerequesttype'] === 'simple' ? 'selected' : '' ?>>Eenvoudige Wijziging</option>
             <option value="extended" <?= $form_values['changerequesttype'] === 'extended' ? 'selected' : '' ?>>Uitgebreide Wijziging</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Persoonsgroep autorisatie</label>
+          <select name="persongroupid">
+            <option value="">Geen beperking</option>
+            <?php foreach ( $persongroups as $persongroup ): ?>
+            <option value="<?= htmlspecialchars((string)$persongroup['id']) ?>" <?= (string)$form_values['persongroupid'] === (string)$persongroup['id'] ? 'selected' : '' ?>>
+              <?= htmlspecialchars($persongroup['groupname']) ?>
+            </option>
+            <?php endforeach; ?>
           </select>
         </div>
         <div class="form-group">

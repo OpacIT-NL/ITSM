@@ -3,6 +3,7 @@ session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
+require_once( __DIR__ . '/include/task_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -36,6 +37,30 @@ if ( !$change ) {
 
 $reference_data = change_load_reference_data( $con );
 $errors = [];
+
+if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
+  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  header( 'Location: edit_change.php?id=' . $change_id );
+  exit;
+}
+if ( isset( $_POST['add_task_link'] ) ) {
+  $relation = trim( $_POST['link_relationtype'] ?? '' );
+  $tasknumber = trim( $_POST['link_tasknumber'] ?? '' );
+  if ( $relation === '' || $tasknumber === '' ) {
+    $errors[] = 'Selecteer een linktype en vul een taaknummer in.';
+  } else {
+    $target = task_find_by_number( $con, $tasknumber, 'secure' );
+    if ( !$target ) {
+      $errors[] = 'Taaknummer niet gevonden.';
+    } elseif ( $target['type'] === 'change' && (int)$target['id'] === $change_id ) {
+      $errors[] = 'Een wijziging kan niet aan zichzelf gekoppeld worden.';
+    } else {
+      task_create_link( $con, 'change', $change_id, $relation, $target['type'], (int)$target['id'], (int)$operator_context['id'] );
+      header( 'Location: edit_change.php?id=' . $change_id );
+      exit;
+    }
+  }
+}
 
 $seed_validation = change_validate_form(
   [
@@ -78,12 +103,13 @@ $form_values = [
   'statusid' => (string)$change['statusid'],
   'statusready' => isset( $seed_validation['status']['ready'] ) ? (int)$seed_validation['status']['ready'] : 0,
   'statusclosed' => isset( $seed_validation['status']['closed'] ) ? (int)$seed_validation['status']['closed'] : 0,
-  'applied_template_id' => ''
+  'applied_template_id' => '',
+  'template_used' => (string)($change['template_used'] ?? '')
 ];
 
 $activity_values = [ 'title' => '', 'description' => '', 'operatorgroupid' => '', 'operatorid' => '', 'statusid' => '' ];
 
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
   $action = $_POST['change_action'] ?? 'save';
 
   $form_values = [
@@ -108,7 +134,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
     'statusclosed' => 0,
-    'applied_template_id' => $_POST['applied_template_id'] ?? ''
+    'applied_template_id' => $_POST['applied_template_id'] ?? '',
+    'template_used' => ( $change['template_used'] ?? '' ) !== '' ? (string)$change['template_used'] : ( $_POST['applied_template_id'] ?? '' )
   ];
 
   $requires_status = $change['approvalstate'] === 'approved';
@@ -175,6 +202,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $status_id = $validation['status'] ? (int)$validation['status']['id'] : null;
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
+    $template_used = $form_values['template_used'] !== '' ? (int)$form_values['template_used'] : null;
     $approval_state = $change['approvalstate'];
     $closed = (int)$change['closed'];
 
@@ -252,12 +280,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
                     operatorid = ?,
                     coordinatorid = ?,
                     statusid = ?,
+                    template_used = ?,
                     closed = ?
                 WHERE id = ?
             " );
       mysqli_stmt_bind_param(
         $update_stmt,
-        "sssssiissiiiiiiiii",
+        "sssssiissiiiiiiiiii",
         $form_values['requesttype'],
         $approval_state,
         $form_values['changetype'],
@@ -274,6 +303,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $operator_id,
         $coordinator_id,
         $status_id,
+        $template_used,
         $closed,
         $change_id
       );
@@ -282,7 +312,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $errors[] = 'Wijziging bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
       } else {
         if ( $form_values['commenttext'] !== '' ) {
-          $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, commenttext, internalonly) VALUES (?,?,?,?)" );
+          $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,?,NULL,?,?)" );
           $comment_operator_id = (int)$operator_context['id'];
           mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $comment_operator_id, $form_values['commenttext'], $form_values['internalonly'] );
           mysqli_stmt_execute( $comment_stmt );
@@ -301,15 +331,23 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $comments_result = mysqli_query( $con, "
-    SELECT c.*, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    SELECT
+      c.*,
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      CONCAT(p.lastname, ', ', p.firstname) AS person_name
     FROM itsm_cm_changecomments c
     LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+    LEFT JOIN itsm_ob_persons p ON c.personid = p.id
     WHERE c.changeid = " . $change_id . "
     ORDER BY c.createdat DESC, c.id DESC
 " );
 $comments = [];
 while ( $row = mysqli_fetch_assoc( $comments_result ) ) {
-  $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  if ( (int)($row['personid'] ?? 0) > 0 ) {
+    $row['operator_name'] = $row['person_name'] ?: 'Klant';
+  } else {
+    $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  }
   $comments[] = $row;
 }
 
@@ -340,5 +378,6 @@ if ( $change['approvalstate'] === 'request' ) {
   $action_buttons[] = [ 'value' => 'reject', 'label' => 'Afwijzen', 'class' => 'btn-danger', 'formnovalidate' => true ];
 }
 $action_buttons[] = [ 'value' => 'save', 'label' => 'Opslaan', 'class' => 'btn-primary' ];
+$links_html = task_render_links_section( task_load_links( $con, 'change', $change_id, 'secure' ) );
 ?>
 <?php require_once(__DIR__ . '/include/change_form.php'); ?>

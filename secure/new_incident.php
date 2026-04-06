@@ -1,7 +1,6 @@
 <?php
 session_start();
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
 
@@ -33,6 +32,7 @@ if ( in_array( $mode, [ 'secondline', 'major' ], true ) && (int)$operator_contex
 
 $reference_data = incident_load_reference_data( $con );
 $default_status_id = incident_default_status_id( $reference_data['statuses'] );
+$default_group_id = incident_default_group_id( $reference_data['groups'] );
 $errors = [];
 $comments = [];
 
@@ -51,11 +51,13 @@ $form_values = [
   'assetid' => '',
   'assettype' => '',
   'majorincidentid' => '',
-  'operatorgroupid' => '',
+  'operatorgroupid' => $default_group_id > 0 ? (string)$default_group_id : '',
   'operatorid' => '',
   'statusid' => (string)$default_status_id,
   'statusready' => 0,
-  'statusclosed' => 0
+  'statusclosed' => 0,
+  'applied_template_id' => '',
+  'template_used' => ''
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
@@ -74,11 +76,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'assetid' => $_POST['assetid'] ?? '',
     'assettype' => '',
     'majorincidentid' => $_POST['majorincidentid'] ?? '',
-    'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
+    'operatorgroupid' => ($_POST['operatorgroupid'] ?? '') !== '' ? $_POST['operatorgroupid'] : ( $default_group_id > 0 ? (string)$default_group_id : '' ),
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'applied_template_id' => $_POST['applied_template_id'] ?? '',
+    'template_used' => $_POST['applied_template_id'] ?? ''
   ];
 
   $validation = incident_validate_form(
@@ -131,12 +135,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_im_incidents (
                 incidentnumber, incidenttype, majorincidentid, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, template_used, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
+    $template_used = ($form_values['applied_template_id'] ?? '') !== '' ? (int)$form_values['applied_template_id'] : null;
     mysqli_stmt_bind_param(
       $stmt,
-      "ssissiissiiiiiii",
+      "ssissiissiiiiiiii",
       $incident_number,
       $mode,
       $major_incident_id,
@@ -152,6 +157,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $group_id,
       $assigned_operator_id,
       $status_id,
+      $template_used,
       $created_by
     );
 
@@ -163,8 +169,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       if ( $form_values['commenttext'] !== '' ) {
         $comment_stmt = mysqli_prepare( $con, "
                     INSERT INTO itsm_im_incidentcomments (
-                        incidentid, operatorid, commenttext, internalonly
-                    ) VALUES (?,?,?,?)
+                        incidentid, operatorid, personid, commenttext, internalonly
+                    ) VALUES (?, ?, NULL, ?, ?)
                 " );
         mysqli_stmt_bind_param(
           $comment_stmt,

@@ -1,4 +1,5 @@
 <?php
+require_once( __DIR__ . '/task_helpers.php' );
 $customers_json = json_encode( $reference_data['customers'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $categories_json = json_encode( $reference_data['categories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
@@ -9,6 +10,7 @@ $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$show_template_actions = empty( $form_values['template_used'] );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
@@ -227,12 +229,15 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
             </label>
           </div>
 
+          <?php if ( $show_template_actions ): ?>
           <div class="form-actions" id="template_actions">
+            <input type="hidden" name="applied_template_id" id="applied_template_id" value="<?= htmlspecialchars((string)($form_values['applied_template_id'] ?? '')) ?>">
             <select id="template_select">
               <option value="">Selecteer sjabloon</option>
             </select>
             <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
           </div>
+          <?php endif; ?>
 
           <div class="form-group">
             <label>
@@ -259,7 +264,7 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
               <?php else: ?>
               <span class="incident-badge">Klant zichtbaar</span>
               <?php endif; ?>
-              <p><?= nl2br(htmlspecialchars($comment['commenttext'])) ?></p>
+              <p><?= task_linkify_text($comment['commenttext'], 'secure') ?></p>
               <div class="form-actions">
                 <a href="edit_incident.php?id=<?= htmlspecialchars((string)$incident_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>">Commentaar bewerken</a>
                 <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit commentaar wil verwijderen?');">Commentaar verwijderen</button>
@@ -283,12 +288,16 @@ $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HE
                 <span><?= htmlspecialchars(incident_format_display_number($linked_incident)) ?> <?= htmlspecialchars(incident_mode_label($linked_incident['incidenttype'])) ?></span>
                 <span><?= htmlspecialchars($linked_incident['status_name']) ?></span>
               </div>
-              <p><?= htmlspecialchars($linked_incident['title']) ?></p>
+              <p><?= task_linkify_text($linked_incident['title'], 'secure') ?></p>
               <a href="edit_incident.php?id=<?= htmlspecialchars((string)$linked_incident['id']) ?>">Open gekoppeld incident</a>
             </div>
             <?php endforeach; ?>
             <?php endif; ?>
           </div>
+          <?php endif; ?>
+
+          <?php if ( !empty( $links_html ) ): ?>
+          <?= $links_html ?>
           <?php endif; ?>
         </div>
       </div>

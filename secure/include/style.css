@@ -44,13 +44,37 @@ body {
   overflow-y: auto;
 }
 .content a {
-  display: inline-flex; /* important change */
-  justify-content: center;
-  align-items: center;
-  text-decoration: none;
+    display: inline-flex; /* important change */
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
   background-color: #000000;
   color: #ffffff;
   padding: 6px 12px; /* replaces fixed width */
+}
+.content a.task-inline-link,
+.results a.task-inline-link {
+  display: inline;
+  justify-content: normal;
+  align-items: normal;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  width: auto;
+  background: none;
+  color: #3274d6;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: inherit;
+  font-weight: inherit;
+  text-decoration: underline;
+}
+.content a.task-inline-link:hover,
+.results a.task-inline-link:hover {
+  background: none;
+  color: #255bb5;
+  text-decoration: underline;
 }
 .content a:hover {
   background-color: #ffffff;
@@ -262,6 +286,39 @@ body {
   padding: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+}
+.form-group textarea {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+  font-size: 14px;
+  min-height: 140px;
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-card-wide {
+  max-width: 760px;
+  min-width: 760px;
+}
+.form-card p {
+  margin-top: 0;
+}
+.info-note {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+.inline-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.inline-link-row a,
+.form-actions a {
+  border-radius: 6px;
 }
 .search-card {
   max-width: 520px;

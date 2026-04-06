@@ -37,10 +37,12 @@ $result = mysqli_query( $con, "
     SELECT
       t.*,
       c.name AS category_name,
-      s.name AS subcategory_name
+      s.name AS subcategory_name,
+      pg.groupname AS persongroup_name
     FROM itsm_core_templates t
     LEFT JOIN itsm_core_category c ON t.categoryid = c.id
     LEFT JOIN itsm_core_subcategory s ON t.subcategoryid = s.id
+    LEFT JOIN itsm_ob_persongroups pg ON t.persongroupid = pg.id
     $where
     ORDER BY t.type ASC, c.name ASC, s.name ASC, t.name ASC
 " );
@@ -67,6 +69,7 @@ $result = mysqli_query( $con, "
           <th style="text-align: start;">Naam</th>
           <th style="text-align: start;">Type</th>
           <th style="text-align: start;">Wijzigingssoort</th>
+          <th style="text-align: start;">Persoonsgroep</th>
           <th style="text-align: start;">Categorie</th>
           <th style="text-align: start;">Subcategorie</th>
           <th style="text-align: start;">Actie</th>
@@ -78,6 +81,7 @@ $result = mysqli_query( $con, "
           <td><?= htmlspecialchars($row['name']) ?></td>
           <td><?= htmlspecialchars($row['type']) ?></td>
           <td><?= htmlspecialchars(!empty($row['changerequesttype']) ? change_request_type_label($row['changerequesttype']) : '') ?></td>
+          <td><?= htmlspecialchars($row['persongroup_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['category_name']) ?></td>
           <td><?= htmlspecialchars($row['subcategory_name']) ?></td>
           <td class="tblaction"><a class="btn" href="edit_template.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open sjabloon</a></td>
