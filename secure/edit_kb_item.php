@@ -40,6 +40,28 @@ $form_values = [
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+  if ( isset( $_POST['delete_item'] ) ) {
+    if ( !empty( $child_items ) ) {
+      $errors[] = 'Verwijderen is niet mogelijk zolang dit kennisitem nog subitems heeft.';
+    } else {
+      $delete_stmt = mysqli_prepare( $con, "DELETE FROM itsm_km_items WHERE id = ?" );
+      mysqli_stmt_bind_param( $delete_stmt, "i", $item_id );
+
+      if ( mysqli_stmt_execute( $delete_stmt ) ) {
+        mysqli_stmt_close( $delete_stmt );
+        $redirect_url = $item['parentid'] !== null
+          ? 'view_kb_item.php?id=' . (int)$item['parentid']
+          : 'kb_items.php';
+        header( 'Location: ' . $redirect_url );
+        exit;
+      }
+
+      $errors[] = 'Kennisitem verwijderen mislukt: ' . mysqli_stmt_error( $delete_stmt );
+      mysqli_stmt_close( $delete_stmt );
+    }
+  }
+
+  if ( empty( $errors ) && !isset( $_POST['delete_item'] ) ) {
   $form_values = [
     'title' => trim( $_POST['title'] ?? '' ),
     'content' => trim( $_POST['content'] ?? '' ),
@@ -88,6 +110,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
     $errors[] = 'Kennisitem bijwerken mislukt: ' . mysqli_stmt_error( $stmt );
     mysqli_stmt_close( $stmt );
+  }
   }
 }
 
@@ -146,10 +169,11 @@ $breadcrumbs = kb_build_breadcrumbs( $all_items, $item_id );
       <div class="form-group">
         <label for="content">Inhoud (Markdown)</label>
         <textarea id="content" name="content" class="kb-editor" rows="24" required><?= htmlspecialchars($form_values['content']) ?></textarea>
-        <p class="info-note">Ondersteunt Discord-achtige Markdown zoals `# koppen`, `**vet**`, `*cursief*`, `__onderstreept__`, `~~doorgestreept~~`, `> quotes`, lijstjes, links en codeblokken.</p>
+        <p class="info-note">Ondersteunt Markdown</p>
       </div>
       <div class="form-actions">
         <button type="submit" class="btn-primary">Kennisitem opslaan</button>
+        <button type="submit" name="delete_item" value="1" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit kennisitem wilt verwijderen?');">Kennisitem verwijderen</button>
       </div>
     </form>
   </div>
