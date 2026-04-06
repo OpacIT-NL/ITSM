@@ -73,6 +73,7 @@ $result3 = $stmt2->get_result();
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+  <?php $list_back_url = 'edit_operatorgroup.php?id=' . urlencode( (string)$id ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Behandelaar toevoegen aan groep</h1>
   </center>

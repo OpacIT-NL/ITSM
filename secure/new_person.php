@@ -83,7 +83,11 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
+<<<<<<< Updated upstream
 <div class="content"> <a href="persons.php">Ga terug</a>
+=======
+<div class="content"> <?php $list_back_url = 'persons.php'; require(__DIR__ . '/include/back_links.php'); ?>
+>>>>>>> Stashed changes
   <center>
     <h1>Nieuw Persoon</h1>
   </center>

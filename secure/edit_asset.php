@@ -253,8 +253,12 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 
 <div class="content">
+<<<<<<< Updated upstream
 
 <a href="assets.php?filtertype=<?= htmlspecialchars((string)$asset['type']) ?>">Ga terug</a>
+=======
+<?php $list_back_url = 'assets.php?filtertype=' . urlencode( (string)$asset['type'] ); require(__DIR__ . '/include/back_links.php'); ?>
+>>>>>>> Stashed changes
 
 <center>
   <h1>Asset bewerken (<?= htmlspecialchars($asset['typename'] ?? (string)$asset['type']) ?>)</h1>

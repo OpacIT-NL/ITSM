@@ -100,7 +100,11 @@ if ( !$result ) {
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
+<<<<<<< Updated upstream
 <div class="content"> <a href="set-ls-status.php">Ga terug</a>
+=======
+<div class="content"> <?php $list_back_url = 'set-ls-status.php'; require(__DIR__ . '/include/back_links.php'); ?>
+>>>>>>> Stashed changes
   <center>
     <h1>Status Bewerken:
       <?= htmlspecialchars($row2['name']) ?>

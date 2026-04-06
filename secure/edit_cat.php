@@ -92,7 +92,11 @@ if ( !$result ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+<<<<<<< Updated upstream
 <a href="set-ls-cat.php">Ga terug</a>
+=======
+<?php $list_back_url = 'set-ls-cat.php'; require(__DIR__ . '/include/back_links.php'); ?>
+>>>>>>> Stashed changes
 </p>
 <center>
   <h1>Categorie Bewerken:
