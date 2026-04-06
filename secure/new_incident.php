@@ -189,7 +189,7 @@ $show_history = false;
 $show_linked_incidents = false;
 $linked_incidents = [];
 $mode_label = incident_mode_label( $mode );
-$back_url = incident_get_list_back_url( 'im_menu.php' );
+$list_back_url = incident_get_list_back_url( 'incidents.php?view=all&mode=' . urlencode( $mode ) );
 $current_mode = $mode;
 $show_major_link_control = $mode !== 'major';
 $incident_id = 0;

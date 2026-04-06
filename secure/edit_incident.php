@@ -315,7 +315,7 @@ $submit_label = 'Incident opslaan';
 $show_history = true;
 $show_linked_incidents = $incident['incidenttype'] === 'major';
 $mode_label = incident_mode_label( $new_mode ?? $incident['incidenttype'] );
-$back_url = incident_get_list_back_url( 'incidents.php?view=all' );
+$list_back_url = incident_get_list_back_url( 'incidents.php?view=all' );
 $current_mode = $new_mode ?? $incident['incidenttype'];
 $show_major_link_control = $current_mode !== 'major';
 $action_links = [];
