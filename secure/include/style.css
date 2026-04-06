@@ -201,6 +201,12 @@ p {
 .sidebarbutton-search {
   background-color: #4a4a4a;
 }
+.sidebarbutton-caller {
+  background-color: #2d8f9f;
+}
+.sidebarbutton-caller-phone {
+  font-size: 0.6em;
+}
 .page-layout {
   display: flex;
   align-items: flex-start;
@@ -1232,7 +1238,7 @@ p {
   .dashboard-task-table td:first-child::before {
     display: none;
   }
-  .dashboard-task-table td a {
+.dashboard-task-table td a {
     min-width: 56px;
     justify-content: center;
   }
@@ -1282,5 +1288,101 @@ p {
   }
   .results table {
     min-width: 560px;
+  }
+}
+.caller-card-selector,
+.caller-card-overview,
+.caller-card-tabs-wrap {
+  margin-top: 16px;
+}
+.caller-card-overview {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.95fr) minmax(420px, 1.25fr);
+  gap: 18px;
+  align-items: start;
+}
+.caller-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-bottom: 14px;
+}
+.caller-card-actions a,
+.caller-card-actions button {
+  margin: 0;
+}
+.caller-card-description textarea {
+  min-height: 180px;
+}
+.caller-card-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.caller-card-tab {
+  background: #edf4ff;
+  color: #21405f;
+  border: 1px solid #c7d8ec;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+.caller-card-tab.is-active {
+  background: #2f74d7;
+  color: #ffffff;
+  border-color: rgba(28, 87, 168, 0.16);
+}
+.caller-card-tabpanel {
+  display: none;
+}
+.caller-card-tabpanel.is-active {
+  display: block;
+}
+.caller-card-summary {
+  margin: 0;
+}
+.caller-card-summary div {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5ebf2;
+}
+.caller-card-summary div:last-child {
+  border-bottom: 0;
+}
+.caller-card-summary dt {
+  color: var(--topdesk-muted);
+}
+.caller-card-mini-table th,
+.caller-card-mini-table td {
+  white-space: normal;
+}
+@media (max-width: 980px) {
+  .caller-card-overview {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .caller-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .caller-card-actions a,
+  .caller-card-actions button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .caller-card-summary div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .caller-card-tab {
+    width: 100%;
+    text-align: center;
   }
 }
