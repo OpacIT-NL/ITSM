@@ -76,6 +76,7 @@ p {
   background: transparent;
   padding: 24px 28px 28px;
   overflow-y: auto;
+  min-width: 0;
 }
 .content a {
   display: inline-flex;
@@ -291,6 +292,8 @@ p {
 .results {
   align-self: center;
   align-items: center;
+  width: 100%;
+  overflow-x: auto;
 }
 .results table {
   width: 100%;
@@ -379,13 +382,16 @@ p {
   border: 1px solid var(--topdesk-border);
   box-shadow: var(--topdesk-shadow);
   max-width: 600px;
-  min-width: 600px;
+  min-width: 0;
+  width: 100%;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 .form-wrapper {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 /* Form layout */
 .form-grid {
@@ -429,7 +435,8 @@ p {
 }
 .form-card-wide {
   max-width: 760px;
-  min-width: 760px;
+  min-width: 0;
+  width: 100%;
 }
 .form-card p {
   margin-top: 0;
@@ -451,7 +458,8 @@ p {
 }
 .search-card {
   max-width: 520px;
-  min-width: 520px;
+  min-width: 0;
+  width: 100%;
 }
 .combo-box {
   position: relative;
@@ -561,11 +569,13 @@ p {
   grid-template-columns: minmax(300px, 0.9fr) minmax(720px, 1.9fr);
   gap: 18px;
   align-items: start;
+  min-width: 0;
 }
 .incident-column {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  min-width: 0;
 }
 .incident-card {
   background: var(--topdesk-panel);
@@ -930,16 +940,129 @@ p {
   color: #414141;
 }
 @media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 54px auto 1fr;
+  }
+  .topbar {
+    grid-column: 1;
+    padding: 0 14px;
+    justify-content: flex-start;
+  }
+  .topbar-right {
+    width: 100%;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .sidebar {
+    grid-column: 1;
+    flex-direction: row;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .homebutton,
+  .sidebarbutton {
+    flex: 0 0 64px;
+  }
+  .content {
+    padding: 16px;
+  }
+  .page-layout {
+    flex-direction: column;
+  }
+  .page-sidebar,
+  .page-content {
+    width: 100%;
+  }
+  .page-sidebar {
+    box-sizing: border-box;
+  }
+  .module-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
   .incident-layout {
     grid-template-columns: 1fr;
+  }
+  .incident-left-card .form-group {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    justify-content: stretch;
+  }
+  .incident-left-card .form-group > label:last-child {
+    justify-self: stretch;
   }
   .incident-grid-two {
     grid-template-columns: 1fr;
   }
+  .incident-title-input {
+    font-size: 20px;
+  }
   .kb-tree-columns {
     columns: 1;
   }
+  .kb-node-head,
+  .news-card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
   .dashboard-top-grid {
     grid-template-columns: 1fr;
+  }
+  .quicklinks {
+    gap: 12px;
+  }
+  .quicklinks a {
+    width: calc(50% - 6px);
+    min-width: 140px;
+    height: 116px;
+  }
+  .results table {
+    min-width: 720px;
+  }
+}
+@media (max-width: 640px) {
+  .content {
+    padding: 12px;
+  }
+  .module-section h1 {
+    font-size: 28px;
+  }
+  .dashboard-top-grid > div > h2,
+  .content > h2 {
+    font-size: 22px;
+  }
+  .quicklinks a {
+    width: 100%;
+    min-width: 0;
+    height: 104px;
+  }
+  .form-card,
+  .form-card-wide,
+  .search-card,
+  .incident-card,
+  .news-dashboard-panel,
+  .page-sidebar {
+    padding: 14px;
+  }
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-actions a,
+  .form-actions button,
+  .content a {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .inline-link-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .results table {
+    min-width: 620px;
   }
 }
