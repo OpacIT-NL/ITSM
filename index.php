@@ -20,5 +20,6 @@
     <br>
     ©OpacIT 2026 </sub> </div>
 </div>
+<?php itsm_render_local_datetime_script(); ?>
 </body>
 </html>

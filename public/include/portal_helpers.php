@@ -119,6 +119,9 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
 function ssp_render_footer() {
   echo "  </main>\n";
   echo "</div>\n";
+  if ( function_exists( 'itsm_render_local_datetime_script' ) ) {
+    itsm_render_local_datetime_script();
+  }
   echo "</body>\n";
   echo "</html>\n";
 }

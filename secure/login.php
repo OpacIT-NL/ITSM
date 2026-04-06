@@ -25,5 +25,6 @@
     <button type="submit" class="login-button">Login</button>
   </form>
 </div>
+<?php itsm_render_local_datetime_script(); ?>
 </body>
 </html>
