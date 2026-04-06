@@ -163,8 +163,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       if ( $form_values['commenttext'] !== '' ) {
         $comment_stmt = mysqli_prepare( $con, "
                     INSERT INTO itsm_im_incidentcomments (
-                        incidentid, operatorid, commenttext, internalonly
-                    ) VALUES (?,?,?,?)
+                        incidentid, operatorid, personid, commenttext, internalonly
+                    ) VALUES (?, ?, NULL, ?, ?)
                 " );
         mysqli_stmt_bind_param(
           $comment_stmt,

@@ -282,7 +282,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $errors[] = 'Wijziging bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
       } else {
         if ( $form_values['commenttext'] !== '' ) {
-          $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, commenttext, internalonly) VALUES (?,?,?,?)" );
+          $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,?,NULL,?,?)" );
           $comment_operator_id = (int)$operator_context['id'];
           mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $comment_operator_id, $form_values['commenttext'], $form_values['internalonly'] );
           mysqli_stmt_execute( $comment_stmt );
@@ -301,15 +301,23 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $comments_result = mysqli_query( $con, "
-    SELECT c.*, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    SELECT
+      c.*,
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      CONCAT(p.lastname, ', ', p.firstname) AS person_name
     FROM itsm_cm_changecomments c
     LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+    LEFT JOIN itsm_ob_persons p ON c.personid = p.id
     WHERE c.changeid = " . $change_id . "
     ORDER BY c.createdat DESC, c.id DESC
 " );
 $comments = [];
 while ( $row = mysqli_fetch_assoc( $comments_result ) ) {
-  $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  if ( (int)($row['personid'] ?? 0) > 0 ) {
+    $row['operator_name'] = $row['person_name'] ?: 'Klant';
+  } else {
+    $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+  }
   $comments[] = $row;
 }
 

@@ -80,7 +80,8 @@ CREATE TABLE `itsm_cm_changeactivities` (
 CREATE TABLE `itsm_cm_changecomments` (
   `id` int(11) NOT NULL,
   `changeid` int(11) NOT NULL,
-  `operatorid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `personid` int(11) DEFAULT NULL,
   `commenttext` longtext NOT NULL,
   `internalonly` int(1) NOT NULL DEFAULT 0,
   `createdat` datetime NOT NULL DEFAULT current_timestamp()
@@ -155,7 +156,8 @@ CREATE TABLE `itsm_core_templates` (
 CREATE TABLE `itsm_im_incidentcomments` (
   `id` int(11) NOT NULL,
   `incidentid` int(11) NOT NULL,
-  `operatorid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `personid` int(11) DEFAULT NULL,
   `commenttext` longtext NOT NULL,
   `internalonly` int(1) NOT NULL DEFAULT 0,
   `createdat` datetime NOT NULL DEFAULT current_timestamp()
@@ -300,7 +302,8 @@ ALTER TABLE `itsm_cm_changeactivities`
 ALTER TABLE `itsm_cm_changecomments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `changeid` (`changeid`),
-  ADD KEY `operatorid` (`operatorid`);
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `personid` (`personid`);
 
 ALTER TABLE `itsm_cm_changes`
   ADD PRIMARY KEY (`id`),
@@ -340,7 +343,8 @@ ALTER TABLE `itsm_core_templates`
 ALTER TABLE `itsm_im_incidentcomments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `incidentid` (`incidentid`),
-  ADD KEY `operatorid` (`operatorid`);
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `personid` (`personid`);
 
 ALTER TABLE `itsm_im_incidents`
   ADD PRIMARY KEY (`id`),
@@ -460,7 +464,8 @@ ALTER TABLE `itsm_cm_changeactivities`
 
 ALTER TABLE `itsm_cm_changecomments`
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_1` FOREIGN KEY (`changeid`) REFERENCES `itsm_cm_changes` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
+  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
 
 ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
@@ -486,7 +491,8 @@ ALTER TABLE `itsm_core_templates`
 
 ALTER TABLE `itsm_im_incidentcomments`
   ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_1` FOREIGN KEY (`incidentid`) REFERENCES `itsm_im_incidents` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
+  ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
 
 ALTER TABLE `itsm_im_incidents`
   ADD CONSTRAINT `itsm_im_incidents_ibfk_0` FOREIGN KEY (`majorincidentid`) REFERENCES `itsm_im_incidents` (`id`) ON DELETE SET NULL,

@@ -155,7 +155,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     } else {
       $change_id = mysqli_insert_id( $con );
       if ( $form_values['commenttext'] !== '' ) {
-        $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, commenttext, internalonly) VALUES (?,?,?,?)" );
+        $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,?,NULL,?,?)" );
         mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
         mysqli_stmt_execute( $comment_stmt );
         mysqli_stmt_close( $comment_stmt );

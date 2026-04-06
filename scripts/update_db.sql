@@ -35,7 +35,8 @@ CREATE TABLE `itsm_cm_changes` (
 CREATE TABLE `itsm_cm_changecomments` (
   `id` int(11) NOT NULL,
   `changeid` int(11) NOT NULL,
-  `operatorid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `personid` int(11) DEFAULT NULL,
   `commenttext` longtext NOT NULL,
   `internalonly` int(1) NOT NULL DEFAULT 0,
   `createdat` datetime NOT NULL DEFAULT current_timestamp()
@@ -93,7 +94,8 @@ ALTER TABLE `itsm_cm_changes`
 ALTER TABLE `itsm_cm_changecomments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `changeid` (`changeid`),
-  ADD KEY `operatorid` (`operatorid`);
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `personid` (`personid`);
 
 ALTER TABLE `itsm_cm_changeactivities`
   ADD PRIMARY KEY (`id`),
@@ -145,7 +147,8 @@ ALTER TABLE `itsm_cm_changes`
 
 ALTER TABLE `itsm_cm_changecomments`
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_1` FOREIGN KEY (`changeid`) REFERENCES `itsm_cm_changes` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
+  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_cm_changecomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
 
 ALTER TABLE `itsm_cm_changeactivities`
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_1` FOREIGN KEY (`changeid`) REFERENCES `itsm_cm_changes` (`id`) ON DELETE CASCADE,
@@ -153,6 +156,18 @@ ALTER TABLE `itsm_cm_changeactivities`
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_3` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_4` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_cm_changeactivities_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_im_incidentcomments`
+  DROP FOREIGN KEY `itsm_im_incidentcomments_ibfk_2`;
+
+ALTER TABLE `itsm_im_incidentcomments`
+  MODIFY `operatorid` int(11) DEFAULT NULL,
+  ADD COLUMN `personid` int(11) DEFAULT NULL AFTER `operatorid`,
+  ADD KEY `personid` (`personid`);
+
+ALTER TABLE `itsm_im_incidentcomments`
+  ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
+  ADD CONSTRAINT `itsm_im_incidentcomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
 
 ALTER TABLE `itsm_core_templates`
   ADD CONSTRAINT `itsm_core_templates_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
