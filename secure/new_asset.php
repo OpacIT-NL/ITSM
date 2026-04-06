@@ -234,7 +234,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
 <div class="content">
 
-<a href='javascript:history.back(1)'>Ga terug</a>
+<?php $list_back_url = 'assets.php?filtertype=' . urlencode( (string)$type_id ); require(__DIR__ . '/include/back_links.php'); ?>
 
 <center>
   <h1>Nieuw asset (<?= htmlspecialchars($type_name) ?>)</h1>

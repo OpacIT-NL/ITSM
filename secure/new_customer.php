@@ -63,7 +63,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
-<div class="content"><a href='javascript:history.back(1)'>Ga terug</a>
+<div class="content"><?php $list_back_url = 'customers.php'; require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Nieuwe klant</h1>
   </center>

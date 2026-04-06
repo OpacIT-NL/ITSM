@@ -172,7 +172,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Wijzigingsaanvraag aanmaken';
-$back_url = change_get_list_back_url( 'cm-menu.php' );
+$list_back_url = change_get_list_back_url( 'changes.php?section=requests&view=all' );
 $show_status_block = false;
 $show_history = false;
 $show_activities = false;

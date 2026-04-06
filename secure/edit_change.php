@@ -330,7 +330,7 @@ if ( $change['requesttype'] === 'extended' ) {
 }
 
 $page_title = change_approval_state_label( $change ) . ' ' . change_format_display_number( $change );
-$back_url = change_get_list_back_url( 'changes.php?view=all' );
+$list_back_url = change_get_list_back_url( 'changes.php?section=changes&view=all' );
 $show_status_block = $change['approvalstate'] === 'approved';
 $show_history = true;
 $show_activities = $change['requesttype'] === 'extended';

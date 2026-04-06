@@ -91,7 +91,7 @@ if ( !$result ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href='javascript:history.back(1)'>Ga terug</a>
+<?php $list_back_url = 'set-am-types.php'; require(__DIR__ . '/include/back_links.php'); ?>
 </p>
 <center>
   <h1>Asset type bewerken:

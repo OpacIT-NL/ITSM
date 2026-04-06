@@ -128,7 +128,7 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <a href='javascript:history.back(1)'>Ga terug</a>
+  <?php $list_back_url = 'edit_template.php?id=' . urlencode( (string)$activity['template_id'] ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Sjabloonactiviteit - <?= htmlspecialchars($activity['title']) ?></h1>
   </center>

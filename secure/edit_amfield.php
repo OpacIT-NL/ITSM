@@ -69,7 +69,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-<a href='javascript:history.back(1)'>Ga terug</a>
+<?php $list_back_url = 'edit_assettype.php?id=' . urlencode( (string)$field['type'] ); require(__DIR__ . '/include/back_links.php'); ?>
 <center>
   <h1>Vrij veld bewerken</h1>
   <p>
