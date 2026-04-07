@@ -114,9 +114,7 @@ $form_values = [
   'operatorid' => (string)$problem['operatorid'],
   'statusid' => (string)$problem['statusid'],
   'statusready' => isset( $validation_seed['status']['ready'] ) ? (int)$validation_seed['status']['ready'] : 0,
-  'statusclosed' => isset( $validation_seed['status']['closed'] ) ? (int)$validation_seed['status']['closed'] : 0,
-  'applied_template_id' => '',
-  'template_used' => (string)($problem['template_used'] ?? '')
+  'statusclosed' => isset( $validation_seed['status']['closed'] ) ? (int)$validation_seed['status']['closed'] : 0
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'] ) && !isset( $_POST['add_task_link'] ) ) {
@@ -138,9 +136,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0,
-    'applied_template_id' => $_POST['applied_template_id'] ?? '',
-    'template_used' => ( $problem['template_used'] ?? '' ) !== '' ? (string)$problem['template_used'] : ( $_POST['applied_template_id'] ?? '' )
+    'statusclosed' => 0
   ];
 
   $validation = problem_validate_form(
@@ -183,7 +179,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
     $status_id = (int)$validation['status']['id'];
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
-    $template_used = $form_values['template_used'] !== '' ? (int)$form_values['template_used'] : null;
 
     $update_stmt = mysqli_prepare( $con, "
             UPDATE itsm_pm_problems SET
@@ -198,13 +193,12 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
                 assetid = ?,
                 operatorgroupid = ?,
                 operatorid = ?,
-                statusid = ?,
-                template_used = ?
+                statusid = ?
             WHERE id = ?
         " );
     mysqli_stmt_bind_param(
       $update_stmt,
-      "ssiissiiiiiiii",
+      "ssiissiiiiiii",
       $form_values['title'],
       $form_values['description'],
       $customer_id,
@@ -217,7 +211,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
       $group_id,
       $operator_id,
       $status_id,
-      $template_used,
       $problem_id
     );
 

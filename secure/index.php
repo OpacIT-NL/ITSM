@@ -108,14 +108,24 @@ if ( (int)$operator['firstlineincidents'] === 1 ) {
     'label' => 'Eerstelijns incidenten',
     'mine_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'firstline' AND i.operatorid = ?",
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'firstline'
+         AND IFNULL(s.closed, 0) = 0
+         AND i.operatorid = ?",
       'i',
       [ $operator_id ]
     ),
     'mine_link' => './incidents.php?view=mine&mode=firstline',
     'group_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'firstline' AND (" . $incident_group_clause . ")"
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'firstline'
+         AND IFNULL(s.closed, 0) = 0
+         AND (" . $incident_group_clause . ")"
     ),
     'group_link' => './incidents.php?view=minegroups&mode=firstline'
   ];
@@ -126,14 +136,24 @@ if ( (int)$operator['secondlineincidents'] === 1 ) {
     'label' => 'Tweedelijns incidenten',
     'mine_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'secondline' AND i.operatorid = ?",
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'secondline'
+         AND IFNULL(s.closed, 0) = 0
+         AND i.operatorid = ?",
       'i',
       [ $operator_id ]
     ),
     'mine_link' => './incidents.php?view=mine&mode=secondline',
     'group_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'secondline' AND (" . $incident_group_clause . ")"
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'secondline'
+         AND IFNULL(s.closed, 0) = 0
+         AND (" . $incident_group_clause . ")"
     ),
     'group_link' => './incidents.php?view=minegroups&mode=secondline'
   ];
@@ -142,14 +162,24 @@ if ( (int)$operator['secondlineincidents'] === 1 ) {
     'label' => 'Major incidenten',
     'mine_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'major' AND i.operatorid = ?",
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'major'
+         AND IFNULL(s.closed, 0) = 0
+         AND i.operatorid = ?",
       'i',
       [ $operator_id ]
     ),
     'mine_link' => './incidents.php?view=mine&mode=major',
     'group_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_im_incidents i WHERE i.incidenttype = 'major' AND (" . $incident_group_clause . ")"
+      "SELECT COUNT(*)
+       FROM itsm_im_incidents i
+       LEFT JOIN itsm_core_status s ON i.statusid = s.id
+       WHERE i.incidenttype = 'major'
+         AND IFNULL(s.closed, 0) = 0
+         AND (" . $incident_group_clause . ")"
     ),
     'group_link' => './incidents.php?view=minegroups&mode=major'
   ];
@@ -160,14 +190,14 @@ if ( (int)$operator['reqforchange'] === 1 || (int)$operator['simplechange'] === 
     'label' => 'Wijzigingsaanvragen',
     'mine_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_cm_changes c WHERE c.approvalstate IN ('request', 'rejected') AND (c.operatorid = ? OR c.coordinatorid = ?)",
+      "SELECT COUNT(*) FROM itsm_cm_changes c WHERE c.approvalstate = 'request' AND (c.operatorid = ? OR c.coordinatorid = ?)",
       'ii',
       [ $operator_id, $operator_id ]
     ),
     'mine_link' => './changes.php?section=requests&view=mine',
     'group_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_cm_changes c WHERE c.approvalstate IN ('request', 'rejected') AND " . $change_group_clause
+      "SELECT COUNT(*) FROM itsm_cm_changes c WHERE c.approvalstate = 'request' AND " . $change_group_clause
     ),
     'group_link' => './changes.php?section=requests&view=minegroups'
   ];
@@ -256,14 +286,22 @@ if ( (int)$operator['problems'] === 1 ) {
     'label' => 'Problems',
     'mine_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_pm_problems p WHERE p.operatorid = ?",
+      "SELECT COUNT(*)
+       FROM itsm_pm_problems p
+       LEFT JOIN itsm_core_status s ON p.statusid = s.id
+       WHERE IFNULL(s.closed, 0) = 0
+         AND p.operatorid = ?",
       'i',
       [ $operator_id ]
     ),
     'mine_link' => './problems.php?view=mine',
     'group_count' => dashboard_fetch_count(
       $con,
-      "SELECT COUNT(*) FROM itsm_pm_problems p WHERE (" . $problem_group_clause . ")"
+      "SELECT COUNT(*)
+       FROM itsm_pm_problems p
+       LEFT JOIN itsm_core_status s ON p.statusid = s.id
+       WHERE IFNULL(s.closed, 0) = 0
+         AND (" . $problem_group_clause . ")"
     ),
     'group_link' => './problems.php?view=minegroups'
   ];
@@ -287,7 +325,7 @@ if ( (int)$operator['events'] === 1 ) {
 
 if ( (int)$operator['ubm'] === 1 ) {
   $ubm_rows = [
-    [ 'label' => 'UBM Initiatives', 'itemtype' => 'initiative', 'view' => 'initiatives', 'open_only' => false ],
+    [ 'label' => 'UBM Initiatives', 'itemtype' => 'initiative', 'view' => 'initiatives', 'open_only' => true ],
     [ 'label' => 'UBM Epics', 'itemtype' => 'epic', 'view' => 'epics', 'open_only' => true ],
     [ 'label' => 'UBM Features', 'itemtype' => 'feature', 'view' => 'features', 'open_only' => true ],
     [ 'label' => 'UBM Stories', 'itemtype' => 'story', 'view' => 'stories', 'open_only' => true ],

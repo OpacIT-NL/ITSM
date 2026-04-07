@@ -56,6 +56,10 @@ if ( $view === 'open' ) {
   $where[] = '(' . implode( ' OR ', $clauses ) . ')';
 }
 
+if ( in_array( $view, [ 'mine', 'minegroups' ], true ) ) {
+  $where[] = 'IFNULL(s.closed, 0) = 0';
+}
+
 if ( $mode !== '' ) {
   $where[] = "i.incidenttype = '" . mysqli_real_escape_string( $con, $mode ) . "'";
 }
