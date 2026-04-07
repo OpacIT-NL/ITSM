@@ -87,13 +87,7 @@ function problem_load_reference_data( $con ) {
     'groups' => mysqli_query( $con, "SELECT id, groupname FROM itsm_ob_operatorgroups ORDER BY groupname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'operators' => mysqli_query( $con, "SELECT id, firstname, lastname FROM itsm_ob_operators ORDER BY lastname ASC, firstname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'op_links' => mysqli_query( $con, "SELECT groupid, operatorid FROM itsm_ob_opgrouplinks" )->fetch_all( MYSQLI_ASSOC ),
-    'statuses' => mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'PROBLEM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC ),
-    'templates' => mysqli_query( $con, "
-        SELECT id, name, type, categoryid, subcategoryid, description, commenttext
-        FROM itsm_core_templates
-        WHERE type = 'PROBLEM'
-        ORDER BY name ASC
-    " )->fetch_all( MYSQLI_ASSOC )
+    'statuses' => mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'PROBLEM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC )
   ];
 }
 

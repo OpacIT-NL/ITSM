@@ -5,8 +5,6 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
 $subcategories_json = json_encode( $reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
-$templates_json = json_encode( $reference_data['templates'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
-$show_template_actions = empty( $form_values['template_used'] );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
@@ -176,16 +174,6 @@ $show_template_actions = empty( $form_values['template_used'] );
             </label>
           </div>
 
-          <?php if ( $show_template_actions ): ?>
-          <div class="form-actions" id="template_actions">
-            <input type="hidden" name="applied_template_id" id="applied_template_id" value="<?= htmlspecialchars((string)($form_values['applied_template_id'] ?? '')) ?>">
-            <select id="template_select">
-              <option value="">Selecteer sjabloon</option>
-            </select>
-            <button type="button" id="apply_template_button" class="btn-primary">Sjabloon toepassen</button>
-          </div>
-          <?php endif; ?>
-
           <div class="form-group">
             <label><input type="checkbox" name="internalonly" <?= !empty($form_values['internalonly']) ? 'checked' : '' ?>> Niet voor klant</label>
           </div>
@@ -230,7 +218,6 @@ const persons = <?= $persons_json ?>;
 const subcategories = <?= $subcategories_json ?>;
 const operators = <?= $operators_json ?>;
 const opLinks = <?= $op_links_json ?>;
-const templates = <?= $templates_json ?>;
 const currentSubcategoryId = <?= json_encode((string)$form_values['subcategoryid']) ?>;
 const currentOperatorId = <?= json_encode((string)$form_values['operatorid']) ?>;
 
@@ -309,33 +296,6 @@ function refreshOperators() {
   });
 }
 
-function currentTemplates() {
-  const categoryId = document.getElementById('category_id').value;
-  const subcategoryId = document.getElementById('subcategory_id').value;
-  return templates.filter((row) => {
-    if (String(row.categoryid) !== String(categoryId)) {
-      return false;
-    }
-    if (!subcategoryId) {
-      return !row.subcategoryid || String(row.subcategoryid) === '';
-    }
-    return String(row.subcategoryid || '') === String(subcategoryId);
-  });
-}
-
-function refreshTemplateSelect() {
-  const templateSelect = document.getElementById('template_select');
-  if (!templateSelect) { return; }
-  const rows = currentTemplates();
-  templateSelect.innerHTML = '<option value="">Selecteer sjabloon</option>';
-  rows.forEach((row) => {
-    const option = document.createElement('option');
-    option.value = String(row.id);
-    option.textContent = row.name;
-    templateSelect.appendChild(option);
-  });
-}
-
 document.getElementById('customer_lookup').addEventListener('change', () => {
   const match = customers.find((row) => customerLabel(row) === document.getElementById('customer_lookup').value);
   document.getElementById('customer_id').value = match ? String(match.id) : '';
@@ -350,7 +310,6 @@ document.getElementById('person_lookup').addEventListener('change', () => {
 });
 
 document.getElementById('category_id').addEventListener('change', refreshSubcategories);
-document.getElementById('category_id').addEventListener('change', refreshTemplateSelect);
 document.getElementById('operatorgroup_id').addEventListener('change', refreshOperators);
 document.getElementById('asset_id').addEventListener('change', () => {
   const selected = document.getElementById('asset_id').selectedOptions[0];
@@ -366,45 +325,11 @@ refreshCustomerOptions();
 refreshPersonOptions(false);
 refreshSubcategories();
 refreshOperators();
-refreshTemplateSelect();
 const selectedAsset = document.getElementById('asset_id').selectedOptions[0];
 document.getElementById('asset_type').value = selectedAsset ? (selectedAsset.dataset.type || '') : '';
 const selectedStatus = document.getElementById('status_id').selectedOptions[0];
 document.getElementById('status_ready_display').checked = selectedStatus ? selectedStatus.dataset.ready === '1' : false;
 document.getElementById('status_closed_display').checked = selectedStatus ? selectedStatus.dataset.closed === '1' : false;
-
-const problemSubcategorySelect = document.getElementById('subcategory_id');
-if (problemSubcategorySelect) {
-  problemSubcategorySelect.addEventListener('change', refreshTemplateSelect);
-}
-const problemApplyTemplateButton = document.getElementById('apply_template_button');
-if (problemApplyTemplateButton) {
-  problemApplyTemplateButton.addEventListener('click', () => {
-    const templateSelect = document.getElementById('template_select');
-    const templateActions = document.getElementById('template_actions');
-    const appliedTemplateField = document.getElementById('applied_template_id');
-    const selected = templates.find((row) => String(row.id) === String(templateSelect.value));
-    if (!selected) { return; }
-    const titleField = document.querySelector('input[name="title"]');
-    const descriptionField = document.querySelector('textarea[name="description"]');
-    const commentField = document.querySelector('textarea[name="commenttext"]');
-    if (titleField) {
-      titleField.value = selected.name || '';
-    }
-    if (descriptionField) {
-      descriptionField.value = selected.description || '';
-    }
-    if (commentField) {
-      commentField.value = selected.commenttext || '';
-    }
-    if (appliedTemplateField) {
-      appliedTemplateField.value = String(selected.id);
-    }
-    if (templateActions) {
-      templateActions.style.display = 'none';
-    }
-  });
-}
 </script>
 
 <?php require_once(__DIR__ . '/../nav/end.php'); ?>

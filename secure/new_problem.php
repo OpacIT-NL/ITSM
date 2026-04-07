@@ -46,9 +46,7 @@ $form_values = [
   'operatorid' => '',
   'statusid' => (string)$default_status_id,
   'statusready' => 0,
-  'statusclosed' => 0,
-  'applied_template_id' => '',
-  'template_used' => ''
+  'statusclosed' => 0
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && $source_type === 'incident' ) {
@@ -85,9 +83,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0,
-    'applied_template_id' => $_POST['applied_template_id'] ?? '',
-    'template_used' => $_POST['applied_template_id'] ?? ''
+    'statusclosed' => 0
   ];
 
   $validation = problem_validate_form(
@@ -136,13 +132,12 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_pm_problems (
                 problemnumber, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, template_used, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
-    $template_used = ($form_values['applied_template_id'] ?? '') !== '' ? (int)$form_values['applied_template_id'] : null;
     mysqli_stmt_bind_param(
       $stmt,
-      "sssiissiiiiiiii",
+      "sssiissiiiiiii",
       $problem_number,
       $form_values['title'],
       $form_values['description'],
@@ -156,7 +151,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $group_id,
       $operator_id,
       $status_id,
-      $template_used,
       $created_by
     );
 
