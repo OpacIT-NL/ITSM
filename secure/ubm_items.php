@@ -51,6 +51,7 @@ if ( $parent_id > 0 ) {
   $page_title = $parent_item ? 'Child-items onder ' . ubm_type_label( $parent_item['itemtype'] ) . ': ' . $parent_item['title'] : 'Child-items';
 } elseif ( $view === 'initiatives' ) {
   $where[] = "u.itemtype = 'initiative'";
+  $where[] = 'IFNULL(s.closed, 0) = 0';
   $page_title = 'Initiatives' . $ownership_labels[$ownership];
 } elseif ( $view === 'epics' ) {
   $where[] = "u.itemtype = 'epic'";
@@ -78,6 +79,7 @@ if ( $parent_id > 0 ) {
   $page_title = 'Mijn Werk';
 } else {
   $where[] = "u.itemtype = 'initiative'";
+  $where[] = 'IFNULL(s.closed, 0) = 0';
   $page_title = 'Initiatives' . $ownership_labels[$ownership];
 }
 

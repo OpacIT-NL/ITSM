@@ -71,8 +71,12 @@ if ( $section === 'requests' ) {
   } elseif ( $view === 'rejected' ) {
     $where[] = "c.approvalstate = 'rejected'";
   } elseif ( $view === 'mine' ) {
+    $where[] = "c.approvalstate = 'request'";
+    $where[] = "c.closed = 0";
     $where[] = "(c.operatorid = " . (int)$operator_context['id'] . " OR c.coordinatorid = " . (int)$operator_context['id'] . ")";
   } elseif ( $view === 'minegroups' ) {
+    $where[] = "c.approvalstate = 'request'";
+    $where[] = "c.closed = 0";
     $where[] = '(' . implode( ' OR ', $mine_or_groups_clauses ) . ')';
   }
 } else {
