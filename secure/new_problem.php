@@ -4,6 +4,9 @@ session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/problem_helpers.php' );
 require_once( __DIR__ . '/include/task_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/mail_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -46,7 +49,11 @@ $form_values = [
   'operatorid' => '',
   'statusid' => (string)$default_status_id,
   'statusready' => 0,
-  'statusclosed' => 0
+  'statusclosed' => 0,
+  'impactid' => '',
+  'urgencyid' => '',
+  'priorityid' => '',
+  'priorityname' => ''
 ];
 
 if ( $_SERVER['REQUEST_METHOD'] !== 'POST' && $source_id > 0 && $source_type === 'incident' ) {
@@ -83,7 +90,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'operatorid' => $_POST['operatorid'] ?? '',
     'statusid' => $_POST['statusid'] ?? '',
     'statusready' => 0,
-    'statusclosed' => 0
+    'statusclosed' => 0,
+    'impactid' => $_POST['impactid'] ?? '',
+    'urgencyid' => $_POST['urgencyid'] ?? '',
+    'priorityid' => '',
+    'priorityname' => ''
   ];
 
   $validation = problem_validate_form(
@@ -96,7 +107,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       'assetid' => (int)$form_values['assetid'],
       'operatorgroupid' => (int)$form_values['operatorgroupid'],
       'operatorid' => (int)$form_values['operatorid'],
-      'statusid' => (int)$form_values['statusid']
+      'statusid' => (int)$form_values['statusid'],
+      'impactid' => (int)$form_values['impactid'],
+      'urgencyid' => (int)$form_values['urgencyid']
     ],
     $reference_data
   );
@@ -114,6 +127,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $form_values['statusready'] = (int)$validation['status']['ready'];
     $form_values['statusclosed'] = (int)$validation['status']['closed'];
   }
+  $form_values['priorityid'] = $validation['priority']['priorityid'] ? (string)$validation['priority']['priorityid'] : '';
+  $form_values['priorityname'] = priority_name_by_id( $reference_data, $validation['priority']['priorityid'] );
+  $errors = array_merge( $errors, attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
     $customer_id = (int)$validation['customer']['id'];
@@ -124,6 +140,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $group_id = $validation['group'] ? (int)$validation['group']['id'] : null;
     $operator_id = $validation['operator'] ? (int)$validation['operator']['id'] : null;
     $status_id = (int)$validation['status']['id'];
+    $impact_id = $validation['priority']['impactid'];
+    $urgency_id = $validation['priority']['urgencyid'];
+    $priority_id = $validation['priority']['priorityid'];
     $created_by = (int)$operator_context['id'];
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
@@ -132,12 +151,12 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_pm_problems (
                 problemnumber, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, statusid, impactid, urgencyid, priorityid, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
     mysqli_stmt_bind_param(
       $stmt,
-      "sssiissiiiiiii",
+      "sssiissiiiiiiiiii",
       $problem_number,
       $form_values['title'],
       $form_values['description'],
@@ -151,6 +170,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $group_id,
       $operator_id,
       $status_id,
+      $impact_id,
+      $urgency_id,
+      $priority_id,
       $created_by
     );
 
@@ -158,17 +180,23 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $errors[] = 'Probleem opslaan mislukt: ' . mysqli_stmt_error( $stmt );
     } else {
       $problem_id = mysqli_insert_id( $con );
-      if ( $form_values['commenttext'] !== '' ) {
+      task_log_add( $con, 'problem', $problem_id, 'created', 'Problem aangemaakt.', $created_by );
+      if ( $form_values['commenttext'] !== '' || attachment_uploaded_file_available() ) {
         $comment_stmt = mysqli_prepare( $con, "
                     INSERT INTO itsm_pm_problemcomments (problemid, operatorid, commenttext, internalonly)
                     VALUES (?, ?, ?, ?)
                 " );
-        mysqli_stmt_bind_param( $comment_stmt, "iisi", $problem_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
+        $comment_text = $form_values['commenttext'] !== '' ? $form_values['commenttext'] : 'Bijlage toegevoegd.';
+        mysqli_stmt_bind_param( $comment_stmt, "iisi", $problem_id, $created_by, $comment_text, $form_values['internalonly'] );
         mysqli_stmt_execute( $comment_stmt );
+        $comment_id = mysqli_insert_id( $con );
+        attachment_save_upload( $con, 'problem', $problem_id, $created_by, $form_values['internalonly'], 'problemcomment', $comment_id );
       }
       if ( $source_id > 0 && $source_type === 'incident' ) {
         task_create_link( $con, 'problem', $problem_id, 'Afgeleid van', 'incident', $source_id, $created_by );
+        task_log_add( $con, 'problem', $problem_id, 'link_created', 'Link toegevoegd: Afgeleid van incident #' . $source_id . '.', $created_by );
       }
+      mail_process_ticket_created( $con, 'problem', $problem_id );
 
       header( 'Location: edit_problem.php?id=' . $problem_id );
       exit;
@@ -177,6 +205,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Probleem aanmaken';
+$tab_title = 'Nieuw';
+$tab_subtitle = 'Problem';
 $submit_label = 'Probleem opslaan';
 $show_history = false;
 $problem_id = 0;

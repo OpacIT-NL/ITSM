@@ -14,6 +14,7 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 }
 $logged_in_user = $_SESSION[ 'name' ];
 require_once( __DIR__ . '/../my.php' );
+require_once( __DIR__ . '/../public/include/password_reset_helpers.php' );
 
 // Authorization check
 $sql2 = "SELECT persons FROM itsm_ob_operators WHERE username = ?";
@@ -33,6 +34,7 @@ if ( !isset( $_GET[ 'id' ] ) || !is_numeric( $_GET[ 'id' ] ) ) {
 }
 
 $id = ( int )$_GET[ 'id' ];
+$messages = [];
 
 // All boolean fields
 $boolFields = [
@@ -51,8 +53,37 @@ if ( isset( $_POST[ 'delete' ] ) ) {
   exit;
 }
 
+if ( isset( $_POST['send_password_reset'] ) ) {
+  $stmt = mysqli_prepare( $con, "SELECT id, firstname, lastname, email, allowssp FROM itsm_ob_persons WHERE id = ?" );
+  mysqli_stmt_bind_param( $stmt, "i", $id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $person_for_reset = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  if ( !$person_for_reset ) {
+    die( "Person not found" );
+  }
+  if ( (int)$person_for_reset['allowssp'] !== 1 ) {
+    $messages[] = 'Deze persoon heeft geen SelfService toegang. Zet eerst AllowSSP aan en sla op.';
+  } elseif ( !filter_var( $person_for_reset['email'], FILTER_VALIDATE_EMAIL ) ) {
+    $messages[] = 'Deze persoon heeft geen geldig e-mailadres.';
+  } else {
+    try {
+      $token_data = ssp_reset_create_token( $con, (int)$person_for_reset['id'], 60 );
+      if ( $token_data && ssp_reset_send_mail( $person_for_reset, $token_data ) ) {
+        $messages[] = 'Wachtwoordresetmail is verzonden.';
+      } else {
+        $messages[] = 'Wachtwoordreset kon niet worden verzonden. Controleer SMTP-configuratie en password_reset.html.';
+      }
+    } catch ( Exception $exception ) {
+      $messages[] = 'Wachtwoordreset kon niet worden aangemaakt.';
+    }
+  }
+}
+
 // Handle form submit
-if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
+if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' && !isset( $_POST['send_password_reset'] ) ) {
 
   // Convert checkboxes to 0/1
   $boolValues = [];
@@ -82,19 +113,6 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   );
 
   mysqli_stmt_execute( $stmt );
-  // Only update password if a new one is entered
-  if ( !empty( $_POST[ 'password' ] ) ) {
-    $hashed = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
-
-    $stmt = mysqli_prepare( $con, "
-        UPDATE itsm_ob_persons 
-        SET password = ? 
-        WHERE id = ?
-    " );
-
-    mysqli_stmt_bind_param( $stmt, "si", $hashed, $id );
-    mysqli_stmt_execute( $stmt );
-  }
 
   header( 'Location: persons.php' );
   exit;
@@ -121,6 +139,9 @@ if ( !$operator ) {
       <?= htmlspecialchars($operator['lastname']) ?>
     </h1>
   </center>
+  <?php foreach ( $messages as $message ): ?>
+  <p class="info-note"><?= htmlspecialchars($message) ?></p>
+  <?php endforeach; ?>
   <div class="form-wrapper">
     <div class="form-card">
       <form method="post" class="form-grid">
@@ -162,16 +183,10 @@ if ( !$operator ) {
           <?php endforeach; ?>
         </div>
         <hr>
-        <div class="form-group"> 
-          <!-- Password (optional safe handling) -->
-          <label>Nieuw wachtwoord (laat leeg om niet te bewerken):
-            <input type="password" name="password">
-          </label>
-        </div>
-        <br>
-        <br>
+        <p class="info-note">Wachtwoorden worden niet handmatig gezet. Gebruik een resetmail zodat de gebruiker zelf een nieuw SelfService wachtwoord instelt.</p>
         <div class="form-actions">
           <button type="submit" class="btn-primary">Opslaan</button>
+          <button type="submit" name="send_password_reset" value="1" class="btn-primary" formnovalidate>Verstuur wachtwoordreset</button>
           <button type="submit" name="delete" 
         onclick="return confirm('Weet je zeker dat je deze persoon wil verwijderen?');"
         class="btn-danger"> Verwijder persoon </button>

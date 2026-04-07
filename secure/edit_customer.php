@@ -33,6 +33,7 @@ if ( !isset( $_GET[ 'id' ] ) || !is_numeric( $_GET[ 'id' ] ) ) {
 }
 
 $id = ( int )$_GET[ 'id' ];
+$customer_id = $id;
 
 if ( isset( $_POST[ 'delete' ] ) ) {
 
@@ -155,12 +156,12 @@ if ( !$result ) {
           echo "<option value='' $emptySelected>--Selecteer een gebouw--</option>";
 
           while ( $row4 = $result3->fetch_assoc() ) {
-            $id = $row4[ 'id' ];
+            $building_id = $row4[ 'id' ];
             $name = htmlspecialchars( $row4[ 'address' ] );
 
-            $selected = ( $id == $selectedId ) ? 'selected' : '';
+            $selected = ( $building_id == $selectedId ) ? 'selected' : '';
 
-            echo "<option value='$id' $selected>$name</option>";
+            echo "<option value='$building_id' $selected>$name</option>";
           }
 
           echo '</select>';
@@ -214,6 +215,7 @@ if ( !$result ) {
   </div>
   <br>
   <h1>Personen</h1>
+  <p><a class="btn" href="new_person.php?customerid=<?= urlencode( (string)$customer_id ) ?>">Nieuwe persoon</a></p>
   <div class="results">
     <table border="0" class=results style="width: 100%;">
       <thead>

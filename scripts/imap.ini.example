@@ -1,0 +1,6 @@
+host = "imap.example.com"
+port = 993
+encryption = "ssl"
+validate_cert = 1
+username = "mailbox@example.com"
+password = "change-me"

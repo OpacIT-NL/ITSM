@@ -1,5 +1,7 @@
 <?php
 
+require_once( __DIR__ . '/priority_helpers.php' );
+
 function problem_get_operator_context( $con, $logged_in_user ) {
   $stmt = mysqli_prepare( $con, "
         SELECT id, firstname, lastname, problems, groups
@@ -73,7 +75,7 @@ function problem_generate_number( $con ) {
 }
 
 function problem_load_reference_data( $con ) {
-  return [
+  return priority_merge_reference_data( $con, [
     'customers' => mysqli_query( $con, "SELECT id, din, name FROM itsm_ob_customers ORDER BY din ASC, name ASC" )->fetch_all( MYSQLI_ASSOC ),
     'persons' => mysqli_query( $con, "SELECT id, customerid, firstname, lastname, email, phone FROM itsm_ob_persons ORDER BY lastname ASC, firstname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'categories' => mysqli_query( $con, "SELECT id, name FROM itsm_core_category WHERE type = 'PROBLEM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC ),
@@ -88,7 +90,7 @@ function problem_load_reference_data( $con ) {
     'operators' => mysqli_query( $con, "SELECT id, firstname, lastname FROM itsm_ob_operators ORDER BY lastname ASC, firstname ASC" )->fetch_all( MYSQLI_ASSOC ),
     'op_links' => mysqli_query( $con, "SELECT groupid, operatorid FROM itsm_ob_opgrouplinks" )->fetch_all( MYSQLI_ASSOC ),
     'statuses' => mysqli_query( $con, "SELECT id, name, ready, closed FROM itsm_core_status WHERE type = 'PROBLEM' ORDER BY name ASC" )->fetch_all( MYSQLI_ASSOC )
-  ];
+  ] );
 }
 
 function problem_find_by_id( $rows, $id ) {
@@ -156,6 +158,8 @@ function problem_validate_form( $data, $reference_data ) {
   $group = $data['operatorgroupid'] ? problem_find_by_id( $reference_data['groups'], $data['operatorgroupid'] ) : null;
   $operator = $data['operatorid'] ? problem_find_by_id( $reference_data['operators'], $data['operatorid'] ) : null;
   $status = problem_find_by_id( $reference_data['statuses'], $data['statusid'] );
+  $priority = priority_validate_selection( $data, $reference_data );
+  $errors = array_merge( $errors, $priority['errors'] );
 
   if ( trim( $data['title'] ) === '' ) {
     $errors[] = 'Titel is verplicht.';
@@ -202,6 +206,7 @@ function problem_validate_form( $data, $reference_data ) {
     'asset' => $asset,
     'group' => $group,
     'operator' => $operator,
-    'status' => $status
+    'status' => $status,
+    'priority' => $priority
   ];
 }

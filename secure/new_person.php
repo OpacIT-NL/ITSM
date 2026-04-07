@@ -30,12 +30,14 @@ if ( $operators == 0 ) {
 $stmt2 = $con->prepare( "SELECT * FROM itsm_ob_customers" );
 $stmt2->execute();
 $result3 = $stmt2->get_result();
+$selected_customer_id = isset( $_GET['customerid'] ) && is_numeric( $_GET['customerid'] ) ? (int)$_GET['customerid'] : 0;
 // Boolean fields with display names
 $boolFields = [
   'allowssp' => 'Mag inloggen (SSP)'
 ];
 
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
+  $selected_customer_id = isset( $_POST['customerid'] ) && is_numeric( $_POST['customerid'] ) ? (int)$_POST['customerid'] : 0;
 
   // Convert checkboxes to 0/1
   $boolValues = [];
@@ -43,12 +45,8 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     $boolValues[ $field ] = isset( $_POST[ $field ] ) ? 1 : 0;
   }
 
-  // Validate password
-  if ( empty( $_POST[ 'password' ] ) ) {
-    die( "Wachtwoord is verplicht!" );
-  }
-
-  $hashedPassword = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
+  $randomPassword = bin2hex( random_bytes( 32 ) );
+  $hashedPassword = password_hash( $randomPassword, PASSWORD_DEFAULT );
 
   // Prepare insert
   $stmt = mysqli_prepare( $con, "
@@ -77,7 +75,11 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     die( "Insert failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  header( 'Location: persons.php' );
+  if ( $selected_customer_id > 0 ) {
+    header( 'Location: edit_customer.php?id=' . $selected_customer_id );
+  } else {
+    header( 'Location: persons.php' );
+  }
   exit;
 }
 ?>
@@ -97,14 +99,15 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         <div class="form-group">
           <?
 
-          echo '<select name="customerid"><option>--selecteer een klant--</option>';
+          echo '<select name="customerid" required><option value="">--selecteer een klant--</option>';
 
           // Check if nothing is selected
 
           while ( $row2 = $result3->fetch_assoc() ) {
             $id = $row2[ 'id' ];
             $name = htmlspecialchars( $row2[ 'din' ] . ' - ' . $row2[ 'name' ] );
-            echo "<option value='$id'>$name</option>";
+            $selected = ( (int)$id === $selected_customer_id ) ? 'selected' : '';
+            echo "<option value='$id' $selected>$name</option>";
           }
 
           echo '</select>';
@@ -134,12 +137,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
             <input type="text" name="phone">
           </label>
         </div>
-        <br>
-        <div class="form-group">
-          <label>Wachtwoord:
-            <input type="password" name="password" required>
-          </label>
-        </div>
+        <p class="info-note">Het wachtwoord wordt automatisch willekeurig gezet. De gebruiker stelt zelf een wachtwoord in via een SelfService wachtwoordreset.</p>
         
         <!-- Permissions -->
         

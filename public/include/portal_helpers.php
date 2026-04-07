@@ -446,3 +446,229 @@ function ssp_apply_template_variables( $text, $values ) {
     (string)$text
   );
 }
+
+function ssp_attachment_uploaded_file_available( $field_name = 'attachment' ) {
+  return isset( $_FILES[$field_name] )
+    && is_array( $_FILES[$field_name] )
+    && (int)$_FILES[$field_name]['error'] !== UPLOAD_ERR_NO_FILE;
+}
+
+function ssp_attachment_upload_errors( $field_name = 'attachment' ) {
+  if ( !ssp_attachment_uploaded_file_available( $field_name ) ) {
+    return [];
+  }
+
+  $file = $_FILES[$field_name];
+  if ( (int)$file['error'] !== UPLOAD_ERR_OK ) {
+    return [ 'Bijlage uploaden mislukt. Upload foutcode: ' . (int)$file['error'] ];
+  }
+
+  $max_bytes = 10 * 1024 * 1024;
+  if ( (int)$file['size'] > $max_bytes ) {
+    return [ 'Bijlage is te groot. Maximaal 10 MB.' ];
+  }
+
+  return [];
+}
+
+function ssp_attachment_save_upload( $con, $task_type, $task_id, $person_id, $comment_type, $comment_id, $field_name = 'attachment' ) {
+  if ( !ssp_attachment_uploaded_file_available( $field_name ) ) {
+    return 0;
+  }
+
+  $file = $_FILES[$field_name];
+  if ( (int)$file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file( $file['tmp_name'] ) ) {
+    return 0;
+  }
+
+  $content = file_get_contents( $file['tmp_name'] );
+  if ( $content === false ) {
+    return 0;
+  }
+
+  $task_id = (int)$task_id;
+  $person_id = (int)$person_id;
+  $comment_id = (int)$comment_id;
+  $filename = basename( (string)$file['name'] );
+  $mimetype = (string)( $file['type'] ?? 'application/octet-stream' );
+  $filesize = (int)$file['size'];
+  $uploaded_by = null;
+  $internal_only = 0;
+  $null_blob = null;
+
+  $stmt = mysqli_prepare( $con, "
+    INSERT INTO itsm_core_attachments
+      (tasktype, taskid, commenttype, commentid, filename, mimetype, filesize, content, uploadedby, uploadedbyperson, internalonly)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  " );
+  mysqli_stmt_bind_param(
+    $stmt,
+    'sisissibiii',
+    $task_type,
+    $task_id,
+    $comment_type,
+    $comment_id,
+    $filename,
+    $mimetype,
+    $filesize,
+    $null_blob,
+    $uploaded_by,
+    $person_id,
+    $internal_only
+  );
+  mysqli_stmt_send_long_data( $stmt, 7, $content );
+  mysqli_stmt_execute( $stmt );
+  $id = mysqli_insert_id( $con );
+  mysqli_stmt_close( $stmt );
+
+  return $id;
+}
+
+function ssp_attachment_format_filesize( $bytes ) {
+  $bytes = (int)$bytes;
+  if ( $bytes >= 1048576 ) {
+    return round( $bytes / 1048576, 1 ) . ' MB';
+  }
+  if ( $bytes >= 1024 ) {
+    return round( $bytes / 1024, 1 ) . ' KB';
+  }
+
+  return $bytes . ' B';
+}
+
+function ssp_attachment_load_for_task( $con, $task_type, $task_id ) {
+  $stmt = mysqli_prepare( $con, "
+    SELECT id, tasktype, taskid, commenttype, commentid, filename, mimetype, filesize, createdat
+    FROM itsm_core_attachments
+    WHERE tasktype = ? AND taskid = ? AND internalonly = 0
+    ORDER BY createdat DESC, id DESC
+  " );
+  mysqli_stmt_bind_param( $stmt, 'si', $task_type, $task_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $rows = mysqli_fetch_all( $result, MYSQLI_ASSOC );
+  mysqli_stmt_close( $stmt );
+
+  return $rows;
+}
+
+function ssp_attachment_group_by_comment( $attachments ) {
+  $grouped = [];
+  foreach ( $attachments as $attachment ) {
+    $key = (string)( $attachment['commentid'] ?? '' );
+    if ( $key === '' || $key === '0' ) {
+      continue;
+    }
+    if ( !isset( $grouped[$key] ) ) {
+      $grouped[$key] = [];
+    }
+    $grouped[$key][] = $attachment;
+  }
+
+  return $grouped;
+}
+
+function ssp_attachment_render_links( $attachments ) {
+  if ( empty( $attachments ) ) {
+    return '';
+  }
+
+  $html = '<div class="ssp-attachment-list">';
+  foreach ( $attachments as $attachment ) {
+    $html .= '<a class="ssp-attachment-link" href="download_attachment.php?id=' . htmlspecialchars( (string)$attachment['id'] ) . '">';
+    $html .= '<i class="fa-solid fa-paperclip"></i> ' . htmlspecialchars( $attachment['filename'] );
+    $html .= ' <span>(' . htmlspecialchars( ssp_attachment_format_filesize( $attachment['filesize'] ) ) . ')</span>';
+    $html .= '</a>';
+    if ( strpos( (string)( $attachment['mimetype'] ?? '' ), 'image/' ) === 0 ) {
+      $html .= '<img class="ssp-inline-image" src="download_attachment.php?id=' . htmlspecialchars( (string)$attachment['id'] ) . '&amp;inline=1" alt="' . htmlspecialchars( $attachment['filename'] ) . '">';
+    }
+  }
+  $html .= '</div>';
+
+  return $html;
+}
+
+function ssp_attachment_render_upload_field() {
+  ?>
+  <div class="ssp-field">
+    <label for="attachment">Bijlage</label>
+    <input id="attachment" name="attachment" type="file">
+  </div>
+  <?php
+}
+
+function ssp_can_access_task( $person, $task ) {
+  if ( !$task ) {
+    return false;
+  }
+
+  if ( (int)( $task['personid'] ?? 0 ) === (int)$person['id'] ) {
+    return true;
+  }
+
+  return ssp_person_is_manager( $person ) && (int)( $task['customerid'] ?? 0 ) === (int)$person['customerid'];
+}
+
+function ssp_load_incident_for_person( $con, $person, $incident_id ) {
+  $incident_id = (int)$incident_id;
+  if ( $incident_id <= 0 ) {
+    return null;
+  }
+
+  $stmt = mysqli_prepare( $con, "
+    SELECT i.*, cat.name AS category_name, sub.name AS subcategory_name, s.name AS status_name, a.objectid AS asset_objectid, t.type AS asset_type
+    FROM itsm_im_incidents i
+    LEFT JOIN itsm_core_category cat ON i.categoryid = cat.id
+    LEFT JOIN itsm_core_subcategory sub ON i.subcategoryid = sub.id
+    LEFT JOIN itsm_core_status s ON i.statusid = s.id
+    LEFT JOIN itsm_am_assets a ON i.assetid = a.id
+    LEFT JOIN itsm_am_types t ON a.type = t.id
+    WHERE i.id = ?
+    LIMIT 1
+  " );
+  mysqli_stmt_bind_param( $stmt, 'i', $incident_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $incident = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  if ( !ssp_can_access_task( $person, $incident ) ) {
+    return null;
+  }
+
+  return $incident;
+}
+
+function ssp_attachment_can_access( $con, $person, $attachment_id ) {
+  $stmt = mysqli_prepare( $con, "
+    SELECT id, tasktype, taskid, internalonly
+    FROM itsm_core_attachments
+    WHERE id = ?
+    LIMIT 1
+  " );
+  mysqli_stmt_bind_param( $stmt, 'i', $attachment_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $attachment = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+  if ( !$attachment || (int)$attachment['internalonly'] === 1 ) {
+    return false;
+  }
+
+  if ( $attachment['tasktype'] === 'incident' ) {
+    $stmt = mysqli_prepare( $con, "SELECT id, customerid, personid FROM itsm_im_incidents WHERE id = ? LIMIT 1" );
+  } elseif ( $attachment['tasktype'] === 'change' ) {
+    $stmt = mysqli_prepare( $con, "SELECT id, customerid, personid FROM itsm_cm_changes WHERE id = ? LIMIT 1" );
+  } else {
+    return false;
+  }
+
+  $task_id = (int)$attachment['taskid'];
+  mysqli_stmt_bind_param( $stmt, 'i', $task_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $task = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  return ssp_can_access_task( $person, $task );
+}

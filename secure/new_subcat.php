@@ -27,6 +27,10 @@ if ( $isadmin == 0 ) {
   header( "Location: index.php" );
   exit();
 }
+if ( !isset( $_GET[ 'id' ] ) || !is_numeric( $_GET[ 'id' ] ) ) {
+  header( "Location: set-ls-cat.php" );
+  exit();
+}
 $id = ( int )$_GET[ 'id' ];
 
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {

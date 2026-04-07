@@ -15,6 +15,9 @@
   <?php if (isset($_GET['expired'])): ?>
   <p class="error">Je sessie is verlopen. Log opnieuw in.</p>
   <?php endif; ?>
+  <?php if (isset($_GET['incorrect'])): ?>
+  <p class="error">Gebruikersnaam of wachtwoord is incorrect.</p>
+  <?php endif; ?>
   <form action="authenticate.php" method="post" class="login-form">
     <div class="input-group"> <i class="fas fa-user"></i>
       <input type="text" name="username" placeholder="Gebruikersnaam" required>

@@ -14,6 +14,7 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
   exit;
 }
 $logged_in_user = $_SESSION[ 'name' ];
+$message = '';
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   if ( !empty( $_POST[ 'password' ] ) ) {
     $hashed = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
@@ -26,6 +27,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
     mysqli_stmt_bind_param( $stmt, "ss", $hashed, $logged_in_user );
     mysqli_stmt_execute( $stmt );
+    $message = 'Je wachtwoord is bijgewerkt.';
   }
 }
 $stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ob_operators WHERE username=?" );
@@ -39,26 +41,45 @@ if ( !$operator ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <h1>Mijn account</h1>
-  <p>Voornaam:
-    <?= htmlspecialchars($operator['firstname']) ?>
-  </p>
-  <p>Achternaam:
-    <?= htmlspecialchars($operator['lastname']) ?>
-  </p>
-  <p>Gebruikersnaam:
-    <?= htmlspecialchars($operator['username']) ?>
-  </p>
-  <p>Email:
-    <?= htmlspecialchars($operator['email']) ?>
-  </p>
-  <form method="post">
-    <label>Nieuw wachtwoord (Laat leeg om het wachtwoord niet te wijzigen):
-      <input type="password" name="password">
-    </label>
-    <br>
-    <br>
-    <button type="submit">Save</button>
-  </form>
+  <section class="profile-hero">
+    <div class="profile-avatar">
+      <?= htmlspecialchars(strtoupper(substr((string)$operator['firstname'], 0, 1) . substr((string)$operator['lastname'], 0, 1))) ?>
+    </div>
+    <div>
+      <p class="profile-eyebrow">Mijn account</p>
+      <h1><?= htmlspecialchars(trim(($operator['firstname'] ?? '') . ' ' . ($operator['lastname'] ?? ''))) ?></h1>
+      <p><?= htmlspecialchars($operator['email'] ?? '') ?></p>
+    </div>
+  </section>
+
+  <?php if ( $message !== '' ): ?>
+  <div class="profile-success"><?= htmlspecialchars($message) ?></div>
+  <?php endif; ?>
+
+  <section class="profile-grid">
+    <article class="profile-card">
+      <h2>Profielgegevens</h2>
+      <dl class="profile-details">
+        <div><dt>Voornaam</dt><dd><?= htmlspecialchars($operator['firstname']) ?></dd></div>
+        <div><dt>Achternaam</dt><dd><?= htmlspecialchars($operator['lastname']) ?></dd></div>
+        <div><dt>Gebruikersnaam</dt><dd><?= htmlspecialchars($operator['username']) ?></dd></div>
+        <div><dt>E-mail</dt><dd><?= htmlspecialchars($operator['email']) ?></dd></div>
+      </dl>
+    </article>
+
+    <article class="profile-card">
+      <h2>Beveiliging</h2>
+      <p class="info-note">Wijzig hier alleen je wachtwoord. Laat het veld leeg als je niets wilt aanpassen.</p>
+      <form method="post" class="profile-password-form">
+        <div class="form-group">
+          <label>Nieuw wachtwoord</label>
+          <input type="password" name="password" autocomplete="new-password" placeholder="Nieuw wachtwoord">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Wachtwoord opslaan</button>
+        </div>
+      </form>
+    </article>
+  </section>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

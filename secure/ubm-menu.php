@@ -30,6 +30,7 @@ ubm_require_access( $operator_context );
   <br>
   <h2>Bekijken</h2>
   <div class="module-grid">
+    <a href="ubm_tree.php">Tree-overzicht per initiative</a>
     <a href="ubm_items.php?view=initiatives">Initiatives</a>
     <a href="ubm_items.php?view=epics">Open epics</a>
     <a href="ubm_items.php?view=features">Open features</a>

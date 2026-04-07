@@ -1,6 +1,7 @@
 <?php
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
+require_once( __DIR__ . '/../secure/include/mail_helpers.php' );
 
 $person = ssp_require_login( $con );
 $reference_data = ssp_incident_reference_data( $con, $person );
@@ -36,6 +37,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( $default_operator_id === 0 ) {
     $errors[] = 'Er is geen behandelaar beschikbaar om deze melding te registreren.';
   }
+  $errors = array_merge( $errors, ssp_attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
     $incident_number = ssp_incident_generate_number( $con );
@@ -80,13 +82,18 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if ( mysqli_stmt_execute( $stmt ) ) {
       $incident_id = mysqli_insert_id( $con );
       mysqli_stmt_close( $stmt );
+      task_log_add( $con, 'incident', $incident_id, 'created', 'Incident aangemaakt via Self Service Portal.', null );
 
-      if ( $form_values['commenttext'] !== '' ) {
+      if ( $form_values['commenttext'] !== '' || ssp_attachment_uploaded_file_available() ) {
         $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_im_incidentcomments (incidentid, operatorid, personid, commenttext, internalonly) VALUES (?,NULL,?,?,0)" );
-        mysqli_stmt_bind_param( $comment_stmt, "iis", $incident_id, $person['id'], $form_values['commenttext'] );
+        $comment_text = $form_values['commenttext'] !== '' ? $form_values['commenttext'] : 'Bijlage toegevoegd.';
+        mysqli_stmt_bind_param( $comment_stmt, "iis", $incident_id, $person['id'], $comment_text );
         mysqli_stmt_execute( $comment_stmt );
+        $comment_id = mysqli_insert_id( $con );
+        ssp_attachment_save_upload( $con, 'incident', $incident_id, (int)$person['id'], 'incidentcomment', $comment_id );
         mysqli_stmt_close( $comment_stmt );
       }
+      mail_process_ticket_created( $con, 'incident', $incident_id );
 
       header( 'Location: view_incident.php?id=' . $incident_id );
       exit;
@@ -125,7 +132,7 @@ ssp_render_header( $person, 'new_incident' );
   </article>
 
   <article class="ssp-form-card">
-    <form method="post" class="ssp-form-stack">
+    <form method="post" enctype="multipart/form-data" class="ssp-form-stack">
       <div class="ssp-field">
         <label for="title">Korte titel</label>
         <input id="title" name="title" type="text" value="<?= htmlspecialchars($form_values['title']) ?>" required>
@@ -138,6 +145,7 @@ ssp_render_header( $person, 'new_incident' );
         <label for="commenttext">Aanvullend commentaar</label>
         <textarea id="commenttext" name="commenttext"><?= htmlspecialchars($form_values['commenttext']) ?></textarea>
       </div>
+      <?php ssp_attachment_render_upload_field(); ?>
       <div class="ssp-form-actions">
         <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Incident opslaan</button>
       </div>

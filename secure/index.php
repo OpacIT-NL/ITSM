@@ -358,8 +358,8 @@ if ( (int)$operator['ubm'] === 1 ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <h1>ITSM Dashboard - Welkom terug <?= htmlspecialchars($firstname . ' ' . $lastname) ?></h1>
-  <div class="dashboard-top-grid">
-    <div>
+  <div class="dashboard-home-grid">
+    <div class="dashboard-left-column">
       <h2>Hoofdmenu</h2>
       <div class="quicklinks">
         <a href="./modules.php"> <i class="fa-solid fa-cubes-stacked fa-2xl"></i><br>
@@ -371,42 +371,44 @@ if ( (int)$operator['ubm'] === 1 ) {
         <a href="./profile.php"> <i class="fa-solid fa-user fa-2xl"></i><br>
         <span>Profiel</span> </a>
       </div>
+
+      <section class="dashboard-task-section">
+        <h2>Taken</h2>
+        <div class="results incident-results dashboard-task-results">
+          <table border="0" class="results incident-results-table dashboard-task-table">
+            <thead>
+              <tr>
+                <th style="text-align: start;">Module</th>
+                <th class="dashboard-task-count-heading" title="Op mijn naam" aria-label="Op mijn naam"><i class="fa-solid fa-user"></i></th>
+                <th class="dashboard-task-count-heading" title="Mijn naam of groepen" aria-label="Mijn naam of groepen"><i class="fa-solid fa-users"></i></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if ( empty( $task_rows ) ): ?>
+              <tr>
+                <td colspan="3">Geen takenmodules beschikbaar voor jouw account.</td>
+              </tr>
+              <?php else: ?>
+              <?php foreach ( $task_rows as $row ): ?>
+              <tr>
+                <td data-label="Module"><?= htmlspecialchars($row['label']) ?></td>
+                <td data-label="Op mijn naam"><a class="btn" href="<?= htmlspecialchars($row['mine_link']) ?>"><?= htmlspecialchars((string)$row['mine_count']) ?></a></td>
+                <td data-label="Mijn naam of groepen"><a class="btn" href="<?= htmlspecialchars($row['group_link']) ?>"><?= htmlspecialchars((string)$row['group_count']) ?></a></td>
+              </tr>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
-    <div>
+
+    <section class="dashboard-news-section">
       <h2>Nieuws</h2>
       <div class="news-dashboard-panel">
         <?= news_render_cards( $news_items ) ?>
       </div>
-    </div>
-  </div>
-
-  <br>
-  <h2>Taken</h2>
-  <div class="results incident-results">
-    <table border="0" class="results incident-results-table dashboard-task-table" style="width: 100%; max-width: 920px;">
-      <thead>
-        <tr>
-          <th style="text-align: start;">Module</th>
-          <th style="text-align: start;">Op mijn naam</th>
-          <th style="text-align: start;">Mijn naam of groepen</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if ( empty( $task_rows ) ): ?>
-        <tr>
-          <td colspan="3">Geen takenmodules beschikbaar voor jouw account.</td>
-        </tr>
-        <?php else: ?>
-        <?php foreach ( $task_rows as $row ): ?>
-        <tr>
-          <td data-label="Module"><?= htmlspecialchars($row['label']) ?></td>
-          <td data-label="Op mijn naam"><a class="btn" href="<?= htmlspecialchars($row['mine_link']) ?>"><?= htmlspecialchars((string)$row['mine_count']) ?></a></td>
-          <td data-label="Mijn naam of groepen"><a class="btn" href="<?= htmlspecialchars($row['group_link']) ?>"><?= htmlspecialchars((string)$row['group_count']) ?></a></td>
-        </tr>
-        <?php endforeach; ?>
-        <?php endif; ?>
-      </tbody>
-    </table>
+    </section>
   </div>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

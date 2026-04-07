@@ -7,7 +7,8 @@ if ( $con->connect_error ) {
   exit( 'Failed to connect to MySQL: ' . $con->connect_error );
 }
 if ( !isset( $_POST[ 'username' ], $_POST[ 'password' ] ) ) {
-  exit( 'Vul AUB alle velden in!' );
+  header( 'Location: login.php?incorrect=1' );
+  exit();
 }
 $username = (string)$_POST[ 'username' ];
 $password_input = (string)$_POST[ 'password' ];
@@ -27,11 +28,14 @@ if ( $stmt = $con->prepare( 'SELECT id, firstname, lastname, email, password FRO
       $_SESSION[ 'id' ] = $id;
       $_SESSION[ 'expires_at' ] = time() + ( 12 * 60 * 60 );
       header( 'Location: index.php' );
+      exit();
     } else {
-      echo 'Gebruikersnaam/wachtwoord incorrect. <a href="login.php">Ga terug</a>';
+      header( 'Location: login.php?incorrect=1' );
+      exit();
     }
   } else {
-    echo 'Gebruikersnaam/wachtwoord incorrect. <a href="login.php">Ga terug</a>';
+    header( 'Location: login.php?incorrect=1' );
+    exit();
   }
 
   $stmt->close();

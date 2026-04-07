@@ -1,6 +1,7 @@
 <?php
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
+require_once( __DIR__ . '/../secure/include/task_log_helpers.php' );
 require_once( __DIR__ . '/../secure/include/task_helpers.php' );
 
 $person = ssp_require_login( $con );
@@ -14,48 +15,33 @@ if ( $incident_id === 0 && !empty( $_GET['tasknumber'] ) ) {
 }
 $errors = [];
 
-$stmt = mysqli_prepare( $con, "
-    SELECT i.*, cat.name AS category_name, sub.name AS subcategory_name, s.name AS status_name, a.objectid AS asset_objectid, t.type AS asset_type
-    FROM itsm_im_incidents i
-    LEFT JOIN itsm_core_category cat ON i.categoryid = cat.id
-    LEFT JOIN itsm_core_subcategory sub ON i.subcategoryid = sub.id
-    LEFT JOIN itsm_core_status s ON i.statusid = s.id
-    LEFT JOIN itsm_am_assets a ON i.assetid = a.id
-    LEFT JOIN itsm_am_types t ON a.type = t.id
-    WHERE i.id = ? AND (
-      i.personid = ?
-      OR (? = 1 AND i.customerid = ?)
-    )
-    LIMIT 1
-" );
-$manager_flag = $is_manager ? 1 : 0;
-$customer_id = (int)$person['customerid'];
-mysqli_stmt_bind_param( $stmt, "iiii", $incident_id, $person['id'], $manager_flag, $customer_id );
-mysqli_stmt_execute( $stmt );
-$result = mysqli_stmt_get_result( $stmt );
-$incident = mysqli_fetch_assoc( $result );
-mysqli_stmt_close( $stmt );
+$incident = ssp_load_incident_for_person( $con, $person, $incident_id );
 
 if ( !$incident ) {
-  header( 'Location: incidents.php' );
+  header( 'Location: incidents.php?access_denied=1' );
   exit;
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $commenttext = trim( $_POST['commenttext'] ?? '' );
 
-  if ( $commenttext === '' ) {
-    $errors[] = 'Commentaar is verplicht.';
+  if ( $commenttext === '' && !ssp_attachment_uploaded_file_available() ) {
+    $errors[] = 'Commentaar of bijlage is verplicht.';
   }
+  $errors = array_merge( $errors, ssp_attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
     $comment_stmt = mysqli_prepare( $con, "
         INSERT INTO itsm_im_incidentcomments (incidentid, operatorid, personid, commenttext, internalonly)
         VALUES (?,NULL,?,?,0)
     " );
-    mysqli_stmt_bind_param( $comment_stmt, "iis", $incident_id, $person['id'], $commenttext );
+    $commenttext_for_save = $commenttext !== '' ? $commenttext : 'Bijlage toegevoegd.';
+    mysqli_stmt_bind_param( $comment_stmt, "iis", $incident_id, $person['id'], $commenttext_for_save );
 
     if ( mysqli_stmt_execute( $comment_stmt ) ) {
+      $comment_id = mysqli_insert_id( $con );
+      ssp_attachment_save_upload( $con, 'incident', $incident_id, (int)$person['id'], 'incidentcomment', $comment_id );
+      task_log_add( $con, 'incident', $incident_id, 'updated', 'Reactie toegevoegd via Self Service Portal: "' . task_log_text_snippet( $commenttext_for_save ) . '".', null, null, task_log_text_snippet( $commenttext_for_save ) );
       mysqli_stmt_close( $comment_stmt );
       header( 'Location: view_incident.php?id=' . $incident_id );
       exit;
@@ -68,6 +54,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
 $comments_stmt = mysqli_prepare( $con, "
     SELECT
+      c.id,
       c.commenttext,
       c.createdat,
       c.personid,
@@ -85,6 +72,8 @@ $comments_stmt = mysqli_prepare( $con, "
 mysqli_stmt_bind_param( $comments_stmt, "i", $incident_id );
 mysqli_stmt_execute( $comments_stmt );
 $comments_result = mysqli_stmt_get_result( $comments_stmt );
+$attachments = ssp_attachment_load_for_task( $con, 'incident', $incident_id );
+$attachments_by_comment = ssp_attachment_group_by_comment( $attachments );
 
 ssp_page_title( 'Incident ' . ($incident['incidentnumber'] ?: ('#' . $incident['id'])) );
 ssp_render_header( $person, 'incidents' );
@@ -126,11 +115,12 @@ ssp_render_header( $person, 'incidents' );
     <?= htmlspecialchars(implode(' ', $errors)) ?>
   </div>
   <?php endif; ?>
-  <form method="post" class="ssp-form-stack" style="margin-bottom: 18px;">
+  <form method="post" enctype="multipart/form-data" class="ssp-form-stack" style="margin-bottom: 18px;">
     <div class="ssp-field">
       <label for="commenttext">Nieuwe reactie</label>
       <textarea id="commenttext" name="commenttext" placeholder="Plaats hier je aanvullende informatie of reactie."></textarea>
     </div>
+    <?php ssp_attachment_render_upload_field(); ?>
     <div class="ssp-form-actions">
       <button class="ssp-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Reactie plaatsen</button>
     </div>
@@ -143,6 +133,9 @@ ssp_render_header( $person, 'incidents' );
         <span><?= htmlspecialchars($comment['createdat']) ?></span>
       </div>
       <div><?= task_linkify_text($comment['commenttext'], 'public') ?></div>
+      <?php if ( !empty( $attachments_by_comment[(string)$comment['id']] ) ): ?>
+      <?= ssp_attachment_render_links( $attachments_by_comment[(string)$comment['id']] ) ?>
+      <?php endif; ?>
     </article>
     <?php endwhile; ?>
     <?php if ( mysqli_num_rows( $comments_result ) === 0 ): ?>

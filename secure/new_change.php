@@ -4,6 +4,9 @@ session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
 require_once( __DIR__ . '/include/task_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/mail_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -49,6 +52,10 @@ $form_values = [
   'statusid' => '',
   'statusready' => 0,
   'statusclosed' => 0,
+  'impactid' => '',
+  'urgencyid' => '',
+  'priorityid' => '',
+  'priorityname' => '',
   'applied_template_id' => '',
   'template_used' => ''
 ];
@@ -115,6 +122,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     'statusid' => '',
     'statusready' => 0,
     'statusclosed' => 0,
+    'impactid' => $_POST['impactid'] ?? '',
+    'urgencyid' => $_POST['urgencyid'] ?? '',
+    'priorityid' => '',
+    'priorityname' => '',
     'applied_template_id' => $_POST['applied_template_id'] ?? '',
     'template_used' => $_POST['applied_template_id'] ?? ''
   ];
@@ -133,6 +144,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       'operatorid' => (int)$form_values['operatorid'],
       'coordinatorid' => (int)$form_values['coordinatorid'],
       'statusid' => 0,
+      'impactid' => (int)$form_values['impactid'],
+      'urgencyid' => (int)$form_values['urgencyid'],
       'requires_status' => false
     ],
     $reference_data
@@ -146,6 +159,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( $validation['asset'] ) {
     $form_values['assettype'] = $validation['asset']['typename'] ?? '';
   }
+  $form_values['priorityid'] = $validation['priority']['priorityid'] ? (string)$validation['priority']['priorityid'] : '';
+  $form_values['priorityname'] = priority_name_by_id( $reference_data, $validation['priority']['priorityid'] );
+  $errors = array_merge( $errors, attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
     $customer_id = (int)$validation['customer']['id'];
@@ -156,6 +172,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $group_id = $validation['group'] ? (int)$validation['group']['id'] : null;
     $operator_id = $form_values['requesttype'] === 'simple' && $validation['operator'] ? (int)$validation['operator']['id'] : null;
     $coordinator_id = $form_values['requesttype'] === 'extended' && $validation['coordinator'] ? (int)$validation['coordinator']['id'] : null;
+    $impact_id = $validation['priority']['impactid'];
+    $urgency_id = $validation['priority']['urgencyid'];
+    $priority_id = $validation['priority']['priorityid'];
     $person_email = $validation['person']['email'] ?? '';
     $person_phone = $validation['person']['phone'] ?? '';
     $created_by = (int)$operator_context['id'];
@@ -164,8 +183,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $stmt = mysqli_prepare( $con, "
             INSERT INTO itsm_cm_changes (
                 changenumber, requesttype, approvalstate, changetype, title, description, customerid, personid, personemail, personphone,
-                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, template_used, closed, createdby
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                categoryid, subcategoryid, assetid, operatorgroupid, operatorid, coordinatorid, statusid, impactid, urgencyid, priorityid, template_used, closed, createdby
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         " );
     $approval_state = 'request';
     $status_id = null;
@@ -173,7 +192,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $closed = 0;
     mysqli_stmt_bind_param(
       $stmt,
-      "ssssssiissiiiiiiiiii",
+      "ssssssiissiiiiiiiiiiiii",
       $change_number,
       $form_values['requesttype'],
       $approval_state,
@@ -191,6 +210,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $operator_id,
       $coordinator_id,
       $status_id,
+      $impact_id,
+      $urgency_id,
+      $priority_id,
       $template_used,
       $closed,
       $created_by
@@ -200,11 +222,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $errors[] = 'Wijzigingsaanvraag opslaan mislukt: ' . mysqli_stmt_error( $stmt );
     } else {
       $change_id = mysqli_insert_id( $con );
-      if ( $form_values['commenttext'] !== '' ) {
+      task_log_add( $con, 'change', $change_id, 'created', 'Wijzigingsaanvraag aangemaakt.', $created_by );
+      if ( $form_values['commenttext'] !== '' || attachment_uploaded_file_available() ) {
         $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,?,NULL,?,?)" );
-        mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $created_by, $form_values['commenttext'], $form_values['internalonly'] );
+        $comment_text = $form_values['commenttext'] !== '' ? $form_values['commenttext'] : 'Bijlage toegevoegd.';
+        mysqli_stmt_bind_param( $comment_stmt, "iisi", $change_id, $created_by, $comment_text, $form_values['internalonly'] );
         mysqli_stmt_execute( $comment_stmt );
+        $comment_id = mysqli_insert_id( $con );
         mysqli_stmt_close( $comment_stmt );
+        attachment_save_upload( $con, 'change', $change_id, $created_by, $form_values['internalonly'], 'changecomment', $comment_id );
       }
 
       $applied_template = change_find_by_id( $reference_data['templates'], (int)$form_values['applied_template_id'] );
@@ -213,7 +239,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       }
       if ( $source_id > 0 && in_array( $source_type, [ 'incident', 'problem', 'ubm' ], true ) ) {
         task_create_link( $con, 'change', $change_id, 'Afgeleid van', $source_type, $source_id, $created_by );
+        task_log_add( $con, 'change', $change_id, 'link_created', 'Link toegevoegd: Afgeleid van ' . $source_type . ' #' . $source_id . '.', $created_by );
       }
+      mail_process_ticket_created( $con, 'change', $change_id );
       header( 'Location: edit_change.php?id=' . $change_id );
       exit;
     }
@@ -221,6 +249,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Wijzigingsaanvraag aanmaken';
+$tab_title = 'Nieuw';
+$tab_subtitle = 'Wijzigingsaanvraag';
 $list_back_url = change_get_list_back_url( 'changes.php?section=requests&view=all' );
 $show_status_block = false;
 $show_history = false;

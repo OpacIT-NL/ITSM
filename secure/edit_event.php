@@ -5,6 +5,9 @@ require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/event_helpers.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
 require_once( __DIR__ . '/include/task_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/form_presence_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -38,6 +41,10 @@ if ( !$event ) {
 
 $reference_data = event_load_reference_data( $con );
 $errors = [];
+$presence_error = form_presence_flash_error();
+if ( $presence_error !== '' ) {
+  $errors[] = $presence_error;
+}
 
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
   task_delete_link( $con, (int)$_POST['delete_link_id'] );
@@ -57,6 +64,7 @@ if ( isset( $_POST['add_task_link'] ) ) {
       $errors[] = 'Een event kan niet aan zichzelf gekoppeld worden.';
     } else {
       task_create_link( $con, 'event', $event_id, $relation, $target['type'], (int)$target['id'], (int)$operator_context['id'] );
+      task_log_add( $con, 'event', $event_id, 'link_created', 'Link toegevoegd: ' . $relation . ' ' . $target['type'] . ' #' . (int)$target['id'] . '.', (int)$operator_context['id'] );
       header( 'Location: edit_event.php?id=' . $event_id );
       exit;
     }
@@ -64,6 +72,7 @@ if ( isset( $_POST['add_task_link'] ) ) {
 }
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
+  form_presence_redirect_if_stale( $con, 'event', $event_id, $_POST['presence_token'] ?? '', 'edit_event.php?id=' . $event_id );
   $action = $_POST['event_action'] ?? 'save';
   $category = event_find_by_id( $reference_data['categories'], $_POST['categoryid'] ?? '' );
   $subcategory = ( $_POST['subcategoryid'] ?? '' ) !== '' ? event_find_by_id( $reference_data['subcategories'], $_POST['subcategoryid'] ?? '' ) : null;
@@ -84,6 +93,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   if ( $description === '' ) {
     $errors[] = 'Omschrijving is verplicht.';
   }
+  $errors = array_merge( $errors, attachment_upload_errors() );
+  $presence_check = form_presence_check_before_save( $con, 'event', $event_id, $_POST['presence_token'] ?? '' );
+  if ( !$presence_check['ok'] ) {
+    $errors[] = $presence_check['message'];
+  }
 
   if ( empty( $errors ) ) {
     $category_id = (int)$category['id'];
@@ -97,11 +111,39 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         " );
     mysqli_stmt_bind_param( $update_stmt, "iiisi", $category_id, $subcategory_id, $asset_id, $description, $event_id );
     mysqli_stmt_execute( $update_stmt );
+    attachment_save_upload( $con, 'event', $event_id, (int)$operator_context['id'], 0 );
+    form_presence_mark_saved( $con, 'event', $event_id, (int)$operator_context['id'] );
+    task_log_add( $con, 'event', $event_id, 'updated', 'Event opgeslagen.', (int)$operator_context['id'] );
+    task_log_field_changes(
+      $con,
+      'event',
+      $event_id,
+      [
+        'categoryid' => $event['categoryid'],
+        'subcategoryid' => $event['subcategoryid'],
+        'assetid' => $event['assetid'],
+        'description' => $event['description']
+      ],
+      [
+        'categoryid' => $category_id,
+        'subcategoryid' => $subcategory_id,
+        'assetid' => $asset_id,
+        'description' => $description
+      ],
+      [
+        'categoryid' => 'Categorie',
+        'subcategoryid' => 'Subcategorie',
+        'assetid' => 'Object ID',
+        'description' => 'Omschrijving'
+      ],
+      (int)$operator_context['id']
+    );
 
     if ( $action === 'close' ) {
       $close_stmt = mysqli_prepare( $con, "UPDATE itsm_em_events SET acknowledged = 1, closed = 1 WHERE id = ?" );
       mysqli_stmt_bind_param( $close_stmt, "i", $event_id );
       mysqli_stmt_execute( $close_stmt );
+      task_log_add( $con, 'event', $event_id, 'closed', 'Event bevestigd en gesloten.', (int)$operator_context['id'] );
       header( 'Location: edit_event.php?id=' . $event_id );
       exit;
     }
@@ -150,6 +192,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         $link_stmt = mysqli_prepare( $con, "UPDATE itsm_em_events SET incidentid = ? WHERE id = ?" );
         mysqli_stmt_bind_param( $link_stmt, "ii", $incident_id, $event_id );
         mysqli_stmt_execute( $link_stmt );
+        task_log_add( $con, 'event', $event_id, 'incident_created', 'Incident ' . $incident_number . ' aangemaakt vanuit event.', (int)$operator_context['id'] );
+        task_log_add( $con, 'incident', $incident_id, 'created', 'Incident aangemaakt vanuit event ' . event_format_display_number( $event ) . '.', (int)$operator_context['id'] );
         header( 'Location: edit_incident.php?id=' . $incident_id );
         exit;
       }
@@ -166,9 +210,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   $event['assetid'] = $_POST['assetid'] ?? '';
   $event['description'] = $description;
 }
+$attachments = attachment_load_for_task( $con, 'event', $event_id );
+$attachments_html = attachment_render_as_comments( $attachments );
+$task_logs_html = task_log_render_tab( task_log_load( $con, 'event', $event_id ) );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+  <span data-tab-title="<?= htmlspecialchars(event_format_display_number($event), ENT_QUOTES) ?>" data-tab-subtitle="Event" hidden></span>
   <?php $list_back_url = event_get_list_back_url( 'events.php?view=open' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Event <?= htmlspecialchars(event_format_display_number($event)) ?></h1>
@@ -176,9 +224,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   <?php if ( !empty( $errors ) ): ?>
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
+  <div class="ticket-view-tabs caller-card-tabs" role="tablist">
+    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true">Taak</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false">Links</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+  </div>
+  <div class="ticket-view-panel is-active" data-ticket-view-panel="task">
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         <div class="form-grid">
           <div class="form-group">
             <label>Categorie</label>
@@ -206,6 +260,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
             <label>Omschrijving</label>
             <textarea name="description" required><?= htmlspecialchars($event['description']) ?></textarea>
           </div>
+          <?php attachment_render_upload_field(); ?>
           <?php if ( (int)$event['incidentid'] > 0 ): ?>
           <p class="info-note">Gekoppeld incident ID: <?= htmlspecialchars((string)$event['incidentid']) ?></p>
           <?php endif; ?>
@@ -224,15 +279,46 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   </div>
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
-        <?= task_render_links_section( task_load_links( $con, 'event', $event_id, 'secure' ) ) ?>
-      </form>
+      <?php if ( !empty( $attachments_html ) ): ?>
+      <h3>Bijlagen</h3>
+      <?= $attachments_html ?>
+      <?php endif; ?>
+    </div>
+  </div>
+  </div>
+  <div class="ticket-view-panel" data-ticket-view-panel="links">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <form method="post">
+          <?= task_render_links_section( task_load_links( $con, 'event', $event_id, 'secure' ) ) ?>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-view-panel" data-ticket-view-panel="log">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <?= $task_logs_html ?>
+      </div>
     </div>
   </div>
 </div>
 <script>
 const editEventSubcategories = <?= json_encode($reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const currentEditEventSubcategoryId = <?= json_encode((string)$event['subcategoryid']) ?>;
+document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.ticketViewTab;
+    document.querySelectorAll('[data-ticket-view-tab]').forEach((button) => {
+      const active = button.dataset.ticketViewTab === target;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-ticket-view-panel]').forEach((panel) => {
+      panel.classList.toggle('is-active', panel.dataset.ticketViewPanel === target);
+    });
+  });
+});
 function refreshEditEventSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');

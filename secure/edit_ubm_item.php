@@ -4,6 +4,9 @@ session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
 require_once( __DIR__ . '/include/task_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/form_presence_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -43,6 +46,10 @@ if ( !empty( $item['parentid'] ) ) {
 }
 
 $errors = [];
+$presence_error = form_presence_flash_error();
+if ( $presence_error !== '' ) {
+  $errors[] = $presence_error;
+}
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
   task_delete_link( $con, (int)$_POST['delete_link_id'] );
   header( 'Location: edit_ubm_item.php?id=' . $item_id );
@@ -59,12 +66,16 @@ if ( isset( $_POST['add_task_link'] ) ) {
       $errors[] = 'Taaknummer niet gevonden.';
     } else {
       task_create_link( $con, 'ubm', $item_id, $relation, $target['type'], (int)$target['id'], (int)$operator_context['id'] );
+      task_log_add( $con, 'ubm', $item_id, 'link_created', 'Link toegevoegd: ' . $relation . ' ' . $target['type'] . ' #' . (int)$target['id'] . '.', (int)$operator_context['id'] );
       header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
   }
 }
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
+  form_presence_redirect_if_stale( $con, 'ubm', $item_id, $_POST['presence_token'] ?? '', 'edit_ubm_item.php?id=' . $item_id );
+  $old_item = $item;
+  $old_status_id = (int)$item['statusid'];
   $item['title'] = trim( $_POST['title'] ?? '' );
   $item['description'] = trim( $_POST['description'] ?? '' );
   $item['categoryid'] = $_POST['categoryid'] ?? '';
@@ -88,6 +99,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
     $parent_item
   );
   $errors = $validation['errors'];
+  $errors = array_merge( $errors, attachment_upload_errors() );
+  $presence_check = form_presence_check_before_save( $con, 'ubm', $item_id, $_POST['presence_token'] ?? '' );
+  if ( !$presence_check['ok'] ) {
+    $errors[] = $presence_check['message'];
+  }
 
   if ( empty( $errors ) ) {
     $category_id = $validation['category'] ? (int)$validation['category']['id'] : null;
@@ -103,6 +119,40 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         " );
     mysqli_stmt_bind_param( $update_stmt, "ssiiiiii", $item['title'], $item['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $item_id );
     if ( mysqli_stmt_execute( $update_stmt ) ) {
+      attachment_save_upload( $con, 'ubm', $item_id, (int)$operator_context['id'], 0 );
+      form_presence_mark_saved( $con, 'ubm', $item_id, (int)$operator_context['id'] );
+      task_log_add( $con, 'ubm', $item_id, 'updated', 'UBM-item opgeslagen.', (int)$operator_context['id'] );
+      task_log_field_changes(
+        $con,
+        'ubm',
+        $item_id,
+        [
+          'title' => $old_item['title'],
+          'description' => $old_item['description'],
+          'categoryid' => $old_item['categoryid'],
+          'subcategoryid' => $old_item['subcategoryid'],
+          'operatorgroupid' => $old_item['operatorgroupid'],
+          'operatorid' => $old_item['operatorid']
+        ],
+        [
+          'title' => $item['title'],
+          'description' => $item['description'],
+          'categoryid' => $category_id,
+          'subcategoryid' => $subcategory_id,
+          'operatorgroupid' => $group_id,
+          'operatorid' => $operator_id
+        ],
+        [
+          'title' => 'Titel',
+          'description' => 'Omschrijving',
+          'categoryid' => 'Categorie',
+          'subcategoryid' => 'Subcategorie',
+          'operatorgroupid' => 'Team',
+          'operatorid' => 'Behandelaar'
+        ],
+        (int)$operator_context['id']
+      );
+      task_log_status_change( $con, 'ubm', $item_id, $old_status_id, $status_id, (int)$operator_context['id'] );
       header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
@@ -125,9 +175,13 @@ while ( $row = mysqli_fetch_assoc( $children_result ) ) {
 }
 $allowed_children = ubm_allowed_child_types( $item['itemtype'] );
 $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id, 'secure' ) );
+$attachments = attachment_load_for_task( $con, 'ubm', $item_id );
+$attachments_html = attachment_render_as_comments( $attachments );
+$task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+  <span data-tab-title="<?= htmlspecialchars($item['title'], ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($item['itemtype']), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = ubm_get_list_back_url( 'ubm-menu.php' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1><?= htmlspecialchars(ubm_type_label($item['itemtype'])) ?>: <?= htmlspecialchars($item['title']) ?></h1>
@@ -135,9 +189,15 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
   <?php if ( !empty( $errors ) ): ?>
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
+  <div class="ticket-view-tabs caller-card-tabs" role="tablist">
+    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true">Taak</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false">Links</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+  </div>
+  <div class="ticket-view-panel is-active" data-ticket-view-panel="task">
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         <?php if ( $parent_item ): ?>
         <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
         <?php endif; ?>
@@ -150,6 +210,7 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
             <label>Omschrijving</label>
             <textarea name="description"><?= htmlspecialchars($item['description']) ?></textarea>
           </div>
+          <?php attachment_render_upload_field(); ?>
           <div class="form-group">
             <label>Categorie</label>
             <select name="categoryid" id="category_id">
@@ -174,7 +235,10 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
           </div>
           <div class="form-group">
             <label>Behandelaar</label>
-            <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
+            <label class="assign-to-me-row">
+              <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+            </label>
           </div>
           <div class="form-group">
             <label>Status</label>
@@ -200,9 +264,10 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
   <br>
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
-        <?= $links_html ?>
-      </form>
+      <?php if ( !empty( $attachments_html ) ): ?>
+      <h3>Bijlagen</h3>
+      <?= $attachments_html ?>
+      <?php endif; ?>
     </div>
   </div>
   <br>
@@ -236,6 +301,23 @@ $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id,
       </tbody>
     </table>
   </div>
+  </div>
+  <div class="ticket-view-panel" data-ticket-view-panel="links">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <form method="post">
+          <?= $links_html ?>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="ticket-view-panel" data-ticket-view-panel="log">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <?= $task_logs_html ?>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
 const editUbmSubcategories = <?= json_encode($reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
@@ -243,6 +325,21 @@ const editUbmCurrentSubcategoryId = <?= json_encode((string)$item['subcategoryid
 const editUbmOperators = <?= json_encode($reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const editUbmOpLinks = <?= json_encode($reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const editUbmCurrentOperatorId = <?= json_encode((string)$item['operatorid']) ?>;
+const editUbmLoggedInOperatorId = <?= json_encode((string)($operator_context['id'] ?? '')) ?>;
+const editUbmLoggedInOperatorGroupIds = [...new Set(editUbmOpLinks.filter((row) => String(row.operatorid) === String(editUbmLoggedInOperatorId)).map((row) => String(row.groupid)))];
+document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.ticketViewTab;
+    document.querySelectorAll('[data-ticket-view-tab]').forEach((button) => {
+      const active = button.dataset.ticketViewTab === target;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-ticket-view-panel]').forEach((panel) => {
+      panel.classList.toggle('is-active', panel.dataset.ticketViewPanel === target);
+    });
+  });
+});
 function refreshEditUbmSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
@@ -272,10 +369,31 @@ function refreshEditUbmOperators() {
     }
     select.appendChild(option);
   });
+  refreshEditUbmAssignToMeButton();
+}
+function refreshEditUbmAssignToMeButton() {
+  const button = document.getElementById('assign_to_me_button');
+  const groupId = String(document.getElementById('operatorgroup_id').value || '');
+  if (!button) { return; }
+  button.disabled = !editUbmLoggedInOperatorId || (editUbmLoggedInOperatorGroupIds.length !== 1 && !groupId) || (groupId && !editUbmLoggedInOperatorGroupIds.includes(groupId));
+}
+function assignEditUbmToMe() {
+  const groupSelect = document.getElementById('operatorgroup_id');
+  if (editUbmLoggedInOperatorGroupIds.length === 1 && !groupSelect.value) {
+    groupSelect.value = editUbmLoggedInOperatorGroupIds[0];
+    refreshEditUbmOperators();
+  }
+  const groupId = String(groupSelect.value || '');
+  if ((editUbmLoggedInOperatorGroupIds.length !== 1 && !groupId) || (groupId && !editUbmLoggedInOperatorGroupIds.includes(groupId))) { return; }
+  const select = document.getElementById('operator_id');
+  select.value = String(editUbmLoggedInOperatorId);
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  refreshEditUbmAssignToMeButton();
 }
 document.getElementById('category_id').addEventListener('change', refreshEditUbmSubcategories);
 refreshEditUbmSubcategories();
 document.getElementById('operatorgroup_id').addEventListener('change', refreshEditUbmOperators);
+document.getElementById('assign_to_me_button')?.addEventListener('click', assignEditUbmToMe);
 refreshEditUbmOperators();
 </script>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

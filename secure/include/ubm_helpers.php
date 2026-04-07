@@ -119,6 +119,77 @@ function ubm_collect_group_ids_for_operator( $con, $operator_id ) {
   return $group_ids;
 }
 
+function ubm_load_tree_items( $con ) {
+  $items = [];
+  $result = mysqli_query( $con, "
+    SELECT
+      u.*,
+      c.name AS category_name,
+      sub.name AS subcategory_name,
+      s.name AS status_name,
+      IFNULL(s.closed, 0) AS status_closed,
+      g.groupname,
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    FROM itsm_ubm_items u
+    LEFT JOIN itsm_core_category c ON u.categoryid = c.id
+    LEFT JOIN itsm_core_subcategory sub ON u.subcategoryid = sub.id
+    LEFT JOIN itsm_core_status s ON u.statusid = s.id
+    LEFT JOIN itsm_ob_operatorgroups g ON u.operatorgroupid = g.id
+    LEFT JOIN itsm_ob_operators o ON u.operatorid = o.id
+    ORDER BY FIELD(u.itemtype, 'initiative', 'epic', 'feature', 'story', 'subtask'), u.title ASC, u.id ASC
+  " );
+
+  while ( $row = mysqli_fetch_assoc( $result ) ) {
+    $items[] = $row;
+  }
+
+  return $items;
+}
+
+function ubm_group_tree_by_parent( $items ) {
+  $children = [];
+  foreach ( $items as $item ) {
+    $parent_id = !empty( $item['parentid'] ) ? (int)$item['parentid'] : 0;
+    if ( !isset( $children[$parent_id] ) ) {
+      $children[$parent_id] = [];
+    }
+    $children[$parent_id][] = $item;
+  }
+
+  return $children;
+}
+
+function ubm_render_tree_nodes( $children_by_parent, $parent_id = 0 ) {
+  if ( empty( $children_by_parent[$parent_id] ) ) {
+    return '';
+  }
+
+  ob_start();
+  ?>
+  <ul class="ubm-tree-list">
+    <?php foreach ( $children_by_parent[$parent_id] as $item ): ?>
+    <li>
+      <div class="ubm-tree-node <?= (int)($item['status_closed'] ?? 0) === 1 ? 'is-closed' : '' ?>">
+        <div class="ubm-tree-node-head">
+          <a href="edit_ubm_item.php?id=<?= (int)$item['id'] ?>"><?= htmlspecialchars($item['title']) ?></a>
+          <span class="ubm-tree-type"><?= htmlspecialchars(ubm_type_label($item['itemtype'])) ?></span>
+        </div>
+        <div class="ubm-tree-meta">
+          <?php if ( !empty( $item['status_name'] ) ): ?><span><?= htmlspecialchars($item['status_name']) ?></span><?php endif; ?>
+          <?php if ( !empty( $item['groupname'] ) ): ?><span><?= htmlspecialchars($item['groupname']) ?></span><?php endif; ?>
+          <?php if ( !empty( $item['operator_name'] ) ): ?><span><?= htmlspecialchars($item['operator_name']) ?></span><?php endif; ?>
+          <?php if ( !empty( $item['category_name'] ) ): ?><span><?= htmlspecialchars($item['category_name']) ?></span><?php endif; ?>
+          <?php if ( !empty( $item['subcategory_name'] ) ): ?><span><?= htmlspecialchars($item['subcategory_name']) ?></span><?php endif; ?>
+        </div>
+      </div>
+      <?= ubm_render_tree_nodes( $children_by_parent, (int)$item['id'] ) ?>
+    </li>
+    <?php endforeach; ?>
+  </ul>
+  <?php
+  return ob_get_clean();
+}
+
 function ubm_validate_form( $data, $reference_data, $parent_item = null ) {
   $errors = [];
   $status = ubm_find_by_id( $reference_data['statuses'], $data['statusid'] );

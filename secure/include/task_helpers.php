@@ -91,6 +91,25 @@ function task_find_by_number( $con, $number, $context = 'secure' ) {
 
 function task_linkify_text( $text, $context = 'secure' ) {
   $escaped = htmlspecialchars( (string)$text );
+  $escaped = preg_replace_callback(
+    '/!\[([^\]]*)\]\((attachment:(\d+)|(?:\.\/)?download_attachment\.php\?id=(\d+)|\/(?:secure|public)\/download_attachment\.php\?id=(\d+))\)/',
+    function( $matches ) {
+      $alt = htmlspecialchars_decode( $matches[1], ENT_QUOTES );
+      $id = 0;
+      for ( $i = 3; $i <= 5; $i++ ) {
+        if ( !empty( $matches[$i] ) ) {
+          $id = (int)$matches[$i];
+          break;
+        }
+      }
+      if ( $id <= 0 ) {
+        return $matches[0];
+      }
+
+      return '<img class="inline-task-image" src="download_attachment.php?id=' . $id . '&amp;inline=1" alt="' . htmlspecialchars( $alt ) . '">';
+    },
+    $escaped
+  );
   $pattern = '/\b(WA\d{4}\s\d{4}|W\d{4}\s\d{4}|I\d{4}\s\d{4}|P\d{4}\s\d{4}|E\d{4}\s\d{4})\b/';
 
   $linked = preg_replace_callback( $pattern, function ( $matches ) use ( $context ) {

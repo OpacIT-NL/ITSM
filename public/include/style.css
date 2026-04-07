@@ -453,6 +453,47 @@ a {
   font-size: 13px;
 }
 
+.ssp-attachment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ssp-attachment-link {
+  width: fit-content;
+  color: #2c7ac9;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ssp-attachment-link:hover {
+  text-decoration: underline;
+}
+
+.ssp-attachment-link span {
+  color: #57758f;
+  font-weight: 500;
+}
+
+.ssp-inline-image,
+.inline-task-image {
+  display: block;
+  max-width: min(100%, 760px);
+  max-height: 520px;
+  margin: 10px 0;
+  border: 1px solid rgba(61, 106, 144, 0.16);
+  border-radius: 14px;
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.ssp-attachment-hint {
+  display: block;
+  color: #57758f;
+  font-size: 12px;
+}
+
 .kb-tree-columns {
   columns: 2;
   column-gap: 18px;

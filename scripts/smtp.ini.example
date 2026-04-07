@@ -1,0 +1,8 @@
+host = "smtp.example.com"
+port = 587
+encryption = "tls"
+username = "smtp-user@example.com"
+password = "change-me"
+from_email = "itsm@example.com"
+from_name = "ITSM"
+timeout = 15

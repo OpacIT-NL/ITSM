@@ -43,7 +43,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
     die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  echo "Gebouw verwijderd. <a href='javascript:history.back(1)'>Ga terug</a>";
+  echo "Gebouw verwijderd.";
   exit;
 }
 
@@ -76,7 +76,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   // Only update password if a new one is entered
 
 
-  echo "Gebouw aangepast! <a href='javascript:history.back(1)'>Ga terug</a>";
+  echo "Gebouw aangepast!";
   exit;
 }
 
