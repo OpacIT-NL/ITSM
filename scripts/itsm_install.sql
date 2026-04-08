@@ -116,95 +116,6 @@ CREATE TABLE `itsm_cm_changes` (
   `updatedat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
-CREATE TABLE `itsm_core_category` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `type` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_impacts` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `sortorder` int(11) NOT NULL DEFAULT 0,
-  `active` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_urgencies` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `sortorder` int(11) NOT NULL DEFAULT 0,
-  `active` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_priorities` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `sortorder` int(11) NOT NULL DEFAULT 0,
-  `active` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_prioritymatrix` (
-  `id` int(11) NOT NULL,
-  `impactid` int(11) NOT NULL,
-  `urgencyid` int(11) NOT NULL,
-  `priorityid` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_news` (
-  `id` int(11) NOT NULL,
-  `newstype` varchar(32) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` longtext NOT NULL,
-  `showssp` int(1) NOT NULL DEFAULT 0,
-  `showoperatorhome` int(1) NOT NULL DEFAULT 0,
-  `showlogin` int(1) NOT NULL DEFAULT 0,
-  `createdby` int(11) NOT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_mailrules` (
-  `id` int(11) NOT NULL,
-  `tasktype` varchar(32) NOT NULL,
-  `triggertype` varchar(32) NOT NULL DEFAULT 'statuschange',
-  `fromstatusid` int(11) DEFAULT NULL,
-  `tostatusid` int(11) DEFAULT NULL,
-  `recipienttype` varchar(32) NOT NULL DEFAULT 'requester',
-  `customrecipients` longtext DEFAULT NULL,
-  `subject` varchar(255) NOT NULL,
-  `templatefile` varchar(255) NOT NULL,
-  `active` int(1) NOT NULL DEFAULT 1,
-  `createdby` int(11) NOT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_imap_rules` (
-  `id` int(11) NOT NULL,
-  `folder` varchar(255) NOT NULL,
-  `tasktype` varchar(32) NOT NULL,
-  `categoryid` int(11) DEFAULT NULL,
-  `subcategoryid` int(11) DEFAULT NULL,
-  `fallback_customerid` int(11) DEFAULT NULL,
-  `fallback_personid` int(11) DEFAULT NULL,
-  `operatorgroupid` int(11) DEFAULT NULL,
-  `active` int(1) NOT NULL DEFAULT 1,
-  `createdby` int(11) NOT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
-CREATE TABLE `itsm_core_imap_imported` (
-  `id` int(11) NOT NULL,
-  `ruleid` int(11) NOT NULL,
-  `folder` varchar(255) NOT NULL,
-  `uid` int(11) NOT NULL,
-  `messageid` varchar(255) DEFAULT NULL,
-  `tasktype` varchar(32) NOT NULL,
-  `taskid` int(11) NOT NULL,
-  `importedat` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
 CREATE TABLE `itsm_core_attachments` (
   `id` int(11) NOT NULL,
   `tasktype` varchar(32) NOT NULL,
@@ -219,6 +130,12 @@ CREATE TABLE `itsm_core_attachments` (
   `uploadedbyperson` int(11) DEFAULT NULL,
   `internalonly` int(1) NOT NULL DEFAULT 0,
   `createdat` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_category` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_core_form_presence` (
@@ -240,16 +157,80 @@ CREATE TABLE `itsm_core_form_saves` (
   `lastsavedat` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
-CREATE TABLE `itsm_core_tasklogs` (
+CREATE TABLE `itsm_core_imap_imported` (
   `id` int(11) NOT NULL,
+  `ruleid` int(11) NOT NULL,
+  `folder` varchar(255) NOT NULL,
+  `uid` int(11) NOT NULL,
+  `messageid` varchar(255) DEFAULT NULL,
   `tasktype` varchar(32) NOT NULL,
   `taskid` int(11) NOT NULL,
-  `actiontype` varchar(64) NOT NULL,
+  `importedat` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_imap_rules` (
+  `id` int(11) NOT NULL,
+  `folder` varchar(255) NOT NULL,
+  `tasktype` varchar(32) NOT NULL,
+  `categoryid` int(11) DEFAULT NULL,
+  `subcategoryid` int(11) DEFAULT NULL,
+  `fallback_customerid` int(11) DEFAULT NULL,
+  `fallback_personid` int(11) DEFAULT NULL,
+  `operatorgroupid` int(11) DEFAULT NULL,
+  `active` int(1) NOT NULL DEFAULT 1,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_impacts` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `sortorder` int(11) NOT NULL DEFAULT 0,
+  `active` int(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_mailrules` (
+  `id` int(11) NOT NULL,
+  `tasktype` varchar(32) NOT NULL,
+  `triggertype` varchar(32) NOT NULL DEFAULT 'statuschange',
+  `fromstatusid` int(11) DEFAULT NULL,
+  `tostatusid` int(11) DEFAULT NULL,
+  `recipienttype` varchar(32) NOT NULL DEFAULT 'requester',
+  `customrecipients` longtext DEFAULT NULL,
+  `subject` varchar(255) NOT NULL,
+  `templatefile` varchar(255) NOT NULL,
+  `active` int(1) NOT NULL DEFAULT 1,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_news` (
+  `id` int(11) NOT NULL,
+  `newstype` varchar(32) NOT NULL,
+  `title` varchar(255) NOT NULL,
   `message` longtext NOT NULL,
-  `oldvalue` varchar(255) DEFAULT NULL,
-  `newvalue` varchar(255) DEFAULT NULL,
-  `createdby` int(11) DEFAULT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
+  `showssp` int(1) NOT NULL DEFAULT 0,
+  `showoperatorhome` int(1) NOT NULL DEFAULT 0,
+  `showlogin` int(1) NOT NULL DEFAULT 0,
+  `createdby` int(11) NOT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_priorities` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `sortorder` int(11) NOT NULL DEFAULT 0,
+  `active` int(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_prioritymatrix` (
+  `id` int(11) NOT NULL,
+  `impactid` int(11) NOT NULL,
+  `urgencyid` int(11) NOT NULL,
+  `priorityid` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_core_status` (
@@ -277,6 +258,18 @@ CREATE TABLE `itsm_core_tasklinks` (
   `createdat` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_tasklogs` (
+  `id` int(11) NOT NULL,
+  `tasktype` varchar(32) NOT NULL,
+  `taskid` int(11) NOT NULL,
+  `actiontype` varchar(64) NOT NULL,
+  `message` longtext NOT NULL,
+  `oldvalue` varchar(255) DEFAULT NULL,
+  `newvalue` varchar(255) DEFAULT NULL,
+  `createdby` int(11) DEFAULT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_core_templateactivities` (
   `id` int(11) NOT NULL,
   `templateid` int(11) NOT NULL,
@@ -293,10 +286,17 @@ CREATE TABLE `itsm_core_templates` (
   `type` varchar(16) NOT NULL,
   `changerequesttype` varchar(16) NOT NULL,
   `persongroupid` int(11) DEFAULT NULL,
-  `categoryid` int(11) DEFAULT NULL,
+  `categoryid` int(11) NOT NULL,
   `subcategoryid` int(11) DEFAULT NULL,
   `description` longtext DEFAULT NULL,
   `commenttext` longtext DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_core_urgencies` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `sortorder` int(11) NOT NULL DEFAULT 0,
+  `active` int(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_em_events` (
@@ -444,15 +444,6 @@ CREATE TABLE `itsm_ob_persons` (
   `allowssp` int(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
-CREATE TABLE `itsm_public_password_resets` (
-  `id` int(11) NOT NULL,
-  `personid` int(11) NOT NULL,
-  `tokenhash` varchar(64) NOT NULL,
-  `expiresat` datetime NOT NULL,
-  `usedat` datetime DEFAULT NULL,
-  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
-
 CREATE TABLE `itsm_ob_suppliers` (
   `id` int(11) NOT NULL,
   `cin` varchar(6) NOT NULL,
@@ -495,6 +486,15 @@ CREATE TABLE `itsm_pm_problems` (
   `createdby` int(11) NOT NULL,
   `createdat` timestamp NOT NULL DEFAULT current_timestamp(),
   `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_public_password_resets` (
+  `id` int(11) NOT NULL,
+  `personid` int(11) NOT NULL,
+  `tokenhash` varchar(64) NOT NULL,
+  `expiresat` datetime NOT NULL,
+  `usedat` datetime DEFAULT NULL,
+  `createdat` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_ubm_items` (
@@ -551,57 +551,11 @@ ALTER TABLE `itsm_cm_changes`
   ADD KEY `operatorid` (`operatorid`),
   ADD KEY `coordinatorid` (`coordinatorid`),
   ADD KEY `statusid` (`statusid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `template_used` (`template_used`),
   ADD KEY `impactid` (`impactid`),
   ADD KEY `urgencyid` (`urgencyid`),
-  ADD KEY `priorityid` (`priorityid`),
-  ADD KEY `createdby` (`createdby`),
-  ADD KEY `template_used` (`template_used`);
-
-ALTER TABLE `itsm_core_category`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `itsm_core_impacts`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `itsm_core_urgencies`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `itsm_core_priorities`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `itsm_core_prioritymatrix`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `impact_urgency` (`impactid`,`urgencyid`),
-  ADD KEY `urgencyid` (`urgencyid`),
   ADD KEY `priorityid` (`priorityid`);
-
-ALTER TABLE `itsm_core_news`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `createdby` (`createdby`);
-
-ALTER TABLE `itsm_core_mailrules`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fromstatusid` (`fromstatusid`),
-  ADD KEY `tostatusid` (`tostatusid`),
-  ADD KEY `createdby` (`createdby`),
-  ADD KEY `mailrule_lookup` (`tasktype`,`triggertype`,`fromstatusid`,`tostatusid`,`active`);
-
-ALTER TABLE `itsm_core_imap_rules`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `categoryid` (`categoryid`),
-  ADD KEY `subcategoryid` (`subcategoryid`),
-  ADD KEY `fallback_customerid` (`fallback_customerid`),
-  ADD KEY `fallback_personid` (`fallback_personid`),
-  ADD KEY `operatorgroupid` (`operatorgroupid`),
-  ADD KEY `createdby` (`createdby`),
-  ADD KEY `imap_rule_lookup` (`tasktype`,`folder`,`active`);
-
-ALTER TABLE `itsm_core_imap_imported`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `imap_message_uid` (`folder`,`uid`),
-  ADD KEY `ruleid` (`ruleid`),
-  ADD KEY `messageid` (`messageid`),
-  ADD KEY `task_lookup` (`tasktype`,`taskid`);
 
 ALTER TABLE `itsm_core_attachments`
   ADD PRIMARY KEY (`id`),
@@ -609,6 +563,9 @@ ALTER TABLE `itsm_core_attachments`
   ADD KEY `comment_lookup` (`commenttype`,`commentid`),
   ADD KEY `uploadedby` (`uploadedby`),
   ADD KEY `uploadedbyperson` (`uploadedbyperson`);
+
+ALTER TABLE `itsm_core_category`
+  ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `itsm_core_form_presence`
   ADD PRIMARY KEY (`id`),
@@ -621,10 +578,45 @@ ALTER TABLE `itsm_core_form_saves`
   ADD UNIQUE KEY `save_task` (`tasktype`,`taskid`),
   ADD KEY `savedby` (`savedby`);
 
-ALTER TABLE `itsm_core_tasklogs`
+ALTER TABLE `itsm_core_imap_imported`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `task_lookup` (`tasktype`,`taskid`,`createdat`),
+  ADD UNIQUE KEY `imap_message_uid` (`folder`,`uid`),
+  ADD KEY `ruleid` (`ruleid`),
+  ADD KEY `messageid` (`messageid`),
+  ADD KEY `task_lookup` (`tasktype`,`taskid`);
+
+ALTER TABLE `itsm_core_imap_rules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `categoryid` (`categoryid`),
+  ADD KEY `subcategoryid` (`subcategoryid`),
+  ADD KEY `fallback_customerid` (`fallback_customerid`),
+  ADD KEY `fallback_personid` (`fallback_personid`),
+  ADD KEY `operatorgroupid` (`operatorgroupid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `imap_rule_lookup` (`tasktype`,`folder`,`active`);
+
+ALTER TABLE `itsm_core_impacts`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_core_mailrules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fromstatusid` (`fromstatusid`),
+  ADD KEY `tostatusid` (`tostatusid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `mailrule_lookup` (`tasktype`,`triggertype`,`fromstatusid`,`tostatusid`,`active`);
+
+ALTER TABLE `itsm_core_news`
+  ADD PRIMARY KEY (`id`),
   ADD KEY `createdby` (`createdby`);
+
+ALTER TABLE `itsm_core_priorities`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_core_prioritymatrix`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `impact_urgency` (`impactid`,`urgencyid`),
+  ADD KEY `urgencyid` (`urgencyid`),
+  ADD KEY `priorityid` (`priorityid`);
 
 ALTER TABLE `itsm_core_status`
   ADD PRIMARY KEY (`id`);
@@ -635,6 +627,11 @@ ALTER TABLE `itsm_core_subcategory`
 ALTER TABLE `itsm_core_tasklinks`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `link_unique` (`lefttype`,`leftid`,`relationtype`,`righttype`,`rightid`),
+  ADD KEY `createdby` (`createdby`);
+
+ALTER TABLE `itsm_core_tasklogs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `task_lookup` (`tasktype`,`taskid`,`createdat`),
   ADD KEY `createdby` (`createdby`);
 
 ALTER TABLE `itsm_core_templateactivities`
@@ -649,6 +646,9 @@ ALTER TABLE `itsm_core_templates`
   ADD KEY `categoryid` (`categoryid`),
   ADD KEY `subcategoryid` (`subcategoryid`),
   ADD KEY `persongroupid` (`persongroupid`);
+
+ALTER TABLE `itsm_core_urgencies`
+  ADD PRIMARY KEY (`id`);
 
 ALTER TABLE `itsm_em_events`
   ADD PRIMARY KEY (`id`),
@@ -673,15 +673,15 @@ ALTER TABLE `itsm_im_incidents`
   ADD KEY `operatorgroupid` (`operatorgroupid`),
   ADD KEY `customerid` (`customerid`),
   ADD KEY `personid` (`personid`),
-  ADD KEY `impactid` (`impactid`),
-  ADD KEY `urgencyid` (`urgencyid`),
-  ADD KEY `priorityid` (`priorityid`),
   ADD KEY `itsm_im_incidents_ibfk_3` (`categoryid`),
   ADD KEY `itsm_im_incidents_ibfk_4` (`subcategoryid`),
   ADD KEY `itsm_im_incidents_ibfk_5` (`assetid`),
   ADD KEY `itsm_im_incidents_ibfk_9` (`createdby`),
   ADD KEY `majorincidentid` (`majorincidentid`),
-  ADD KEY `template_used` (`template_used`);
+  ADD KEY `template_used` (`template_used`),
+  ADD KEY `impactid` (`impactid`),
+  ADD KEY `urgencyid` (`urgencyid`),
+  ADD KEY `priorityid` (`priorityid`);
 
 ALTER TABLE `itsm_km_items`
   ADD PRIMARY KEY (`id`),
@@ -712,12 +712,6 @@ ALTER TABLE `itsm_ob_persongroups`
 ALTER TABLE `itsm_ob_persons`
   ADD PRIMARY KEY (`id`);
 
-ALTER TABLE `itsm_public_password_resets`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `tokenhash` (`tokenhash`),
-  ADD KEY `personid` (`personid`),
-  ADD KEY `expiresat` (`expiresat`);
-
 ALTER TABLE `itsm_ob_suppliers`
   ADD PRIMARY KEY (`id`);
 
@@ -737,11 +731,17 @@ ALTER TABLE `itsm_pm_problems`
   ADD KEY `operatorgroupid` (`operatorgroupid`),
   ADD KEY `operatorid` (`operatorid`),
   ADD KEY `statusid` (`statusid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `template_used` (`template_used`),
   ADD KEY `impactid` (`impactid`),
   ADD KEY `urgencyid` (`urgencyid`),
-  ADD KEY `priorityid` (`priorityid`),
-  ADD KEY `createdby` (`createdby`),
-  ADD KEY `template_used` (`template_used`);
+  ADD KEY `priorityid` (`priorityid`);
+
+ALTER TABLE `itsm_public_password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tokenhash` (`tokenhash`),
+  ADD KEY `personid` (`personid`),
+  ADD KEY `expiresat` (`expiresat`);
 
 ALTER TABLE `itsm_ubm_items`
   ADD PRIMARY KEY (`id`),
@@ -772,34 +772,10 @@ ALTER TABLE `itsm_cm_changecomments`
 ALTER TABLE `itsm_cm_changes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
-ALTER TABLE `itsm_core_category`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_impacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_urgencies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_priorities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_prioritymatrix`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_news`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_mailrules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_imap_rules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `itsm_core_imap_imported`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 ALTER TABLE `itsm_core_attachments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_category`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_form_presence`
@@ -808,7 +784,25 @@ ALTER TABLE `itsm_core_form_presence`
 ALTER TABLE `itsm_core_form_saves`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
-ALTER TABLE `itsm_core_tasklogs`
+ALTER TABLE `itsm_core_imap_imported`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_imap_rules`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_impacts`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_mailrules`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_news`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_priorities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_prioritymatrix`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_status`
@@ -820,10 +814,16 @@ ALTER TABLE `itsm_core_subcategory`
 ALTER TABLE `itsm_core_tasklinks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_core_tasklogs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_core_templateactivities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_templates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_urgencies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_em_events`
@@ -862,9 +862,6 @@ ALTER TABLE `itsm_ob_persongroups`
 ALTER TABLE `itsm_ob_persons`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
-ALTER TABLE `itsm_public_password_resets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 ALTER TABLE `itsm_ob_suppliers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -872,6 +869,9 @@ ALTER TABLE `itsm_pm_problemcomments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_pm_problems`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_public_password_resets`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_ubm_items`
@@ -906,30 +906,6 @@ ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_cm_changes_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
-ALTER TABLE `itsm_core_news`
-  ADD CONSTRAINT `itsm_core_news_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
-
-ALTER TABLE `itsm_core_prioritymatrix`
-  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_1` FOREIGN KEY (`impactid`) REFERENCES `itsm_core_impacts` (`id`),
-  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_2` FOREIGN KEY (`urgencyid`) REFERENCES `itsm_core_urgencies` (`id`),
-  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_3` FOREIGN KEY (`priorityid`) REFERENCES `itsm_core_priorities` (`id`);
-
-ALTER TABLE `itsm_core_mailrules`
-  ADD CONSTRAINT `itsm_core_mailrules_ibfk_1` FOREIGN KEY (`fromstatusid`) REFERENCES `itsm_core_status` (`id`),
-  ADD CONSTRAINT `itsm_core_mailrules_ibfk_2` FOREIGN KEY (`tostatusid`) REFERENCES `itsm_core_status` (`id`),
-  ADD CONSTRAINT `itsm_core_mailrules_ibfk_3` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
-
-ALTER TABLE `itsm_core_imap_rules`
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_3` FOREIGN KEY (`fallback_customerid`) REFERENCES `itsm_ob_customers` (`id`),
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_4` FOREIGN KEY (`fallback_personid`) REFERENCES `itsm_ob_persons` (`id`),
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_5` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
-  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_6` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
-
-ALTER TABLE `itsm_core_imap_imported`
-  ADD CONSTRAINT `itsm_core_imap_imported_ibfk_1` FOREIGN KEY (`ruleid`) REFERENCES `itsm_core_imap_rules` (`id`) ON DELETE CASCADE;
-
 ALTER TABLE `itsm_core_attachments`
   ADD CONSTRAINT `itsm_core_attachments_ibfk_1` FOREIGN KEY (`uploadedby`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_core_attachments_ibfk_2` FOREIGN KEY (`uploadedbyperson`) REFERENCES `itsm_ob_persons` (`id`);
@@ -940,11 +916,35 @@ ALTER TABLE `itsm_core_form_presence`
 ALTER TABLE `itsm_core_form_saves`
   ADD CONSTRAINT `itsm_core_form_saves_ibfk_1` FOREIGN KEY (`savedby`) REFERENCES `itsm_ob_operators` (`id`);
 
-ALTER TABLE `itsm_core_tasklogs`
-  ADD CONSTRAINT `itsm_core_tasklogs_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+ALTER TABLE `itsm_core_imap_imported`
+  ADD CONSTRAINT `itsm_core_imap_imported_ibfk_1` FOREIGN KEY (`ruleid`) REFERENCES `itsm_core_imap_rules` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `itsm_core_imap_rules`
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_1` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_2` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`),
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_3` FOREIGN KEY (`fallback_customerid`) REFERENCES `itsm_ob_customers` (`id`),
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_4` FOREIGN KEY (`fallback_personid`) REFERENCES `itsm_ob_persons` (`id`),
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_5` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
+  ADD CONSTRAINT `itsm_core_imap_rules_ibfk_6` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_mailrules`
+  ADD CONSTRAINT `itsm_core_mailrules_ibfk_1` FOREIGN KEY (`fromstatusid`) REFERENCES `itsm_core_status` (`id`),
+  ADD CONSTRAINT `itsm_core_mailrules_ibfk_2` FOREIGN KEY (`tostatusid`) REFERENCES `itsm_core_status` (`id`),
+  ADD CONSTRAINT `itsm_core_mailrules_ibfk_3` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_news`
+  ADD CONSTRAINT `itsm_core_news_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_prioritymatrix`
+  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_1` FOREIGN KEY (`impactid`) REFERENCES `itsm_core_impacts` (`id`),
+  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_2` FOREIGN KEY (`urgencyid`) REFERENCES `itsm_core_urgencies` (`id`),
+  ADD CONSTRAINT `itsm_core_prioritymatrix_ibfk_3` FOREIGN KEY (`priorityid`) REFERENCES `itsm_core_priorities` (`id`);
 
 ALTER TABLE `itsm_core_tasklinks`
   ADD CONSTRAINT `itsm_core_tasklinks_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_tasklogs`
+  ADD CONSTRAINT `itsm_core_tasklogs_ibfk_1` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
 ALTER TABLE `itsm_core_templateactivities`
   ADD CONSTRAINT `itsm_core_templateactivities_ibfk_1` FOREIGN KEY (`templateid`) REFERENCES `itsm_core_templates` (`id`) ON DELETE CASCADE,
@@ -989,9 +989,6 @@ ALTER TABLE `itsm_km_items`
   ADD CONSTRAINT `itsm_km_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_km_items` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_km_items_ibfk_2` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
-ALTER TABLE `itsm_public_password_resets`
-  ADD CONSTRAINT `itsm_public_password_resets_ibfk_1` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`) ON DELETE CASCADE;
-
 ALTER TABLE `itsm_pm_problemcomments`
   ADD CONSTRAINT `itsm_pm_problemcomments_ibfk_1` FOREIGN KEY (`problemid`) REFERENCES `itsm_pm_problems` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_pm_problemcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
@@ -1011,6 +1008,9 @@ ALTER TABLE `itsm_pm_problems`
   ADD CONSTRAINT `itsm_pm_problems_ibfk_8` FOREIGN KEY (`statusid`) REFERENCES `itsm_core_status` (`id`),
   ADD CONSTRAINT `itsm_pm_problems_ibfk_9` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
+ALTER TABLE `itsm_public_password_resets`
+  ADD CONSTRAINT `itsm_public_password_resets_ibfk_1` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`) ON DELETE CASCADE;
+
 ALTER TABLE `itsm_ubm_items`
   ADD CONSTRAINT `itsm_ubm_items_ibfk_1` FOREIGN KEY (`parentid`) REFERENCES `itsm_ubm_items` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_ubm_items_ibfk_2` FOREIGN KEY (`operatorgroupid`) REFERENCES `itsm_ob_operatorgroups` (`id`),
@@ -1019,7 +1019,6 @@ ALTER TABLE `itsm_ubm_items`
   ADD CONSTRAINT `itsm_ubm_items_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_6` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_7` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
