@@ -1,6 +1,6 @@
 <?php
 
-function news_require_firstline_authorization( $con, $logged_in_user, $redirect = 'index.php' ) {
+function news_require_firstline_authorization( $con, $logged_in_user, $redirect = 'modules.php' ) {
   $stmt = mysqli_prepare( $con, "SELECT firstlineincidents FROM itsm_ob_operators WHERE username = ?" );
   mysqli_stmt_bind_param( $stmt, "s", $logged_in_user );
   mysqli_stmt_execute( $stmt );

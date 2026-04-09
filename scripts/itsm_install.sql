@@ -499,6 +499,7 @@ CREATE TABLE `itsm_public_password_resets` (
 
 CREATE TABLE `itsm_ubm_items` (
   `id` int(11) NOT NULL,
+  `ubmnumber` varchar(32) NOT NULL,
   `parentid` int(11) DEFAULT NULL,
   `itemtype` varchar(32) NOT NULL,
   `title` varchar(255) NOT NULL,
@@ -745,6 +746,7 @@ ALTER TABLE `itsm_public_password_resets`
 
 ALTER TABLE `itsm_ubm_items`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ubmnumber` (`ubmnumber`),
   ADD KEY `parentid` (`parentid`),
   ADD KEY `operatorgroupid` (`operatorgroupid`),
   ADD KEY `operatorid` (`operatorid`),

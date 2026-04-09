@@ -26,7 +26,7 @@ $default_status_id = ubm_default_status_id( $reference_data['statuses'] );
 $parent_id = isset( $_GET['parentid'] ) && is_numeric( $_GET['parentid'] ) ? (int)$_GET['parentid'] : 0;
 $parent_item = null;
 if ( $parent_id > 0 ) {
-  $parent_result = mysqli_query( $con, "SELECT id, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
+  $parent_result = mysqli_query( $con, "SELECT id, ubmnumber, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
   $parent_item = mysqli_fetch_assoc( $parent_result ) ?: null;
 }
 
@@ -80,6 +80,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $errors = array_merge( $errors, attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
+    $ubm_number = ubm_generate_number( $con, $form_values['itemtype'] );
     $status_id = (int)$validation['status']['id'];
     $category_id = $validation['category'] ? (int)$validation['category']['id'] : null;
     $subcategory_id = $validation['subcategory'] ? (int)$validation['subcategory']['id'] : null;
@@ -89,10 +90,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $parent_bind = $parent_item ? (int)$parent_item['id'] : null;
 
     $stmt = mysqli_prepare( $con, "
-            INSERT INTO itsm_ubm_items (parentid, itemtype, title, description, categoryid, subcategoryid, operatorgroupid, operatorid, statusid, createdby)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO itsm_ubm_items (ubmnumber, parentid, itemtype, title, description, categoryid, subcategoryid, operatorgroupid, operatorid, statusid, createdby)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
         " );
-    mysqli_stmt_bind_param( $stmt, "isssiiiiii", $parent_bind, $form_values['itemtype'], $form_values['title'], $form_values['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $created_by );
+    mysqli_stmt_bind_param( $stmt, "sisssiiiiii", $ubm_number, $parent_bind, $form_values['itemtype'], $form_values['title'], $form_values['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $created_by );
     if ( mysqli_stmt_execute( $stmt ) ) {
       $item_id = mysqli_insert_id( $con );
       attachment_save_upload( $con, 'ubm', $item_id, $created_by, 0 );
@@ -119,7 +120,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="parentid" value="<?= htmlspecialchars($form_values['parentid']) ?>">
         <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
+        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
         <?php endif; ?>
         <div class="form-grid">
           <div class="form-group">

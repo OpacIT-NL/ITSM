@@ -50,7 +50,7 @@ $initiatives = $children_by_parent[0] ?? [];
     <section class="ubm-tree-initiative">
       <div class="ubm-tree-initiative-head">
         <div>
-          <h2><a href="edit_ubm_item.php?id=<?= (int)$initiative['id'] ?>"><?= htmlspecialchars($initiative['title']) ?></a></h2>
+          <h2><a href="edit_ubm_item.php?id=<?= (int)$initiative['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($initiative)) ?> - <?= htmlspecialchars($initiative['title']) ?></a></h2>
           <div class="ubm-tree-meta">
             <?php if ( !empty( $initiative['status_name'] ) ): ?><span><?= htmlspecialchars($initiative['status_name']) ?></span><?php endif; ?>
             <?php if ( !empty( $initiative['groupname'] ) ): ?><span><?= htmlspecialchars($initiative['groupname']) ?></span><?php endif; ?>

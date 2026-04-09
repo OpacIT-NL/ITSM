@@ -7,7 +7,7 @@ function task_supported_types() {
     'changeactivity' => [ 'prefix' => 'WA', 'number_field' => 'activitynumber', 'table' => 'itsm_cm_changeactivities', 'title_field' => 'title', 'route' => 'edit_change_activity.php' ],
     'problem' => [ 'prefix' => 'P', 'number_field' => 'problemnumber', 'table' => 'itsm_pm_problems', 'title_field' => 'title', 'route' => 'edit_problem.php' ],
     'event' => [ 'prefix' => 'E', 'number_field' => 'eventnumber', 'table' => 'itsm_em_events', 'title_field' => 'description', 'route' => 'edit_event.php' ],
-    'ubm' => [ 'prefix' => 'UBM', 'number_field' => null, 'table' => 'itsm_ubm_items', 'title_field' => 'title', 'route' => 'edit_ubm_item.php' ]
+    'ubm' => [ 'prefix' => 'INI/EPI/FEA/STR/SUB', 'number_field' => 'ubmnumber', 'table' => 'itsm_ubm_items', 'title_field' => 'title', 'route' => 'edit_ubm_item.php' ]
   ];
 }
 
@@ -33,6 +33,9 @@ function task_detect_type_from_number( $number ) {
   }
   if ( preg_match( '/^E\d{4}\s\d{4}$/', $number ) ) {
     return 'event';
+  }
+  if ( preg_match( '/^(INI|EPI|FEA|STR|SUB)\d{4}\s\d{4}$/', $number ) ) {
+    return 'ubm';
   }
 
   return null;
@@ -110,7 +113,7 @@ function task_linkify_text( $text, $context = 'secure' ) {
     },
     $escaped
   );
-  $pattern = '/\b(WA\d{4}\s\d{4}|W\d{4}\s\d{4}|I\d{4}\s\d{4}|P\d{4}\s\d{4}|E\d{4}\s\d{4})\b/';
+  $pattern = '/\b(INI\d{4}\s\d{4}|EPI\d{4}\s\d{4}|FEA\d{4}\s\d{4}|STR\d{4}\s\d{4}|SUB\d{4}\s\d{4}|WA\d{4}\s\d{4}|W\d{4}\s\d{4}|I\d{4}\s\d{4}|P\d{4}\s\d{4}|E\d{4}\s\d{4})\b/';
 
   $linked = preg_replace_callback( $pattern, function ( $matches ) use ( $context ) {
     $number = task_normalize_number( $matches[1] );
@@ -218,7 +221,7 @@ function task_get_display_by_type_id( $con, $type, $id, $context = 'secure' ) {
   return [
     'type' => $type,
     'id' => (int)$row['id'],
-    'number' => !empty( $config['number_field'] ) ? $row['tasknumber'] : 'UBM #' . (int)$row['id'],
+    'number' => !empty( $config['number_field'] ) ? $row['tasknumber'] : '#' . (int)$row['id'],
     'title' => $row['tasktitle'] ?? '',
     'url' => task_build_url( $type, (int)$row['id'], $context )
   ];

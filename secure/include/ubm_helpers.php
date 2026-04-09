@@ -41,6 +41,50 @@ function ubm_type_label( $type ) {
   return $map[$type] ?? $type;
 }
 
+function ubm_type_prefix_map() {
+  return [
+    'initiative' => 'INI',
+    'epic' => 'EPI',
+    'feature' => 'FEA',
+    'story' => 'STR',
+    'subtask' => 'SUB'
+  ];
+}
+
+function ubm_type_prefix( $type ) {
+  $map = ubm_type_prefix_map();
+  return $map[$type] ?? 'TSK';
+}
+
+function ubm_generate_number( $con, $itemtype ) {
+  $prefix = ubm_type_prefix( $itemtype ) . date( 'ym' );
+  $like_prefix = $prefix . ' %';
+
+  $stmt = mysqli_prepare( $con, "
+        SELECT ubmnumber
+        FROM itsm_ubm_items
+        WHERE ubmnumber LIKE ?
+        ORDER BY ubmnumber DESC
+        LIMIT 1
+    " );
+  mysqli_stmt_bind_param( $stmt, "s", $like_prefix );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $row = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  $next_number = 1;
+  if ( $row && !empty( $row['ubmnumber'] ) ) {
+    $next_number = (int)substr( $row['ubmnumber'], -4 ) + 1;
+  }
+
+  return sprintf( '%s %04d', $prefix, $next_number );
+}
+
+function ubm_format_display_number( $item ) {
+  return !empty( $item['ubmnumber'] ) ? $item['ubmnumber'] : ubm_type_prefix( $item['itemtype'] ?? '' ) . ' #' . (int)$item['id'];
+}
+
 function ubm_allowed_child_types( $parent_type ) {
   $order = array_keys( ubm_type_map() );
   $index = array_search( $parent_type, $order, true );
@@ -171,7 +215,7 @@ function ubm_render_tree_nodes( $children_by_parent, $parent_id = 0 ) {
     <li>
       <div class="ubm-tree-node <?= (int)($item['status_closed'] ?? 0) === 1 ? 'is-closed' : '' ?>">
         <div class="ubm-tree-node-head">
-          <a href="edit_ubm_item.php?id=<?= (int)$item['id'] ?>"><?= htmlspecialchars($item['title']) ?></a>
+          <a href="edit_ubm_item.php?id=<?= (int)$item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($item)) ?> - <?= htmlspecialchars($item['title']) ?></a>
           <span class="ubm-tree-type"><?= htmlspecialchars(ubm_type_label($item['itemtype'])) ?></span>
         </div>
         <div class="ubm-tree-meta">

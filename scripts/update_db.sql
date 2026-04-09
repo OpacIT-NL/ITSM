@@ -223,3 +223,46 @@ ALTER TABLE `itsm_pm_problems`
   ADD CONSTRAINT `itsm_pm_problems_ibfk_11` FOREIGN KEY (`impactid`) REFERENCES `itsm_core_impacts` (`id`),
   ADD CONSTRAINT `itsm_pm_problems_ibfk_12` FOREIGN KEY (`urgencyid`) REFERENCES `itsm_core_urgencies` (`id`),
   ADD CONSTRAINT `itsm_pm_problems_ibfk_13` FOREIGN KEY (`priorityid`) REFERENCES `itsm_core_priorities` (`id`);
+
+ALTER TABLE `itsm_ubm_items`
+  ADD COLUMN `ubmnumber` varchar(32) DEFAULT NULL AFTER `id`,
+  ADD UNIQUE KEY `ubmnumber` (`ubmnumber`);
+
+SET @ubm_prev_prefix := '';
+SET @ubm_seq := 0;
+
+UPDATE `itsm_ubm_items`
+JOIN (
+  SELECT
+    numbered.`id`,
+    CONCAT(numbered.`prefix`, ' ', LPAD(numbered.`seq`, 4, '0')) AS `generated_number`
+  FROM (
+    SELECT
+      ordered.`id`,
+      ordered.`prefix`,
+      (@ubm_seq := IF(@ubm_prev_prefix = ordered.`prefix`, @ubm_seq + 1, 1)) AS `seq`,
+      (@ubm_prev_prefix := ordered.`prefix`) AS `ignored_prev`
+    FROM (
+      SELECT
+        `id`,
+        CONCAT(
+          CASE `itemtype`
+            WHEN 'initiative' THEN 'INI'
+            WHEN 'epic' THEN 'EPI'
+            WHEN 'feature' THEN 'FEA'
+            WHEN 'story' THEN 'STR'
+            WHEN 'subtask' THEN 'SUB'
+            ELSE 'TSK'
+          END,
+          DATE_FORMAT(`createdat`, '%y%m')
+        ) AS `prefix`
+      FROM `itsm_ubm_items`
+      ORDER BY `prefix` ASC, `createdat` ASC, `id` ASC
+    ) AS ordered
+  ) AS numbered
+) AS mapped ON mapped.`id` = `itsm_ubm_items`.`id`
+SET `itsm_ubm_items`.`ubmnumber` = mapped.`generated_number`
+WHERE `itsm_ubm_items`.`ubmnumber` IS NULL OR `itsm_ubm_items`.`ubmnumber` = '';
+
+ALTER TABLE `itsm_ubm_items`
+  MODIFY `ubmnumber` varchar(32) NOT NULL;

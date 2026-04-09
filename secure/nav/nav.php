@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="./include/style.css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v7.2.0/css/all.css">
 <title>ITSM</title>

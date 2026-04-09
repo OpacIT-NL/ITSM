@@ -1715,6 +1715,220 @@ p {
     min-width: 560px;
   }
 }
+
+/* Tablet/mobile shell: keep fixed chrome compact and keep the work area visible. */
+@media (max-width: 980px) {
+  html,
+  body {
+    min-width: 0;
+    background: var(--topdesk-bg);
+  }
+  .layout {
+    display: block;
+    min-height: 100vh;
+    background: var(--topdesk-bg);
+    padding-top: 160px;
+    box-sizing: border-box;
+  }
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 54px;
+    min-height: 54px;
+    z-index: 90;
+  }
+  .secure-tabbar-wrap {
+    position: fixed;
+    top: 54px;
+    left: 0;
+    right: 0;
+    height: 42px;
+    z-index: 85;
+  }
+  .secure-tabbar {
+    height: 42px;
+  }
+  .sidebar {
+    position: fixed;
+    top: 96px;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: 100%;
+    height: 64px;
+    min-height: 0;
+    z-index: 80;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background: #434c56;
+  }
+  .content {
+    display: block;
+    position: relative;
+    z-index: 1;
+    min-height: calc(100vh - 160px);
+    margin-top: 0;
+    padding: 16px;
+    background: var(--topdesk-bg);
+    box-sizing: border-box;
+    overflow: visible;
+  }
+}
+
+/* Tablet comfort sizing. */
+@media (min-width: 641px) and (max-width: 980px) {
+  body {
+    font-size: 16px;
+  }
+  .layout {
+    padding-top: 178px;
+  }
+  .topbar {
+    height: 58px;
+    min-height: 58px;
+    padding: 0 22px;
+  }
+  .topbar-right {
+    font-size: 15px;
+  }
+  .secure-tabbar-wrap {
+    top: 58px;
+    height: 50px;
+  }
+  .secure-tabbar {
+    height: 50px;
+    padding: 7px 14px 0;
+    gap: 6px;
+  }
+  .secure-tab {
+    height: 43px;
+    min-width: 160px;
+    max-width: 260px;
+    border-radius: 12px 12px 0 0;
+  }
+  .secure-tab.is-pinned {
+    min-width: 58px;
+    max-width: 58px;
+  }
+  .secure-tab a {
+    font-size: 15px;
+    padding: 9px 8px 8px 14px;
+  }
+  .secure-tab-secondary {
+    font-size: 11px;
+  }
+  .secure-tab.is-pinned a i {
+    font-size: 20px;
+  }
+  .secure-tab-close {
+    width: 30px;
+    height: 30px;
+  }
+  .sidebar {
+    top: 108px;
+    height: 70px;
+    padding: 0 8px;
+  }
+  .homebutton,
+  .sidebarbutton {
+    flex: 0 0 70px;
+    width: 70px;
+    height: 70px;
+  }
+  .homebutton i,
+  .sidebarbutton i {
+    font-size: 21px;
+  }
+  .content {
+    min-height: calc(100vh - 178px);
+    padding: 26px;
+  }
+  .content > h1,
+  .module-section h1 {
+    font-size: 34px;
+  }
+  .content > h2,
+  .dashboard-left-column > h2,
+  .dashboard-news-section > h2,
+  .dashboard-task-section > h2 {
+    font-size: 26px;
+  }
+  .form-card,
+  .form-card-wide,
+  .search-card,
+  .incident-card,
+  .news-dashboard-panel,
+  .page-sidebar,
+  .page-content,
+  .module-section,
+  .profile-card {
+    padding: 22px;
+    border-radius: 18px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .incident-card input,
+  .incident-card select,
+  .incident-card textarea {
+    font-size: 17px;
+    min-height: 42px;
+  }
+  .content a,
+  .content button,
+  .results a,
+  .btn-primary {
+    font-size: 15px;
+  }
+  .quicklinks a {
+    min-height: 132px;
+    font-size: 16px;
+  }
+  .quicklinks a i {
+    font-size: 28px;
+  }
+  .modules-menu a,
+  .module-grid a {
+    min-height: 74px;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .results table {
+    font-size: 15px;
+  }
+}
+
+/* Phone shell: slightly smaller chrome. */
+@media (max-width: 640px) {
+  .layout {
+    padding-top: 144px;
+  }
+  .topbar {
+    height: 48px;
+    min-height: 48px;
+  }
+  .secure-tabbar-wrap {
+    top: 48px;
+    height: 40px;
+  }
+  .secure-tabbar {
+    height: 40px;
+  }
+  .sidebar {
+    top: 88px;
+    height: 56px;
+  }
+  .content {
+    min-height: calc(100vh - 144px);
+    padding: 12px;
+  }
+}
+
 .caller-card-selector,
 .caller-card-overview,
 .caller-card-tabs-wrap {

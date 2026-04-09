@@ -41,7 +41,7 @@ if ( !$item ) {
 $reference_data = ubm_load_reference_data( $con );
 $parent_item = null;
 if ( !empty( $item['parentid'] ) ) {
-  $parent_result = mysqli_query( $con, "SELECT id, itemtype, title FROM itsm_ubm_items WHERE id = " . (int)$item['parentid'] . " LIMIT 1" );
+  $parent_result = mysqli_query( $con, "SELECT id, ubmnumber, itemtype, title FROM itsm_ubm_items WHERE id = " . (int)$item['parentid'] . " LIMIT 1" );
   $parent_item = mysqli_fetch_assoc( $parent_result ) ?: null;
 }
 
@@ -181,10 +181,10 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <span data-tab-title="<?= htmlspecialchars($item['title'], ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($item['itemtype']), ENT_QUOTES) ?>" hidden></span>
+  <span data-tab-title="<?= htmlspecialchars(ubm_format_display_number($item), ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($item['itemtype']), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = ubm_get_list_back_url( 'ubm-menu.php' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
-    <h1><?= htmlspecialchars(ubm_type_label($item['itemtype'])) ?>: <?= htmlspecialchars($item['title']) ?></h1>
+    <h1><?= htmlspecialchars(ubm_format_display_number($item)) ?> - <?= htmlspecialchars($item['title']) ?></h1>
   </center>
   <?php if ( !empty( $errors ) ): ?>
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
@@ -199,7 +199,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
     <div class="form-card form-card-wide">
       <form method="post" enctype="multipart/form-data">
         <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
+        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
         <?php endif; ?>
         <div class="form-grid">
           <div class="form-group">
@@ -261,21 +261,23 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
       </form>
     </div>
   </div>
+  <?php if ( !empty( $attachments_html ) ): ?>
   <br>
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <?php if ( !empty( $attachments_html ) ): ?>
       <h3>Bijlagen</h3>
       <?= $attachments_html ?>
-      <?php endif; ?>
     </div>
   </div>
+  <?php endif; ?>
+  <?php if ( !empty( $allowed_children ) || !empty( $children ) ): ?>
   <br>
   <div class="results incident-results">
     <table border="0" class="results incident-results-table" style="width: 100%;">
       <thead>
         <tr>
           <th style="text-align: start;">Laag</th>
+          <th style="text-align: start;">Nummer</th>
           <th style="text-align: start;">Titel</th>
           <th style="text-align: start;">Categorie</th>
           <th style="text-align: start;">Subcategorie</th>
@@ -285,11 +287,12 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
       </thead>
       <tbody>
         <?php if ( empty( $children ) ): ?>
-        <tr><td colspan="6">Nog geen child-items.</td></tr>
+        <tr><td colspan="7">Nog geen child-items.</td></tr>
         <?php else: ?>
         <?php foreach ( $children as $child ): ?>
         <tr>
           <td><?= htmlspecialchars(ubm_type_label($child['itemtype'])) ?></td>
+          <td><?= htmlspecialchars(ubm_format_display_number($child)) ?></td>
           <td><?= htmlspecialchars($child['title']) ?></td>
           <td><?= htmlspecialchars($child['category_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($child['subcategory_name'] ?? '') ?></td>
@@ -301,6 +304,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
       </tbody>
     </table>
   </div>
+  <?php endif; ?>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="links">
     <div class="form-wrapper">
