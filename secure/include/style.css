@@ -984,16 +984,16 @@ p {
   justify-content: space-between;
   gap: 10px;
 }
-.ubm-tree-node-head a,
-.ubm-tree-initiative-head a {
-  color: var(--text);
+.ubm-tree-node-head > a,
+.ubm-tree-initiative-head h2 a {
+  color: #ffffff;
   font-weight: 700;
   text-decoration: none;
 }
-.ubm-tree-node-head a:hover,
-.ubm-tree-initiative-head a:hover {
-  color: var(--primary);
-  text-decoration: underline;
+.ubm-tree-node-head > a:hover,
+.ubm-tree-initiative-head h2 a:hover {
+  color: #ffffff;
+  text-decoration: none;
 }
 .ubm-tree-type {
   background: #e8f1fd;
