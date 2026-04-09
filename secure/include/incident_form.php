@@ -1,5 +1,7 @@
 <?php
 require_once( __DIR__ . '/task_helpers.php' );
+require_once( __DIR__ . '/attachment_helpers.php' );
+require_once( __DIR__ . '/task_log_helpers.php' );
 $customers_json = json_encode( $reference_data['customers'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $categories_json = json_encode( $reference_data['categories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
@@ -10,11 +12,18 @@ $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $templates_json = json_encode( $reference_data['templates'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $major_incidents_json = json_encode( $reference_data['major_incidents'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$impacts_json = json_encode( $reference_data['impacts'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$urgencies_json = json_encode( $reference_data['urgencies'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$priorities_json = json_encode( $reference_data['priorities'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$priority_matrix_json = json_encode( $reference_data['priority_matrix'] ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
+$current_operator_id_json = json_encode( (string)( $operator_context['id'] ?? '' ) );
 $show_template_actions = empty( $form_values['template_used'] );
 ?>
 <?php require_once(__DIR__ . '/../nav/nav.php'); ?>
 <div class="content">
-  <a href='javascript:history.back(1)'>Ga terug</a>
+  <?php if ( !empty( $tab_title ) ): ?>
+  <span data-tab-title="<?= htmlspecialchars($tab_title, ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars($tab_subtitle ?? '', ENT_QUOTES) ?>" hidden></span>
+  <?php endif; ?>
   <center>
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
@@ -30,7 +39,16 @@ $show_template_actions = empty( $form_values['template_used'] );
   <br>
   <?php endif; ?>
 
-  <form method="post" class="incident-layout">
+  <?php if ( !empty( $task_logs_html ) || !empty( $links_html ) || !empty( $mail_tab_html ) ): ?>
+  <div class="ticket-view-tabs caller-card-tabs" role="tablist">
+    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true">Taak</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false">Links</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="mail" role="tab" aria-selected="false">E-mail</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+  </div>
+  <?php endif; ?>
+
+  <form method="post" enctype="multipart/form-data" class="incident-layout ticket-view-panel is-active" data-ticket-view-panel="task">
     <div class="incident-column">
       <div class="incident-card incident-left-card">
         <div class="form-grid">
@@ -139,6 +157,40 @@ $show_template_actions = empty( $form_values['template_used'] );
           <hr>
 
           <div class="form-group">
+            <label class="incident-meta-label">Impact</label>
+            <label>
+              <select name="impactid" id="impact_id">
+                <option value="">Selecteer impact</option>
+                <?php foreach ( $reference_data['impacts'] ?? [] as $impact ): ?>
+                <option value="<?= htmlspecialchars((string)$impact['id']) ?>" <?= (string)($form_values['impactid'] ?? '') === (string)$impact['id'] ? 'selected' : '' ?>><?= htmlspecialchars($impact['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Urgency</label>
+            <label>
+              <select name="urgencyid" id="urgency_id">
+                <option value="">Selecteer urgency</option>
+                <?php foreach ( $reference_data['urgencies'] ?? [] as $urgency ): ?>
+                <option value="<?= htmlspecialchars((string)$urgency['id']) ?>" <?= (string)($form_values['urgencyid'] ?? '') === (string)$urgency['id'] ? 'selected' : '' ?>><?= htmlspecialchars($urgency['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="incident-meta-label">Priority</label>
+            <label>
+              <input type="hidden" name="priorityid" id="priority_id" value="<?= htmlspecialchars((string)($form_values['priorityid'] ?? '')) ?>">
+              <input type="text" id="priority_display" class="incident-readonly" value="<?= htmlspecialchars((string)($form_values['priorityname'] ?? '')) ?>" readonly>
+            </label>
+          </div>
+
+          <hr>
+
+          <div class="form-group">
             <label class="incident-meta-label">Behandelaarsgroep</label>
             <label>
               <input type="hidden" name="operatorgroupid" id="operatorgroup_id" value="<?= htmlspecialchars((string)$form_values['operatorgroupid']) ?>">
@@ -149,9 +201,10 @@ $show_template_actions = empty( $form_values['template_used'] );
 
           <div class="form-group">
             <label class="incident-meta-label">Behandelaar</label>
-            <label>
+            <label class="assign-to-me-row">
               <input type="hidden" name="operatorid" id="operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
               <input type="text" id="operator_lookup" list="operators_list" autocomplete="off">
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
               <datalist id="operators_list"></datalist>
             </label>
           </div>
@@ -229,6 +282,8 @@ $show_template_actions = empty( $form_values['template_used'] );
             </label>
           </div>
 
+          <?php attachment_render_upload_field(); ?>
+
           <?php if ( $show_template_actions ): ?>
           <div class="form-actions" id="template_actions">
             <input type="hidden" name="applied_template_id" id="applied_template_id" value="<?= htmlspecialchars((string)($form_values['applied_template_id'] ?? '')) ?>">
@@ -265,6 +320,9 @@ $show_template_actions = empty( $form_values['template_used'] );
               <span class="incident-badge">Klant zichtbaar</span>
               <?php endif; ?>
               <p><?= task_linkify_text($comment['commenttext'], 'secure') ?></p>
+              <?php if ( !empty( $attachments_by_comment[(string)$comment['id']] ) ): ?>
+              <?= attachment_render_links( $attachments_by_comment[(string)$comment['id']] ) ?>
+              <?php endif; ?>
               <div class="form-actions">
                 <a href="edit_incident.php?id=<?= htmlspecialchars((string)$incident_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>">Commentaar bewerken</a>
                 <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit commentaar wil verwijderen?');">Commentaar verwijderen</button>
@@ -275,34 +333,44 @@ $show_template_actions = empty( $form_values['template_used'] );
           </div>
           <?php endif; ?>
 
-          <?php if ( $show_linked_incidents ): ?>
-          <hr>
-          <h3>Gekoppelde incidenten</h3>
-          <div class="incident-history">
-            <?php if ( empty( $linked_incidents ) ): ?>
-            <p>Geen gekoppelde incidenten.</p>
-            <?php else: ?>
-            <?php foreach ( $linked_incidents as $linked_incident ): ?>
-            <div class="incident-comment">
-              <div class="incident-comment-meta">
-                <span><?= htmlspecialchars(incident_format_display_number($linked_incident)) ?> <?= htmlspecialchars(incident_mode_label($linked_incident['incidenttype'])) ?></span>
-                <span><?= htmlspecialchars($linked_incident['status_name']) ?></span>
-              </div>
-              <p><?= task_linkify_text($linked_incident['title'], 'secure') ?></p>
-              <a href="edit_incident.php?id=<?= htmlspecialchars((string)$linked_incident['id']) ?>">Open gekoppeld incident</a>
-            </div>
-            <?php endforeach; ?>
-            <?php endif; ?>
-          </div>
+          <?php if ( !empty( $attachments_html ) ): ?>
+          <h3>Bijlagen</h3>
+          <?= $attachments_html ?>
           <?php endif; ?>
 
-          <?php if ( !empty( $links_html ) ): ?>
-          <?= $links_html ?>
-          <?php endif; ?>
         </div>
       </div>
     </div>
   </form>
+  <?php if ( !empty( $links_html ) ): ?>
+  <div class="ticket-view-panel" data-ticket-view-panel="links">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <form method="post">
+          <?= $links_html ?>
+        </form>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+  <?php if ( !empty( $mail_tab_html ) ): ?>
+  <div class="ticket-view-panel" data-ticket-view-panel="mail">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <?= $mail_tab_html ?>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+  <?php if ( !empty( $task_logs_html ) ): ?>
+  <div class="ticket-view-panel" data-ticket-view-panel="log">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <?= $task_logs_html ?>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
 </div>
 
 <script>
@@ -316,6 +384,26 @@ const operators = <?= $operators_json ?>;
 const opLinks = <?= $op_links_json ?>;
 const templates = <?= $templates_json ?>;
 const majorIncidents = <?= $major_incidents_json ?>;
+const impacts = <?= $impacts_json ?>;
+const urgencies = <?= $urgencies_json ?>;
+const priorities = <?= $priorities_json ?>;
+const priorityMatrix = <?= $priority_matrix_json ?>;
+const currentOperatorId = <?= $current_operator_id_json ?>;
+const currentOperatorGroupIds = [...new Set(opLinks.filter((row) => String(row.operatorid) === String(currentOperatorId)).map((row) => String(row.groupid)))];
+
+document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.ticketViewTab;
+    document.querySelectorAll('[data-ticket-view-tab]').forEach((button) => {
+      const active = button.dataset.ticketViewTab === target;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-ticket-view-panel]').forEach((panel) => {
+      panel.classList.toggle('is-active', panel.dataset.ticketViewPanel === target);
+    });
+  });
+});
 
 function customerLabel(row) {
   return `${row.din || row.id} - ${row.name}`;
@@ -560,6 +648,47 @@ function refreshOperators(resetSelection) {
   } else {
     setLookupValue('operator_lookup', 'operator_id', rows, operatorLabel);
   }
+  refreshAssignToMeButton();
+}
+
+function refreshAssignToMeButton() {
+  const button = document.getElementById('assign_to_me_button');
+  const groupField = document.getElementById('operatorgroup_id');
+  if (!button) { return; }
+  const selectedGroupId = groupField ? String(groupField.value || '') : '';
+  button.disabled = !currentOperatorId || (currentOperatorGroupIds.length !== 1 && !selectedGroupId) || (selectedGroupId && !currentOperatorGroupIds.includes(selectedGroupId));
+}
+
+function refreshPriority() {
+  const impactId = document.getElementById('impact_id')?.value || '';
+  const urgencyId = document.getElementById('urgency_id')?.value || '';
+  const priorityField = document.getElementById('priority_id');
+  const priorityDisplay = document.getElementById('priority_display');
+  if (!priorityField || !priorityDisplay) { return; }
+  const match = priorityMatrix.find((row) => String(row.impactid) === String(impactId) && String(row.urgencyid) === String(urgencyId));
+  priorityField.value = match ? String(match.priorityid) : '';
+  priorityDisplay.value = match ? (match.priorityname || '') : '';
+}
+
+function assignToMe() {
+  const groupField = document.getElementById('operatorgroup_id');
+  const operatorField = document.getElementById('operator_id');
+  const operatorLookup = document.getElementById('operator_lookup');
+  if (!currentOperatorId || !operatorField || !operatorLookup) { return; }
+  if (currentOperatorGroupIds.length === 1 && groupField && !groupField.value) {
+    groupField.value = currentOperatorGroupIds[0];
+    setLookupValue('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel);
+    refreshOperators(false);
+  }
+  const selectedGroupId = groupField ? String(groupField.value || '') : '';
+  if ((currentOperatorGroupIds.length !== 1 && !selectedGroupId) || (selectedGroupId && !currentOperatorGroupIds.includes(selectedGroupId))) { return; }
+  const match = operators.find((row) => String(row.id) === String(currentOperatorId));
+  if (!match) { return; }
+  operatorField.value = String(match.id);
+  operatorLookup.value = operatorLabel(match);
+  operatorField.dispatchEvent(new Event('change', { bubbles: true }));
+  operatorLookup.dispatchEvent(new Event('input', { bubbles: true }));
+  refreshAssignToMeButton();
 }
 
 function currentTemplates() {
@@ -616,8 +745,14 @@ resolveLookup('person_lookup', 'person_id', currentCustomerPersons, personLabel,
 });
 resolveLookup('operatorgroup_lookup', 'operatorgroup_id', groups, groupLabel, () => {
   refreshOperators(true);
+  refreshAssignToMeButton();
 });
 resolveLookup('operator_lookup', 'operator_id', currentGroupOperators, operatorLabel);
+document.getElementById('assign_to_me_button')?.addEventListener('click', assignToMe);
+refreshAssignToMeButton();
+document.getElementById('impact_id')?.addEventListener('change', refreshPriority);
+document.getElementById('urgency_id')?.addEventListener('change', refreshPriority);
+refreshPriority();
 resolveLookup('majorincident_lookup', 'majorincident_id', majorIncidents, majorIncidentLabel);
 document.getElementById('category_lookup').setAttribute('list', 'categories_list');
 document.getElementById('subcategory_lookup').setAttribute('list', 'subcategories_list');

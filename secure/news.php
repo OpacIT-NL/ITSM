@@ -16,7 +16,7 @@ if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
 }
 
 $logged_in_user = $_SESSION['name'];
-news_require_admin( $con, $logged_in_user );
+news_require_firstline_authorization( $con, $logged_in_user, 'news-menu.php' );
 $items = news_fetch_items( $con, 'all' );
 $module_back_url = 'news-menu.php';
 ?>

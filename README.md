@@ -10,7 +10,9 @@
 
 1. Place the release zip in your webroot and extract it.
 
-2. Create a config folder and within that a sql.ini file in the folder above the webroot for ITSM.
+2. Create a config folder and within that a sql.ini, imap.ini and smtp.ini file in the folder above the webroot for ITSM.
+
+sql.ini
 ```
 [database]
 servername = 
@@ -18,6 +20,27 @@ username =
 password = 
 dbname = 
 ```
+imap.ini
+```
+host = "imap.example.com"
+port = 993
+encryption = "ssl"
+validate_cert = 1
+username = "mailbox@example.com"
+password = "change-me"
+```
+smtp.ini
+```
+host = "smtp.example.com"
+port = 587
+encryption = "tls"
+username = "smtp-user@example.com"
+password = "change-me"
+from_email = "itsm@example.com"
+from_name = "name"
+timeout = 15
+```
+
 The folder structure should look like this:
 ```
 folder above webroot, like /var/www
@@ -25,6 +48,8 @@ folder above webroot, like /var/www
 /var/www
 |-config/
   |-sql.ini
+  |-smtp.ini
+  |-imap.ini
 |-itsm/
   |-content/
   |-include/

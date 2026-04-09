@@ -52,6 +52,10 @@ ssp_render_header( $person, 'incidents' );
   <?php endif; ?>
 </div>
 
+<?php if ( isset( $_GET['access_denied'] ) ): ?>
+<div class="ssp-error">Je hebt geen toegang tot die melding.</div>
+<?php endif; ?>
+
 <section class="ssp-table-wrap">
   <table class="ssp-table">
     <thead>

@@ -43,7 +43,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
     die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
   }
 
-  echo "Categorie verwijderd. <a href='javascript:history.back(1)'>Ga terug</a>";
+  echo "Categorie verwijderd.";
   exit;
 }
 

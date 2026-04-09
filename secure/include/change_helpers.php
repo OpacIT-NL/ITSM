@@ -1,5 +1,8 @@
 <?php
 
+require_once( __DIR__ . '/template_helpers.php' );
+require_once( __DIR__ . '/priority_helpers.php' );
+
 function change_get_operator_context( $con, $logged_in_user ) {
   $stmt = mysqli_prepare( $con, "
         SELECT id, firstname, lastname, reqforchange, simplechange, extchange, groups
@@ -236,13 +239,14 @@ function change_load_reference_data( $con ) {
         WHERE type = 'CHANGE'
         ORDER BY name ASC
     " )->fetch_all( MYSQLI_ASSOC );
+  $templates = itsm_operator_template_filter( $templates );
   $template_activities = mysqli_query( $con, "
         SELECT id, templateid, title, description, operatorgroupid, operatorid, statusid
         FROM itsm_core_templateactivities
         ORDER BY id ASC
     " )->fetch_all( MYSQLI_ASSOC );
 
-  return [
+  return priority_merge_reference_data( $con, [
     'customers' => $customers,
     'persons' => $persons,
     'categories' => $categories,
@@ -254,7 +258,7 @@ function change_load_reference_data( $con ) {
     'statuses' => $statuses,
     'templates' => $templates,
     'template_activities' => $template_activities
-  ];
+  ] );
 }
 
 function change_validate_form( $data, $reference_data ) {
@@ -269,6 +273,8 @@ function change_validate_form( $data, $reference_data ) {
   $operator = $data['operatorid'] ? change_find_by_id( $reference_data['operators'], $data['operatorid'] ) : null;
   $coordinator = $data['coordinatorid'] ? change_find_by_id( $reference_data['operators'], $data['coordinatorid'] ) : null;
   $status = $data['statusid'] ? change_find_by_id( $reference_data['statuses'], $data['statusid'] ) : null;
+  $priority = priority_validate_selection( $data, $reference_data );
+  $errors = array_merge( $errors, $priority['errors'] );
 
   if ( !array_key_exists( $data['requesttype'], change_request_type_map() ) ) {
     $errors[] = 'Selecteer een geldige wijzigingssoort.';
@@ -333,7 +339,8 @@ function change_validate_form( $data, $reference_data ) {
     'group' => $group,
     'operator' => $operator,
     'coordinator' => $coordinator,
-    'status' => $status
+    'status' => $status,
+    'priority' => $priority
   ];
 }
 
@@ -368,6 +375,7 @@ function change_validate_activity_form( $data, $reference_data ) {
 }
 
 function change_copy_template_activities_to_change( $con, $template_id, $change_id, $created_by ) {
+  require_once( __DIR__ . '/task_log_helpers.php' );
   $stmt = mysqli_prepare( $con, "
         SELECT title, description, operatorgroupid, operatorid, statusid
         FROM itsm_core_templateactivities
@@ -401,6 +409,11 @@ function change_copy_template_activities_to_change( $con, $template_id, $change_
       $created_by
     );
     mysqli_stmt_execute( $insert_stmt );
+    $activity_id = mysqli_insert_id( $con );
+    if ( $activity_id > 0 ) {
+      task_log_add( $con, 'changeactivity', $activity_id, 'created', 'Wijzigingsactiviteit aangemaakt vanuit sjabloon.', $created_by );
+      task_log_add( $con, 'change', $change_id, 'activity_created', 'Wijzigingsactiviteit ' . $activity_number . ' aangemaakt vanuit sjabloon.', $created_by );
+    }
     mysqli_stmt_close( $insert_stmt );
   }
 

@@ -1,14 +1,14 @@
 <?php
 
-function news_require_admin( $con, $logged_in_user, $redirect = 'index.php' ) {
-  $stmt = mysqli_prepare( $con, "SELECT isadmin FROM itsm_ob_operators WHERE username = ?" );
+function news_require_firstline_authorization( $con, $logged_in_user, $redirect = 'modules.php' ) {
+  $stmt = mysqli_prepare( $con, "SELECT firstlineincidents FROM itsm_ob_operators WHERE username = ?" );
   mysqli_stmt_bind_param( $stmt, "s", $logged_in_user );
   mysqli_stmt_execute( $stmt );
-  mysqli_stmt_bind_result( $stmt, $isadmin );
+  mysqli_stmt_bind_result( $stmt, $firstlineincidents );
   mysqli_stmt_fetch( $stmt );
   mysqli_stmt_close( $stmt );
 
-  if ( (int)$isadmin !== 1 ) {
+  if ( (int)$firstlineincidents !== 1 ) {
     header( 'Location: ' . $redirect );
     exit();
   }

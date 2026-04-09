@@ -3,6 +3,8 @@ session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/event_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -54,6 +56,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( $form_values['description'] === '' ) {
     $errors[] = 'Omschrijving is verplicht.';
   }
+  $errors = array_merge( $errors, attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
     $event_number = event_generate_number( $con );
@@ -69,7 +72,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     mysqli_stmt_bind_param( $stmt, "siiisi", $event_number, $category_id, $subcategory_id, $asset_id, $form_values['description'], $created_by );
 
     if ( mysqli_stmt_execute( $stmt ) ) {
-      header( 'Location: edit_event.php?id=' . mysqli_insert_id( $con ) );
+      $event_id = mysqli_insert_id( $con );
+      attachment_save_upload( $con, 'event', $event_id, $created_by, 0 );
+      task_log_add( $con, 'event', $event_id, 'created', 'Event aangemaakt.', $created_by );
+      header( 'Location: edit_event.php?id=' . $event_id );
       exit;
     }
 
@@ -79,6 +85,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+  <span data-tab-title="Nieuw" data-tab-subtitle="Event" hidden></span>
   <?php $list_back_url = event_get_list_back_url( 'events.php?view=open' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Event aanmaken</h1>
@@ -88,7 +95,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <?php endif; ?>
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         <div class="form-grid">
           <div class="form-group">
             <label>Categorie</label>
@@ -116,6 +123,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             <label>Omschrijving</label>
             <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
           </div>
+          <?php attachment_render_upload_field(); ?>
           <div class="form-actions">
             <button type="submit" class="btn-primary">Event opslaan</button>
           </div>

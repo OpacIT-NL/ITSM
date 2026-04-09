@@ -2,6 +2,7 @@
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/portal_helpers.php' );
 require_once( __DIR__ . '/../secure/include/change_helpers.php' );
+require_once( __DIR__ . '/../secure/include/mail_helpers.php' );
 
 $person = ssp_require_login( $con );
 $reference_data = ssp_change_reference_data( $con, $person );
@@ -55,6 +56,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       $errors[] = ssp_template_variable_label( $variable ) . ' is verplicht.';
     }
   }
+  $errors = array_merge( $errors, ssp_attachment_upload_errors() );
 
   if ( empty( $errors ) && $selected_template ) {
     $change_number = ssp_change_generate_number( $con );
@@ -112,17 +114,22 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     if ( mysqli_stmt_execute( $stmt ) ) {
       $change_id = mysqli_insert_id( $con );
       mysqli_stmt_close( $stmt );
+      task_log_add( $con, 'change', $change_id, 'created', 'Wijzigingsaanvraag aangemaakt via Self Service Portal.', null );
 
-      if ( trim( $commenttext ) !== '' ) {
+      if ( trim( $commenttext ) !== '' || ssp_attachment_uploaded_file_available() ) {
         $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly) VALUES (?,NULL,?,?,0)" );
-        mysqli_stmt_bind_param( $comment_stmt, "iis", $change_id, $person['id'], $commenttext );
+        $comment_text = trim( $commenttext ) !== '' ? $commenttext : 'Bijlage toegevoegd.';
+        mysqli_stmt_bind_param( $comment_stmt, "iis", $change_id, $person['id'], $comment_text );
         mysqli_stmt_execute( $comment_stmt );
+        $comment_id = mysqli_insert_id( $con );
+        ssp_attachment_save_upload( $con, 'change', $change_id, (int)$person['id'], 'changecomment', $comment_id );
         mysqli_stmt_close( $comment_stmt );
       }
 
       if ( $requesttype === 'extended' ) {
         change_copy_template_activities_to_change( $con, (int)$selected_template['id'], $change_id, $default_operator_id );
       }
+      mail_process_ticket_created( $con, 'change', $change_id );
 
       header( 'Location: view_change.php?id=' . $change_id );
       exit;
@@ -203,7 +210,7 @@ ssp_render_header( $person, $page_key );
   </article>
 
   <article class="ssp-form-card">
-    <form method="post" class="ssp-form-stack">
+    <form method="post" enctype="multipart/form-data" class="ssp-form-stack">
       <input type="hidden" name="templateid" value="<?= (int)$selected_template['id'] ?>">
       <?php foreach ( $template_variables as $variable ): ?>
       <div class="ssp-field">
@@ -217,6 +224,7 @@ ssp_render_header( $person, $page_key );
         >
       </div>
       <?php endforeach; ?>
+      <?php ssp_attachment_render_upload_field(); ?>
       <div class="ssp-form-actions">
         <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Wijzigingsaanvraag opslaan</button>
       </div>

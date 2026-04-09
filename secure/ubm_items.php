@@ -46,9 +46,9 @@ if ( !empty( $group_ids ) ) {
 
 if ( $parent_id > 0 ) {
   $where[] = 'u.parentid = ' . $parent_id;
-  $parent_result = mysqli_query( $con, "SELECT id, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
+  $parent_result = mysqli_query( $con, "SELECT id, ubmnumber, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
   $parent_item = mysqli_fetch_assoc( $parent_result );
-  $page_title = $parent_item ? 'Child-items onder ' . ubm_type_label( $parent_item['itemtype'] ) . ': ' . $parent_item['title'] : 'Child-items';
+  $page_title = $parent_item ? 'Child-items onder ' . ubm_format_display_number( $parent_item ) . ': ' . $parent_item['title'] : 'Child-items';
 } elseif ( $view === 'initiatives' ) {
   $where[] = "u.itemtype = 'initiative'";
   $where[] = 'IFNULL(s.closed, 0) = 0';
@@ -144,6 +144,7 @@ $result = mysqli_query( $con, $sql );
       <thead>
         <tr>
           <th style="text-align: start;">Laag</th>
+          <th style="text-align: start;">Nummer</th>
           <th style="text-align: start;">Titel</th>
           <th style="text-align: start;">Bovenliggend</th>
           <th style="text-align: start;">Categorie</th>
@@ -158,6 +159,7 @@ $result = mysqli_query( $con, $sql );
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
         <tr>
           <td><?= htmlspecialchars(ubm_type_label($row['itemtype'])) ?></td>
+          <td><?= htmlspecialchars(ubm_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars($row['title']) ?></td>
           <td><?= htmlspecialchars($row['parent_title'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>

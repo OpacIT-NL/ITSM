@@ -1,5 +1,8 @@
 <?php
 
+require_once( __DIR__ . '/template_helpers.php' );
+require_once( __DIR__ . '/priority_helpers.php' );
+
 function incident_get_operator_context( $con, $logged_in_user ) {
   $stmt = mysqli_prepare( $con, "
         SELECT id, firstname, lastname, firstlineincidents, secondlineincidents, groups
@@ -126,6 +129,7 @@ function incident_load_reference_data( $con ) {
         WHERE type = 'INCIDENT'
         ORDER BY name ASC
     " )->fetch_all( MYSQLI_ASSOC );
+  $templates = itsm_operator_template_filter( $templates );
   $major_incidents = mysqli_query( $con, "
         SELECT i.id, i.incidentnumber, i.title
         FROM itsm_im_incidents i
@@ -135,7 +139,7 @@ function incident_load_reference_data( $con ) {
         ORDER BY i.id DESC
     " )->fetch_all( MYSQLI_ASSOC );
 
-  return [
+  return priority_merge_reference_data( $con, [
     'customers' => $customers,
     'persons' => $persons,
     'categories' => $categories,
@@ -147,7 +151,7 @@ function incident_load_reference_data( $con ) {
     'statuses' => $statuses,
     'templates' => $templates,
     'major_incidents' => $major_incidents
-  ];
+  ] );
 }
 
 function incident_find_by_id( $rows, $id ) {
@@ -212,6 +216,8 @@ function incident_validate_form( $data, $reference_data ) {
   $operator = $data['operatorid'] ? incident_find_by_id( $reference_data['operators'], $data['operatorid'] ) : null;
   $status = incident_find_by_id( $reference_data['statuses'], $data['statusid'] );
   $major_incident = $data['majorincidentid'] ? incident_find_major_incident( $reference_data['major_incidents'], $data['majorincidentid'] ) : null;
+  $priority = priority_validate_selection( $data, $reference_data );
+  $errors = array_merge( $errors, $priority['errors'] );
 
   if ( !$customer ) {
     $errors[] = 'Selecteer een geldige klant.';
@@ -268,7 +274,8 @@ function incident_validate_form( $data, $reference_data ) {
     'group' => $group,
     'operator' => $operator,
     'status' => $status,
-    'major_incident' => $major_incident
+    'major_incident' => $major_incident,
+    'priority' => $priority
   ];
 }
 

@@ -19,7 +19,7 @@ if ( !isset( $_GET['id'] ) || !is_numeric( $_GET['id'] ) ) {
 }
 
 $logged_in_user = $_SESSION['name'];
-news_require_admin( $con, $logged_in_user );
+news_require_firstline_authorization( $con, $logged_in_user, 'news-menu.php' );
 $news_id = (int)$_GET['id'];
 $type_options = news_type_options();
 

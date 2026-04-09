@@ -14,6 +14,10 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 }
 $logged_in_user = $_SESSION[ 'name' ];
 require_once( __DIR__ . '/../my.php' );
+if ( !isset( $_GET[ 'id' ] ) || !is_numeric( $_GET[ 'id' ] ) ) {
+  header( "Location: operatorgroups.php" );
+  exit();
+}
 $id = ( int )$_GET[ 'id' ];
 
 // Authorization check

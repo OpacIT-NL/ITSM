@@ -3,6 +3,8 @@ session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
+require_once( __DIR__ . '/include/attachment_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -24,7 +26,7 @@ $default_status_id = ubm_default_status_id( $reference_data['statuses'] );
 $parent_id = isset( $_GET['parentid'] ) && is_numeric( $_GET['parentid'] ) ? (int)$_GET['parentid'] : 0;
 $parent_item = null;
 if ( $parent_id > 0 ) {
-  $parent_result = mysqli_query( $con, "SELECT id, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
+  $parent_result = mysqli_query( $con, "SELECT id, ubmnumber, itemtype, title FROM itsm_ubm_items WHERE id = " . $parent_id . " LIMIT 1" );
   $parent_item = mysqli_fetch_assoc( $parent_result ) ?: null;
 }
 
@@ -75,8 +77,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $parent_item
   );
   $errors = $validation['errors'];
+  $errors = array_merge( $errors, attachment_upload_errors() );
 
   if ( empty( $errors ) ) {
+    $ubm_number = ubm_generate_number( $con, $form_values['itemtype'] );
     $status_id = (int)$validation['status']['id'];
     $category_id = $validation['category'] ? (int)$validation['category']['id'] : null;
     $subcategory_id = $validation['subcategory'] ? (int)$validation['subcategory']['id'] : null;
@@ -86,12 +90,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $parent_bind = $parent_item ? (int)$parent_item['id'] : null;
 
     $stmt = mysqli_prepare( $con, "
-            INSERT INTO itsm_ubm_items (parentid, itemtype, title, description, categoryid, subcategoryid, operatorgroupid, operatorid, statusid, createdby)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO itsm_ubm_items (ubmnumber, parentid, itemtype, title, description, categoryid, subcategoryid, operatorgroupid, operatorid, statusid, createdby)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
         " );
-    mysqli_stmt_bind_param( $stmt, "isssiiiiii", $parent_bind, $form_values['itemtype'], $form_values['title'], $form_values['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $created_by );
+    mysqli_stmt_bind_param( $stmt, "sisssiiiiii", $ubm_number, $parent_bind, $form_values['itemtype'], $form_values['title'], $form_values['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $created_by );
     if ( mysqli_stmt_execute( $stmt ) ) {
-      header( 'Location: edit_ubm_item.php?id=' . mysqli_insert_id( $con ) );
+      $item_id = mysqli_insert_id( $con );
+      attachment_save_upload( $con, 'ubm', $item_id, $created_by, 0 );
+      task_log_add( $con, 'ubm', $item_id, 'created', ubm_type_label( $form_values['itemtype'] ) . ' aangemaakt.', $created_by );
+      header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
     $errors[] = 'UBM-item opslaan mislukt: ' . mysqli_stmt_error( $stmt );
@@ -100,6 +107,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
+  <span data-tab-title="Nieuw" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($form_values['itemtype']), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = ubm_get_list_back_url( 'ubm-menu.php' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>UBM-item aanmaken</h1>
@@ -109,10 +117,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <?php endif; ?>
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="parentid" value="<?= htmlspecialchars($form_values['parentid']) ?>">
         <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_type_label($parent_item['itemtype'])) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
+        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
         <?php endif; ?>
         <div class="form-grid">
           <div class="form-group">
@@ -131,6 +139,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
             <label>Omschrijving</label>
             <textarea name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
           </div>
+          <?php attachment_render_upload_field(); ?>
           <div class="form-group">
             <label>Categorie</label>
             <select name="categoryid" id="category_id">
@@ -155,7 +164,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           </div>
           <div class="form-group">
             <label>Behandelaar</label>
-            <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
+            <label class="assign-to-me-row">
+              <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+            </label>
           </div>
           <div class="form-group">
             <label>Status</label>
@@ -180,6 +192,8 @@ const ubmCurrentSubcategoryId = <?= json_encode((string)$form_values['subcategor
 const ubmOperators = <?= json_encode($reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const ubmOpLinks = <?= json_encode($reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const ubmCurrentOperatorId = <?= json_encode((string)$form_values['operatorid']) ?>;
+const ubmLoggedInOperatorId = <?= json_encode((string)($operator_context['id'] ?? '')) ?>;
+const ubmLoggedInOperatorGroupIds = [...new Set(ubmOpLinks.filter((row) => String(row.operatorid) === String(ubmLoggedInOperatorId)).map((row) => String(row.groupid)))];
 function refreshUbmSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
@@ -209,10 +223,31 @@ function refreshUbmOperators() {
     }
     select.appendChild(option);
   });
+  refreshUbmAssignToMeButton();
+}
+function refreshUbmAssignToMeButton() {
+  const button = document.getElementById('assign_to_me_button');
+  const groupId = String(document.getElementById('operatorgroup_id').value || '');
+  if (!button) { return; }
+  button.disabled = !ubmLoggedInOperatorId || (ubmLoggedInOperatorGroupIds.length !== 1 && !groupId) || (groupId && !ubmLoggedInOperatorGroupIds.includes(groupId));
+}
+function assignUbmToMe() {
+  const groupSelect = document.getElementById('operatorgroup_id');
+  if (ubmLoggedInOperatorGroupIds.length === 1 && !groupSelect.value) {
+    groupSelect.value = ubmLoggedInOperatorGroupIds[0];
+    refreshUbmOperators();
+  }
+  const groupId = String(groupSelect.value || '');
+  if ((ubmLoggedInOperatorGroupIds.length !== 1 && !groupId) || (groupId && !ubmLoggedInOperatorGroupIds.includes(groupId))) { return; }
+  const select = document.getElementById('operator_id');
+  select.value = String(ubmLoggedInOperatorId);
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  refreshUbmAssignToMeButton();
 }
 document.getElementById('category_id').addEventListener('change', refreshUbmSubcategories);
 refreshUbmSubcategories();
 document.getElementById('operatorgroup_id').addEventListener('change', refreshUbmOperators);
+document.getElementById('assign_to_me_button')?.addEventListener('click', assignUbmToMe);
 refreshUbmOperators();
 </script>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

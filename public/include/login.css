@@ -82,6 +82,25 @@ sub {
   color: red;
   font-size: 14px;
 }
+.success {
+  color: #1f7a3a;
+  font-size: 14px;
+}
+.login-hint {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.login-helper-link {
+  color: #2b6cd1;
+  font-size: 14px;
+  text-decoration: none;
+}
+.login-helper-link:hover {
+  text-decoration: underline;
+}
 .news-banner-stack {
   position: fixed;
   top: 0;

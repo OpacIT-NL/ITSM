@@ -1,6 +1,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ITSM Behandelaar</title>
 <link href="include/login.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
@@ -14,6 +15,9 @@
   <h2>Inloggen</h2>
   <?php if (isset($_GET['expired'])): ?>
   <p class="error">Je sessie is verlopen. Log opnieuw in.</p>
+  <?php endif; ?>
+  <?php if (isset($_GET['incorrect'])): ?>
+  <p class="error">Gebruikersnaam of wachtwoord is incorrect.</p>
   <?php endif; ?>
   <form action="authenticate.php" method="post" class="login-form">
     <div class="input-group"> <i class="fas fa-user"></i>

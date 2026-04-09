@@ -16,7 +16,7 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 $logged_in_user = $_SESSION[ 'name' ];
 
 // Fetch category
-$type = ( string )$_GET[ 'type' ];
+$type = ( string )( $_GET[ 'type' ] ?? '' );
 if ( $type !== '' ) {
   $stmt = $con->prepare( "SELECT * FROM itsm_core_category WHERE type = ?" );
   $stmt->bind_param( "s", $type );

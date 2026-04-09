@@ -19,6 +19,9 @@ $results = [];
 
 function search_normalize_task_number( $value ) {
   $normalized = strtoupper( preg_replace( '/\s+/', '', trim( $value ) ) );
+  if ( preg_match( '/^(INI|EPI|FEA|STR|SUB)(\d{4})(\d{4})$/', $normalized, $matches ) ) {
+    return $matches[1] . $matches[2] . ' ' . $matches[3];
+  }
   if ( preg_match( '/^(WA)(\d{4})(\d{4})$/', $normalized, $matches ) ) {
     return $matches[1] . $matches[2] . ' ' . $matches[3];
   }
@@ -154,6 +157,42 @@ function search_run_task_lookup( $con, $query ) {
       op2.lastname LIKE ? OR
       cc2.commenttext LIKE ?
 
+    UNION
+
+    SELECT
+      'ubm' AS taskkind,
+      u.id AS taskid,
+      u.ubmnumber AS tasknumber,
+      u.title AS tasktitle,
+      '' AS customer_name,
+      '' AS person_name,
+      cat3.name AS category_name,
+      st3.name AS status_name,
+      grp3.groupname AS group_name,
+      CONCAT(op3.lastname, ', ', op3.firstname) AS owner_name,
+      CONCAT('UBM ', CASE
+        WHEN u.itemtype = 'initiative' THEN 'Initiative'
+        WHEN u.itemtype = 'epic' THEN 'Epic'
+        WHEN u.itemtype = 'feature' THEN 'Feature'
+        WHEN u.itemtype = 'story' THEN 'Story'
+        ELSE 'Subtask'
+      END) AS tasklabel,
+      CONCAT('edit_ubm_item.php?id=', u.id) AS target_url
+    FROM itsm_ubm_items u
+    LEFT JOIN itsm_core_category cat3 ON u.categoryid = cat3.id
+    LEFT JOIN itsm_core_status st3 ON u.statusid = st3.id
+    LEFT JOIN itsm_ob_operatorgroups grp3 ON u.operatorgroupid = grp3.id
+    LEFT JOIN itsm_ob_operators op3 ON u.operatorid = op3.id
+    WHERE
+      u.ubmnumber LIKE ? OR
+      u.title LIKE ? OR
+      u.description LIKE ? OR
+      cat3.name LIKE ? OR
+      st3.name LIKE ? OR
+      grp3.groupname LIKE ? OR
+      op3.firstname LIKE ? OR
+      op3.lastname LIKE ?
+
     ORDER BY tasknumber ASC, tasktitle ASC
   ";
 
@@ -164,7 +203,14 @@ function search_run_task_lookup( $con, $query ) {
 
   mysqli_stmt_bind_param(
     $stmt,
-    str_repeat( 's', 41 ),
+    str_repeat( 's', 49 ),
+    $like,
+    $like,
+    $like,
+    $like,
+    $like,
+    $like,
+    $like,
     $like,
     $like,
     $like,
@@ -262,6 +308,18 @@ if ( isset( $_GET['tasknumber'] ) ) {
           header( 'Location: edit_incident.php?id=' . (int)$row['id'] . '&from_search=' . urlencode( $search_value ) );
           exit;
         }
+      } elseif ( preg_match( '/^(INI|EPI|FEA|STR|SUB)\d{4}\s\d{4}$/', $normalized_number ) ) {
+        $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_ubm_items WHERE ubmnumber = ? LIMIT 1" );
+        mysqli_stmt_bind_param( $stmt, "s", $normalized_number );
+        mysqli_stmt_execute( $stmt );
+        $result = mysqli_stmt_get_result( $stmt );
+        $row = mysqli_fetch_assoc( $result );
+        mysqli_stmt_close( $stmt );
+
+        if ( $row ) {
+          header( 'Location: edit_ubm_item.php?id=' . (int)$row['id'] . '&from_search=' . urlencode( $search_value ) );
+          exit;
+        }
       }
     }
 
@@ -288,7 +346,7 @@ if ( isset( $_GET['tasknumber'] ) ) {
 
         <div class="form-group">
           <label>Zoekterm</label>
-          <input type="text" name="tasknumber" value="<?= htmlspecialchars($search_value) ?>" placeholder="I2604 0001 / W2604 0001 / WA2604 0001 / titel / klant / omschrijving" required>
+          <input type="text" name="tasknumber" value="<?= htmlspecialchars($search_value) ?>" placeholder="I2604 0001 / W2604 0001 / WA2604 0001 / INI2604 0001 / titel / klant / omschrijving" required>
         </div>
 
         <div class="form-actions">

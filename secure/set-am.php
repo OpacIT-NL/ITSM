@@ -33,7 +33,7 @@ if ( $operators == 0 ) {
 <?php require_once(__DIR__ . '/nav/settings.php'); ?>
 <div class="module-section">
   <h1>Asset Management Instellingen</h1>
-  <div class="module-grid"> <a href="set-am-types.php"> Asset Types </a> <a href="set-am-customize.php"> Vrije Velden </a> </div>
+  <div class="module-grid"> <a href="set-am-types.php"> Asset Types </a>  </div>
 </div>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>
