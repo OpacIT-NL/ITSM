@@ -28,6 +28,10 @@
     sessionStorage.setItem(storageKey, JSON.stringify(tabs));
   }
 
+  function countClosableTabs(tabs) {
+    return tabs.filter((tab) => !tab.pinned).length;
+  }
+
   function dashboardTab() {
     return {
       key: '/secure/index.php',
@@ -177,7 +181,7 @@
       createdAt: now
     });
 
-    while (tabs.length > maxTabs) {
+    while (countClosableTabs(tabs) > maxTabs) {
       const currentUrl = normalizeUrl();
       let oldestIndex = -1;
       let oldestValue = Infinity;

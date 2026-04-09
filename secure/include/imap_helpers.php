@@ -1,6 +1,9 @@
 <?php
 
 require_once( __DIR__ . '/mail_helpers.php' );
+require_once( __DIR__ . '/attachment_helpers.php' );
+require_once( __DIR__ . '/task_helpers.php' );
+require_once( __DIR__ . '/task_log_helpers.php' );
 
 function imap_config_path() {
   return __DIR__ . '/../../../config/imap.ini';
@@ -107,6 +110,234 @@ function imap_fetch_plain_body( $mailbox, $message_number ) {
   }
 
   return trim( imap_body( $mailbox, $message_number ) );
+}
+
+function imap_part_parameter_value( $part, $attribute_name ) {
+  $attribute_name = strtolower( (string)$attribute_name );
+  $sources = [];
+  if ( !empty( $part->dparameters ) && is_array( $part->dparameters ) ) {
+    $sources = array_merge( $sources, $part->dparameters );
+  }
+  if ( !empty( $part->parameters ) && is_array( $part->parameters ) ) {
+    $sources = array_merge( $sources, $part->parameters );
+  }
+
+  foreach ( $sources as $parameter ) {
+    $name = strtolower( (string)( $parameter->attribute ?? '' ) );
+    if ( $name === $attribute_name ) {
+      return imap_decode_header_text( (string)( $parameter->value ?? '' ) );
+    }
+  }
+
+  return '';
+}
+
+function imap_collect_attachments_recursive( $mailbox, $message_number, $part, $part_number = '' ) {
+  $attachments = [];
+  $filename = imap_part_parameter_value( $part, 'filename' );
+  if ( $filename === '' ) {
+    $filename = imap_part_parameter_value( $part, 'name' );
+  }
+
+  $disposition = strtoupper( (string)( $part->disposition ?? '' ) );
+  $is_attachment = $filename !== '' || in_array( $disposition, [ 'ATTACHMENT', 'INLINE' ], true );
+  if ( $is_attachment && $filename !== '' ) {
+    $fetch_section = $part_number !== '' ? $part_number : '1';
+    $body = imap_fetchbody( $mailbox, $message_number, $fetch_section );
+    $content = imap_decode_body_part( $body, $part->encoding ?? 0 );
+    if ( $content !== false && $content !== '' ) {
+      $attachments[] = [
+        'filename' => $filename,
+        'major_type' => (int)( $part->type ?? 7 ),
+        'subtype' => strtolower( (string)( $part->subtype ?? 'octet-stream' ) ),
+        'content' => $content,
+        'filesize' => strlen( $content )
+      ];
+    }
+  }
+
+  if ( !empty( $part->parts ) && is_array( $part->parts ) ) {
+    foreach ( $part->parts as $index => $child_part ) {
+      $child_number = $part_number === '' ? (string)( $index + 1 ) : $part_number . '.' . ( $index + 1 );
+      $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $child_part, $child_number ) );
+    }
+  }
+
+  return $attachments;
+}
+
+function imap_fetch_attachments( $mailbox, $message_number ) {
+  $structure = imap_fetchstructure( $mailbox, $message_number );
+  if ( !$structure ) {
+    return [];
+  }
+
+  if ( empty( $structure->parts ) ) {
+    return imap_collect_attachments_recursive( $mailbox, $message_number, $structure, '' );
+  }
+
+  $attachments = [];
+  foreach ( $structure->parts as $index => $part ) {
+    $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $part, (string)( $index + 1 ) ) );
+  }
+
+  return array_values( array_filter(
+    $attachments,
+    function( $attachment ) {
+      return !empty( $attachment['filename'] ) && !empty( $attachment['content'] );
+    }
+  ) );
+}
+
+function imap_attachment_mimetype( $attachment ) {
+  $type_map = [
+    0 => 'text',
+    1 => 'multipart',
+    2 => 'message',
+    3 => 'application',
+    4 => 'audio',
+    5 => 'image',
+    6 => 'video',
+    7 => 'other'
+  ];
+  $major_type = $type_map[(int)( $attachment['major_type'] ?? 7 )] ?? 'application';
+  $subtype = strtolower( (string)( $attachment['subtype'] ?? 'octet-stream' ) );
+
+  return $major_type . '/' . $subtype;
+}
+
+function imap_extract_task_match_from_subject( $con, $subject ) {
+  $subject = strtoupper( (string)$subject );
+  if ( $subject === '' ) {
+    return null;
+  }
+
+  preg_match_all( '/\b(INI\d{4}\s\d{4}|EPI\d{4}\s\d{4}|FEA\d{4}\s\d{4}|STR\d{4}\s\d{4}|SUB\d{4}\s\d{4}|WA\d{4}\s\d{4}|W\d{4}\s\d{4}|I\d{4}\s\d{4}|P\d{4}\s\d{4}|E\d{4}\s\d{4})\b/', $subject, $matches );
+  $candidates = array_values( array_unique( $matches[1] ?? [] ) );
+  foreach ( $candidates as $candidate ) {
+    $task = task_find_by_number( $con, $candidate, 'secure' );
+    if ( $task ) {
+      return $task;
+    }
+  }
+
+  return null;
+}
+
+function imap_comment_text_from_message( $rule, $message ) {
+  return "Geimporteerd vanuit e-mailmap: " . $rule['folder']
+    . "\nVan: " . $message['from']
+    . "\nDatum: " . $message['date']
+    . "\nMessage-ID: " . $message['message_id']
+    . "\nOnderwerp: " . $message['subject']
+    . "\n\n" . $message['body'];
+}
+
+function imap_add_comment_to_existing_task( $con, $task, $rule, $message, $created_by ) {
+  $task_type = (string)$task['type'];
+  $task_id = (int)$task['id'];
+  $comment_text = imap_comment_text_from_message( $rule, $message );
+  $person = imap_find_person_by_email( $con, $message['from_email'] );
+  $person_id = !empty( $person['id'] ) ? (int)$person['id'] : null;
+
+  if ( $task_type === 'incident' ) {
+    $operator_id = null;
+    $stmt = mysqli_prepare( $con, "
+      INSERT INTO itsm_im_incidentcomments (incidentid, operatorid, personid, commenttext, internalonly)
+      VALUES (?,?,?,?,0)
+    " );
+    mysqli_stmt_bind_param( $stmt, 'iiis', $task_id, $operator_id, $person_id, $comment_text );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_close( $stmt );
+    return mysqli_insert_id( $con );
+  }
+
+  if ( $task_type === 'change' ) {
+    $operator_id = null;
+    $stmt = mysqli_prepare( $con, "
+      INSERT INTO itsm_cm_changecomments (changeid, operatorid, personid, commenttext, internalonly)
+      VALUES (?,?,?,?,0)
+    " );
+    mysqli_stmt_bind_param( $stmt, 'iiis', $task_id, $operator_id, $person_id, $comment_text );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_close( $stmt );
+    return mysqli_insert_id( $con );
+  }
+
+  if ( $task_type === 'problem' ) {
+    $comment_text = "Afzender: " . $message['from'] . "\n\n" . $comment_text;
+    $stmt = mysqli_prepare( $con, "
+      INSERT INTO itsm_pm_problemcomments (problemid, operatorid, commenttext, internalonly)
+      VALUES (?,?,?,0)
+    " );
+    mysqli_stmt_bind_param( $stmt, 'iis', $task_id, $created_by, $comment_text );
+    mysqli_stmt_execute( $stmt );
+    mysqli_stmt_close( $stmt );
+    return mysqli_insert_id( $con );
+  }
+
+  return 0;
+}
+
+function imap_attach_attachments_to_task( $con, $task, $attachments, $created_by, $comment_id = 0, $person_id = null ) {
+  $task_type = (string)$task['type'];
+  $task_id = (int)$task['id'];
+  $comment_type_map = [
+    'incident' => 'incidentcomment',
+    'change' => 'changecomment',
+    'problem' => 'problemcomment'
+  ];
+  $comment_type = !empty( $comment_type_map[$task_type] ) && $comment_id > 0 ? $comment_type_map[$task_type] : null;
+  $saved = 0;
+
+  foreach ( $attachments as $attachment ) {
+    $attachment_operator_id = $person_id ? null : $created_by;
+    $saved_id = attachment_save_binary(
+      $con,
+      $task_type,
+      $task_id,
+      $attachment['filename'],
+      imap_attachment_mimetype( $attachment ),
+      $attachment['content'],
+      $attachment_operator_id,
+      $person_id,
+      0,
+      $comment_type,
+      $comment_id > 0 ? $comment_id : null
+    );
+    if ( $saved_id > 0 ) {
+      $saved++;
+    }
+  }
+
+  return $saved;
+}
+
+function imap_attach_message_to_existing_task( $con, $task, $rule, $message, $attachments, $created_by ) {
+  $person = imap_find_person_by_email( $con, $message['from_email'] );
+  $person_id = !empty( $person['id'] ) ? (int)$person['id'] : null;
+  $comment_id = imap_add_comment_to_existing_task( $con, $task, $rule, $message, $created_by );
+  $saved_attachments = imap_attach_attachments_to_task( $con, $task, $attachments, $created_by, $comment_id, $person_id );
+
+  $task_number = $task['number'] ?? ( '#' . (int)$task['id'] );
+  $log_message = 'E-mail gekoppeld via IMAP-import';
+  if ( $message['from'] !== '' ) {
+    $log_message .= ' van ' . $message['from'];
+  }
+  if ( $saved_attachments > 0 ) {
+    $log_message .= ' met ' . $saved_attachments . ' bijlage(n)';
+  }
+  $log_message .= ' op ' . $task_number . '.';
+  if ( !in_array( $task['type'], [ 'incident', 'change', 'problem' ], true ) ) {
+    $log_message .= "\n\n" . imap_comment_text_from_message( $rule, $message );
+  }
+
+  task_log_add( $con, $task['type'], (int)$task['id'], 'email', $log_message, $created_by );
+
+  return [
+    'tasktype' => $task['type'],
+    'taskid' => (int)$task['id']
+  ];
 }
 
 function imap_default_status_id( $con, $type ) {
@@ -328,14 +559,24 @@ function imap_import_folder_rule( $con, $rule, $created_by, $limit = 25 ) {
       'message_id' => $message_id,
       'body' => imap_fetch_plain_body( $mailbox, $message_number )
     ];
+    $attachments = imap_fetch_attachments( $mailbox, $message_number );
 
     try {
-      if ( $rule['tasktype'] === 'incident' ) {
+      $matched_task = imap_extract_task_match_from_subject( $con, $message['subject'] );
+      if ( $matched_task ) {
+        $linked = imap_attach_message_to_existing_task( $con, $matched_task, $rule, $message, $attachments, $created_by );
+        $task_type = $linked['tasktype'];
+        $task_id = $linked['taskid'];
+      } elseif ( $rule['tasktype'] === 'incident' ) {
+        $task_type = 'incident';
         $task_id = imap_create_incident_from_message( $con, $rule, $message, $created_by );
+        imap_attach_attachments_to_task( $con, [ 'type' => $task_type, 'id' => $task_id ], $attachments, $created_by );
       } else {
+        $task_type = 'change';
         $task_id = imap_create_change_from_message( $con, $rule, $message, $created_by );
+        imap_attach_attachments_to_task( $con, [ 'type' => $task_type, 'id' => $task_id ], $attachments, $created_by );
       }
-      imap_mark_message_imported( $con, (int)$rule['id'], $folder, $uid, $message_id, $rule['tasktype'], $task_id );
+      imap_mark_message_imported( $con, (int)$rule['id'], $folder, $uid, $message_id, $task_type, $task_id );
       imap_setflag_full( $mailbox, (string)$message_number, '\\Seen' );
       $imported++;
     } catch ( Exception $exception ) {

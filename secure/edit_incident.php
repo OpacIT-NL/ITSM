@@ -500,12 +500,37 @@ if ( $incident['incidenttype'] === 'major' ) {
   }
 }
 
+$linked_incidents_html = '';
+if ( $incident['incidenttype'] === 'major' ) {
+  ob_start();
+  ?>
+  <hr>
+  <h3>Gekoppelde incidenten</h3>
+  <div class="incident-history">
+    <?php if ( empty( $linked_incidents ) ): ?>
+    <p>Geen gekoppelde incidenten.</p>
+    <?php else: ?>
+    <?php foreach ( $linked_incidents as $linked_incident ): ?>
+    <div class="incident-comment">
+      <div class="incident-comment-meta">
+        <span><?= htmlspecialchars(incident_format_display_number($linked_incident)) ?> <?= htmlspecialchars(incident_mode_label($linked_incident['incidenttype'])) ?></span>
+        <span><?= htmlspecialchars($linked_incident['status_name']) ?></span>
+      </div>
+      <p><?= task_linkify_text($linked_incident['title'], 'secure') ?></p>
+      <a href="edit_incident.php?id=<?= htmlspecialchars((string)$linked_incident['id']) ?>">Open gekoppeld incident</a>
+    </div>
+    <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
+  <?php
+  $linked_incidents_html = ob_get_clean();
+}
+
 $page_title = incident_mode_label( $incident['incidenttype'] ) . ' ' . incident_format_display_number( $incident );
 $tab_title = incident_format_display_number( $incident );
 $tab_subtitle = incident_mode_label( $incident['incidenttype'] );
 $submit_label = 'Incident opslaan';
 $show_history = true;
-$show_linked_incidents = $incident['incidenttype'] === 'major';
 $mode_label = incident_mode_label( $new_mode ?? $incident['incidenttype'] );
 $list_back_url = incident_get_list_back_url( 'incidents.php?view=all' );
 $current_mode = $new_mode ?? $incident['incidenttype'];
@@ -533,7 +558,7 @@ $action_links[] = [
   'label' => 'Problem aanmaken'
 ];
 $action_buttons[] = [ 'value' => 'save', 'label' => 'Opslaan' ];
-$links_html = task_render_links_section( task_load_links( $con, 'incident', $incident_id, 'secure' ) );
+$links_html = task_render_links_section( task_load_links( $con, 'incident', $incident_id, 'secure' ) ) . $linked_incidents_html;
 $task_logs_html = task_log_render_tab( task_log_load( $con, 'incident', $incident_id ) );
 $mail_tab_html = mail_render_manual_tab( mail_load_manual_rules( $con, 'incident' ), $mail_messages );
 ?>

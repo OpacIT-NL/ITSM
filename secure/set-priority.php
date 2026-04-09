@@ -84,6 +84,9 @@ $matrix_result = mysqli_query( $con, "
   INNER JOIN itsm_core_priorities p ON m.priorityid = p.id
   ORDER BY i.sortorder ASC, u.sortorder ASC, i.name ASC, u.name ASC
 " );
+$all_impacts = mysqli_query( $con, "SELECT id, name, sortorder, active FROM itsm_core_impacts ORDER BY sortorder ASC, name ASC" );
+$all_urgencies = mysqli_query( $con, "SELECT id, name, sortorder, active FROM itsm_core_urgencies ORDER BY sortorder ASC, name ASC" );
+$all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM itsm_core_priorities ORDER BY sortorder ASC, name ASC" );
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
@@ -124,6 +127,54 @@ $matrix_result = mysqli_query( $con, "
       </div>
     </div>
     <div class="page-content">
+      <div class="results">
+        <table class="results" style="width:100%;">
+          <thead><tr><th>Impact</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <tbody>
+            <?php while ( $row = mysqli_fetch_assoc( $all_impacts ) ): ?>
+            <tr>
+              <td><?= htmlspecialchars($row['name']) ?></td>
+              <td><?= (int)$row['sortorder'] ?></td>
+              <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=impact&id=<?= (int)$row['id'] ?>">Open Impact</a></td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+      <br>
+      <div class="results">
+        <table class="results" style="width:100%;">
+          <thead><tr><th>Urgency</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <tbody>
+            <?php while ( $row = mysqli_fetch_assoc( $all_urgencies ) ): ?>
+            <tr>
+              <td><?= htmlspecialchars($row['name']) ?></td>
+              <td><?= (int)$row['sortorder'] ?></td>
+              <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=urgency&id=<?= (int)$row['id'] ?>">Open Urgency</a></td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+      <br>
+      <div class="results">
+        <table class="results" style="width:100%;">
+          <thead><tr><th>Priority</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <tbody>
+            <?php while ( $row = mysqli_fetch_assoc( $all_priorities ) ): ?>
+            <tr>
+              <td><?= htmlspecialchars($row['name']) ?></td>
+              <td><?= (int)$row['sortorder'] ?></td>
+              <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=priority&id=<?= (int)$row['id'] ?>">Open Priority</a></td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+      <br>
       <div class="form-card form-card-wide">
         <h2>Priority matrix</h2>
         <form method="post" class="form-grid">

@@ -338,27 +338,6 @@ $show_template_actions = empty( $form_values['template_used'] );
           <?= $attachments_html ?>
           <?php endif; ?>
 
-          <?php if ( $show_linked_incidents ): ?>
-          <hr>
-          <h3>Gekoppelde incidenten</h3>
-          <div class="incident-history">
-            <?php if ( empty( $linked_incidents ) ): ?>
-            <p>Geen gekoppelde incidenten.</p>
-            <?php else: ?>
-            <?php foreach ( $linked_incidents as $linked_incident ): ?>
-            <div class="incident-comment">
-              <div class="incident-comment-meta">
-                <span><?= htmlspecialchars(incident_format_display_number($linked_incident)) ?> <?= htmlspecialchars(incident_mode_label($linked_incident['incidenttype'])) ?></span>
-                <span><?= htmlspecialchars($linked_incident['status_name']) ?></span>
-              </div>
-              <p><?= task_linkify_text($linked_incident['title'], 'secure') ?></p>
-              <a href="edit_incident.php?id=<?= htmlspecialchars((string)$linked_incident['id']) ?>">Open gekoppeld incident</a>
-            </div>
-            <?php endforeach; ?>
-            <?php endif; ?>
-          </div>
-          <?php endif; ?>
-
         </div>
       </div>
     </div>

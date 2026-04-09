@@ -52,23 +52,49 @@ function attachment_save_upload( $con, $task_type, $task_id, $operator_id, $inte
     return 0;
   }
 
-  $filename = basename( (string)$file['name'] );
-  $mimetype = (string)( $file['type'] ?? 'application/octet-stream' );
-  $filesize = (int)$file['size'];
+  return attachment_save_binary(
+    $con,
+    $task_type,
+    $task_id,
+    basename( (string)$file['name'] ),
+    (string)( $file['type'] ?? 'application/octet-stream' ),
+    $content,
+    $operator_id,
+    null,
+    $internal_only,
+    $comment_type,
+    $comment_id
+  );
+}
+
+function attachment_save_binary( $con, $task_type, $task_id, $filename, $mimetype, $content, $operator_id = null, $person_id = null, $internal_only = 0, $comment_type = null, $comment_id = null ) {
+  $task_type = (string)$task_type;
   $task_id = (int)$task_id;
-  $operator_id = (int)$operator_id;
+  $filename = basename( (string)$filename );
+  $mimetype = (string)$mimetype;
+  $content = (string)$content;
+  $filesize = strlen( $content );
+  $operator_id = $operator_id !== null && $operator_id !== '' ? (int)$operator_id : null;
+  $person_id = $person_id !== null && $person_id !== '' ? (int)$person_id : null;
   $internal_only = (int)$internal_only;
   $comment_id = $comment_id !== null ? (int)$comment_id : null;
   $null_blob = null;
 
+  if ( $task_type === '' || $task_id <= 0 || $filename === '' || $filesize <= 0 ) {
+    return 0;
+  }
+
   $stmt = mysqli_prepare( $con, "
     INSERT INTO itsm_core_attachments
-      (tasktype, taskid, commenttype, commentid, filename, mimetype, filesize, content, uploadedby, internalonly)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (tasktype, taskid, commenttype, commentid, filename, mimetype, filesize, content, uploadedby, uploadedbyperson, internalonly)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   " );
+  if ( !$stmt ) {
+    return 0;
+  }
   mysqli_stmt_bind_param(
     $stmt,
-    'sisissibii',
+    'sisissibiii',
     $task_type,
     $task_id,
     $comment_type,
@@ -78,6 +104,7 @@ function attachment_save_upload( $con, $task_type, $task_id, $operator_id, $inte
     $filesize,
     $null_blob,
     $operator_id,
+    $person_id,
     $internal_only
   );
   mysqli_stmt_send_long_data( $stmt, 7, $content );
