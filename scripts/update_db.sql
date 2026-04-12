@@ -187,6 +187,14 @@ CREATE TABLE `itsm_core_prioritymatrix` (
   CONSTRAINT `itsm_core_prioritymatrix_ibfk_3` FOREIGN KEY (`priorityid`) REFERENCES `itsm_core_priorities` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `settingkey` varchar(100) NOT NULL,
+  `settingvalue` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `settingkey` (`settingkey`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 ALTER TABLE `itsm_im_incidents`
   MODIFY `categoryid` int(11) DEFAULT NULL,
   ADD COLUMN `impactid` int(11) DEFAULT NULL AFTER `statusid`,
@@ -223,6 +231,18 @@ ALTER TABLE `itsm_pm_problems`
   ADD CONSTRAINT `itsm_pm_problems_ibfk_11` FOREIGN KEY (`impactid`) REFERENCES `itsm_core_impacts` (`id`),
   ADD CONSTRAINT `itsm_pm_problems_ibfk_12` FOREIGN KEY (`urgencyid`) REFERENCES `itsm_core_urgencies` (`id`),
   ADD CONSTRAINT `itsm_pm_problems_ibfk_13` FOREIGN KEY (`priorityid`) REFERENCES `itsm_core_priorities` (`id`);
+
+ALTER TABLE `itsm_ob_customers`
+  ADD COLUMN `defaultlanguage` varchar(10) DEFAULT NULL AFTER `primaryphone`;
+
+ALTER TABLE `itsm_ob_operators`
+  ADD COLUMN `preferredlanguage` varchar(10) DEFAULT NULL AFTER `isadmin`;
+
+ALTER TABLE `itsm_ob_persons`
+  ADD COLUMN `preferredlanguage` varchar(10) DEFAULT NULL AFTER `allowssp`;
+
+INSERT INTO `itsm_core_settings` (`settingkey`, `settingvalue`)
+VALUES ('default_language', 'nl_NL');
 
 ALTER TABLE `itsm_ubm_items`
   ADD COLUMN `ubmnumber` varchar(32) DEFAULT NULL AFTER `id`,

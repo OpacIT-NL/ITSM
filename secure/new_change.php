@@ -249,7 +249,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Wijzigingsaanvraag aanmaken';
-$tab_title = 'Nieuw';
+$tab_title = t( 'common.new' );
 $tab_subtitle = 'Wijzigingsaanvraag';
 $list_back_url = change_get_list_back_url( 'changes.php?section=requests&view=all' );
 $show_status_block = false;

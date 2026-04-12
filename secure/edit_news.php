@@ -31,7 +31,7 @@ $news_item = mysqli_fetch_assoc( $result );
 mysqli_stmt_close( $stmt );
 
 if ( !$news_item ) {
-  die( 'Nieuwsbericht niet gevonden' );
+  die( t('Nieuwsbericht niet gevonden') );
 }
 
 $errors = [];
@@ -55,13 +55,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   ];
 
   if ( !isset( $type_options[ $form_values['newstype'] ] ) ) {
-    $errors[] = 'Selecteer een geldig type nieuwsbericht.';
+    $errors[] = t('Selecteer een geldig type nieuwsbericht.');
   }
   if ( $form_values['title'] === '' ) {
-    $errors[] = 'Titel is verplicht.';
+    $errors[] = t('Titel') . ' ' . t('is verplicht.');
   }
   if ( $form_values['message'] === '' ) {
-    $errors[] = 'Bericht is verplicht.';
+    $errors[] = t('Bericht') . ' ' . t('is verplicht.');
   }
 
   if ( empty( $errors ) ) {
@@ -88,7 +88,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Nieuwsbericht bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+    $errors[] = t('Nieuwsbericht bijwerken mislukt:') . ' ' . mysqli_stmt_error( $update_stmt );
     mysqli_stmt_close( $update_stmt );
   }
 }
@@ -98,14 +98,14 @@ $list_back_url = 'news.php';
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <?php require_once(__DIR__ . '/include/back_links.php'); ?>
-  <h1>Nieuwsbericht bewerken</h1>
+  <h1><?= htmlspecialchars(t('Nieuwsbericht bewerken')) ?></h1>
   <?php if ( !empty( $errors ) ): ?>
   <div class="ssp-error"><?= htmlspecialchars(implode(' ', $errors)) ?></div>
   <?php endif; ?>
   <div class="form-card form-card-wide">
     <form method="post" class="form-grid">
       <div class="form-group">
-        <label for="newstype">Type</label>
+        <label for="newstype"><?= htmlspecialchars(t('Type')) ?></label>
         <select id="newstype" name="newstype">
           <?php foreach ( $type_options as $type_key => $type_label ): ?>
           <option value="<?= htmlspecialchars($type_key) ?>" <?= $form_values['newstype'] === $type_key ? 'selected' : '' ?>><?= htmlspecialchars($type_label) ?></option>
@@ -113,24 +113,24 @@ $list_back_url = 'news.php';
         </select>
       </div>
       <div class="form-group">
-        <label for="title">Titel</label>
+        <label for="title"><?= htmlspecialchars(t('Titel')) ?></label>
         <input type="text" id="title" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
       </div>
       <div class="form-group">
-        <label for="message">Bericht</label>
+        <label for="message"><?= htmlspecialchars(t('Bericht')) ?></label>
         <textarea id="message" name="message" rows="10" required><?= htmlspecialchars($form_values['message']) ?></textarea>
       </div>
       <div class="form-group">
-        <label class="checkbox-label"><input type="checkbox" name="showssp" value="1" <?= (int)$form_values['showssp'] === 1 ? 'checked' : '' ?>> Toon op SelfService Portal</label>
+        <label class="checkbox-label"><input type="checkbox" name="showssp" value="1" <?= (int)$form_values['showssp'] === 1 ? 'checked' : '' ?>> <?= htmlspecialchars(t('Toon op SelfService Portal')) ?></label>
       </div>
       <div class="form-group">
-        <label class="checkbox-label"><input type="checkbox" name="showoperatorhome" value="1" <?= (int)$form_values['showoperatorhome'] === 1 ? 'checked' : '' ?>> Toon op Behandelaars Home</label>
+        <label class="checkbox-label"><input type="checkbox" name="showoperatorhome" value="1" <?= (int)$form_values['showoperatorhome'] === 1 ? 'checked' : '' ?>> <?= htmlspecialchars(t('Toon op Behandelaars Home')) ?></label>
       </div>
       <div class="form-group">
-        <label class="checkbox-label"><input type="checkbox" name="showlogin" value="1" <?= (int)$form_values['showlogin'] === 1 ? 'checked' : '' ?>> Toon op inlogpagina</label>
+        <label class="checkbox-label"><input type="checkbox" name="showlogin" value="1" <?= (int)$form_values['showlogin'] === 1 ? 'checked' : '' ?>> <?= htmlspecialchars(t('Toon op inlogpagina')) ?></label>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn-primary">Nieuwsbericht opslaan</button>
+        <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Nieuwsbericht opslaan')) ?></button>
       </div>
     </form>
   </div>

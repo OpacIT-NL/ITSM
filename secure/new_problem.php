@@ -205,7 +205,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Probleem aanmaken';
-$tab_title = 'Nieuw';
+$tab_title = t( 'common.new' );
 $tab_subtitle = 'Problem';
 $submit_label = 'Probleem opslaan';
 $show_history = false;

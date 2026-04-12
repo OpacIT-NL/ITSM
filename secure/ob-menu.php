@@ -28,28 +28,28 @@ mysqli_stmt_close( $stmt );
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/modules.php'); ?>
 <div class="module-section">
-  <h1>Ondersteunende Bestanden</h1>
+  <h1><?= htmlspecialchars(t('Ondersteunende Bestanden')) ?></h1>
   <div class="module-grid">
     <?php if ($persons == 1): ?>
-    <a href="persons.php">Personen</a>
+    <a href="persons.php"><?= htmlspecialchars(t('Personen')) ?></a>
     <?php endif; ?>
     <?php if ($persons == 1): ?>
-    <a href="persongroups.php">Persoonsgroepen</a>
+    <a href="persongroups.php"><?= htmlspecialchars(t('Persoonsgroepen')) ?></a>
     <?php endif; ?>
     <?php if ($operators == 1): ?>
-    <a href="operators.php">Behandelaars</a>
+    <a href="operators.php"><?= htmlspecialchars(t('Behandelaars')) ?></a>
     <?php endif; ?>
     <?php if ($groups == 1): ?>
-    <a href="operatorgroups.php">Behandelaarsgroepen</a>
+    <a href="operatorgroups.php"><?= htmlspecialchars(t('Behandelaarsgroepen')) ?></a>
     <?php endif; ?>
     <?php if ($suppliers == 1): ?>
-    <a href="suppliers.php">Leveranciers</a>
+    <a href="suppliers.php"><?= htmlspecialchars(t('Leveranciers')) ?></a>
     <?php endif; ?>
     <?php if ($buildings == 1): ?>
-    <a href="buildings.php">Gebouwen</a>
+    <a href="buildings.php"><?= htmlspecialchars(t('Gebouwen')) ?></a>
     <?php endif; ?>
     <?php if ($customers == 1): ?>
-    <a href="customers.php">Klanten</a>
+    <a href="customers.php"><?= htmlspecialchars(t('Klanten')) ?></a>
     <?php endif; ?>
   </div>
 </div>

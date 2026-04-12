@@ -45,9 +45,9 @@ function incident_require_access( $operator ) {
 
 function incident_mode_map() {
   return [
-    'firstline' => 'Eerstelijns incident',
-    'secondline' => 'Tweedelijns incident',
-    'major' => 'Major incident'
+    'firstline' => t( 'incident.mode.firstline' ),
+    'secondline' => t( 'incident.mode.secondline' ),
+    'major' => t( 'incident.mode.major' )
   ];
 }
 

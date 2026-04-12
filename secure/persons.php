@@ -43,20 +43,20 @@ if ( !$result ) {
 <div class="content">
 <?php $module_back_url = 'ob-menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
 <center>
-  <h1>Personen</h1>
+  <h1><?= htmlspecialchars(t('Personen')) ?></h1>
 </center>
-<a href="new_person.php">Nieuw Persoon</a>
+<a href="new_person.php"><?= htmlspecialchars(t('Nieuw Persoon')) ?></a>
 <div class="results">
 <table border="0" class=results style="width: 100%;">
 <thead>
   <tr>
-    <th style="text-align: start;">Klant</th>
-    <th style="text-align: start;">Voornaam</th>
-    <th style="text-align: start;">Achternaam</th>
-    <th style="text-align: start;">E-mail</th>
-    <th style="text-align: start;">Telefoonnummer</th>
-    <th style="text-align: start;">Login toegestaan</th>
-    <th style="text-align: start;">Actie</th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Klant')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Voornaam')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Achternaam')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('E-mail')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Telefoonnummer')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Login toegestaan')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
   </tr>
 </thead>
 <tbody>
@@ -71,7 +71,7 @@ if ( !$result ) {
     '<span class="check">✔</span>' :
     '<span class="cross">✖</span>'
     ?></td>
-    <td class="tblaction"><a class="btn" href="edit_person.php?id=<?= $row['id'] ?>"> Open Persoon </a></td>
+    <td class="tblaction"><a class="btn" href="edit_person.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Open Persoon')) ?></a></td>
   </tr>
   <?php endwhile; ?>
 </div>

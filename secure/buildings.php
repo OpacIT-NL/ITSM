@@ -43,20 +43,20 @@ if ( !$result ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $module_back_url = 'ob-menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
-    <h1>Gebouwen</h1>
+    <h1><?= htmlspecialchars(t('Gebouwen')) ?></h1>
   </center>
-  <p><a href="new_building.php">Nieuw Gebouw</a></p>
+  <p><a href="new_building.php"><?= htmlspecialchars(t('Nieuw Gebouw')) ?></a></p>
   <div class="results">
     <table border="0" class=results style="width: 100%;">
       <thead>
         <tr>
           <th style="text-align: start;">ID</th>
-          <th style="text-align: start;">Klant</th>
-          <th style="text-align: start;">Adres</th>
-          <th style="text-align: start;">Postcode</th>
-          <th style="text-align: start;">Plaats</th>
-          <th style="text-align: start;">ICT dienstverlener pand</th>
-          <th style="text-align: start;">Actie</th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Klant')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Adres')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Postcode')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Plaats')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('ICT dienstverlener pand')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
         </tr>
       </thead>
       <tbody>
@@ -68,7 +68,7 @@ if ( !$result ) {
           <td><?= htmlspecialchars($row['postalcode']) ?></td>
           <td><?= htmlspecialchars($row['city']) ?></td>
           <td><?= htmlspecialchars($row['idvp']) ?></td>
-          <td class="tblaction"><a href="edit_building.php?id=<?= $row['id'] ?>"> Open Gebouw </a></td>
+          <td class="tblaction"><a href="edit_building.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Open Gebouw')) ?></a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>

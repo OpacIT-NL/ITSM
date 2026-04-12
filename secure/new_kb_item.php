@@ -39,13 +39,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
   $parent_id = $form_values['parentid'] !== '' ? (int)$form_values['parentid'] : null;
   if ( $form_values['title'] === '' ) {
-    $errors[] = 'Titel is verplicht.';
+    $errors[] = t('Titel') . ' ' . t('is verplicht.');
   }
   if ( $form_values['content'] === '' ) {
-    $errors[] = 'Inhoud is verplicht.';
+    $errors[] = t('Inhoud') . ' ' . t('is verplicht.');
   }
   if ( $parent_id !== null && !kb_find_item_by_id( $all_items, $parent_id ) ) {
-    $errors[] = 'Geselecteerd bovenliggend kennisitem bestaat niet.';
+    $errors[] = t('Geselecteerd bovenliggend kennisitem bestaat niet.');
   }
 
   if ( empty( $errors ) ) {
@@ -70,7 +70,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Kennisitem opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+    $errors[] = t('Kennisitem opslaan mislukt:') . ' ' . mysqli_stmt_error( $stmt );
     mysqli_stmt_close( $stmt );
   }
 }
@@ -83,7 +83,7 @@ $markdown_preview = markdown_to_html( $form_values['content'] );
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <?php require_once(__DIR__ . '/include/back_links.php'); ?>
-  <h1>Nieuw kennisitem</h1>
+  <h1><?= htmlspecialchars(t('Nieuw kennisitem')) ?></h1>
 
   <?php if ( !empty( $errors ) ): ?>
   <div class="ssp-error"><?= htmlspecialchars(implode(' ', $errors)) ?></div>
@@ -92,13 +92,13 @@ $markdown_preview = markdown_to_html( $form_values['content'] );
   <div class="form-card form-card-wide">
     <form method="post" class="form-grid">
       <div class="form-group">
-        <label for="title">Titel</label>
+        <label for="title"><?= htmlspecialchars(t('Titel')) ?></label>
         <input type="text" id="title" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
       </div>
       <div class="form-group">
-        <label for="parentid">Bovenliggend kennisitem</label>
+        <label for="parentid"><?= htmlspecialchars(t('Bovenliggend kennisitem')) ?></label>
         <select id="parentid" name="parentid">
-          <option value="">Geen, dit is een hoofditem</option>
+          <option value=""><?= htmlspecialchars(t('Geen, dit is een hoofditem')) ?></option>
           <?php foreach ( $parent_options as $option ): ?>
           <option value="<?= (int)$option['id'] ?>" <?= (int)$form_values['parentid'] === (int)$option['id'] ? 'selected' : '' ?>>
             <?= htmlspecialchars($option['label']) ?>
@@ -110,18 +110,18 @@ $markdown_preview = markdown_to_html( $form_values['content'] );
         <label class="checkbox-label"><input type="checkbox" name="publicaccess" value="1" <?= (int)$form_values['publicaccess'] === 1 ? 'checked' : '' ?>> Zichtbaar in Self Service Portal</label>
       </div>
       <div class="form-group">
-        <label for="content">Inhoud (Markdown)</label>
+        <label for="content"><?= htmlspecialchars(t('Inhoud (Markdown)')) ?></label>
         <textarea id="content" name="content" class="kb-editor" rows="24" required><?= htmlspecialchars($form_values['content']) ?></textarea>
-        <p class="info-note">Ondersteunt Markdown</p>
+        <p class="info-note"><?= htmlspecialchars(t('Ondersteunt Markdown')) ?></p>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn-primary">Kennisitem opslaan</button>
+        <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Kennisitem opslaan')) ?></button>
       </div>
     </form>
   </div>
 
   <div class="form-card form-card-wide" style="margin-top: 20px;">
-    <h2>Voorbeeld</h2>
+    <h2><?= htmlspecialchars(t('Voorbeeld')) ?></h2>
     <div class="kb-markdown"><?= $markdown_preview ?></div>
   </div>
 </div>

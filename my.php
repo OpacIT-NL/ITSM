@@ -1,6 +1,7 @@
 <?php
 
 date_default_timezone_set( 'Europe/Amsterdam' );
+require_once( __DIR__ . '/lang/lang_helpers.php' );
 
 function db_connect() {
 
@@ -112,6 +113,8 @@ function itsm_render_local_datetime_script() {
 
 // Connect to the database
 $con = db_connect();
+
+itsm_boot_language_system( $con instanceof mysqli ? $con : null );
 
 // Check connection
 if ( $con->connect_error ) {

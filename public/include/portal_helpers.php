@@ -17,7 +17,7 @@ function ssp_require_login( $con ) {
 
   $person_id = (int)$_SESSION['id'];
   $stmt = mysqli_prepare( $con, "
-        SELECT p.id, p.customerid, p.firstname, p.lastname, p.email, p.phone, p.allowssp, c.name AS customer_name
+        SELECT p.id, p.customerid, p.firstname, p.lastname, p.email, p.phone, p.allowssp, p.preferredlanguage, c.name AS customer_name, c.defaultlanguage
         FROM itsm_ob_persons p
         LEFT JOIN itsm_ob_customers c ON p.customerid = c.id
         WHERE p.id = ?
@@ -39,6 +39,13 @@ function ssp_require_login( $con ) {
   $_SESSION['expires_at'] = time() + ( 12 * 60 * 60 );
   $_SESSION['name'] = trim( ($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? '') );
   $_SESSION['email'] = $person['email'] ?? '';
+  if ( !empty( $person['preferredlanguage'] ) ) {
+    $_SESSION['preferred_language'] = $person['preferredlanguage'];
+  } elseif ( !empty( $person['defaultlanguage'] ) ) {
+    $_SESSION['preferred_language'] = $person['defaultlanguage'];
+  } else {
+    unset( $_SESSION['preferred_language'] );
+  }
 
   $group_stmt = mysqli_prepare( $con, "
         SELECT l.persongroup, g.groupname
@@ -81,7 +88,8 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
     'knowledge' => [ 'href' => 'knowledge.php', 'label' => 'Kennisbank', 'icon' => 'fa-book-open' ],
     'assets' => [ 'href' => 'assets.php', 'label' => 'Assets', 'icon' => 'fa-laptop' ],
     'new_incident' => [ 'href' => 'new_incident.php', 'label' => 'Incident melden', 'icon' => 'fa-phone' ],
-    'new_change' => [ 'href' => 'new_change.php', 'label' => 'Wijziging aanvragen', 'icon' => 'fa-file-circle-plus' ]
+    'new_change' => [ 'href' => 'new_change.php', 'label' => 'Wijziging aanvragen', 'icon' => 'fa-file-circle-plus' ],
+    'profile' => [ 'href' => 'profile.php', 'label' => 'Profiel', 'icon' => 'fa-user' ]
   ];
   if ( ssp_person_has_group_name( $person, 'SSP_InfraShop' ) ) {
     $links['infra_shop'] = [ 'href' => 'infra_shop.php', 'label' => 'InfraShop', 'icon' => 'fa-cart-shopping' ];

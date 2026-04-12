@@ -63,6 +63,8 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     $boolValues[ $field ] = isset( $_POST[ $field ] ) ? 1 : 0;
   }
 
+  $preferred_language = trim( (string)( $_POST['preferredlanguage'] ?? '' ) );
+  $preferred_language = $preferred_language !== '' ? itsm_normalize_language_code( $preferred_language ) : null;
   $stmt = mysqli_prepare( $con, "
         UPDATE itsm_ob_operators SET
             firstname=?,
@@ -88,13 +90,14 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
             events=?,
             ubm=?,
             reporting=?,
-            isadmin=?
+            isadmin=?,
+            preferredlanguage=?
         WHERE id=?
     " );
 
   mysqli_stmt_bind_param(
     $stmt,
-    "sssssiiiiiiiiiiiiiiiiiiii",
+    'sssss' . str_repeat( 'i', count( $boolFields ) ) . 'si',
     $_POST[ 'firstname' ],
     $_POST[ 'lastname' ],
     $_POST[ 'email' ],
@@ -119,6 +122,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     $boolValues[ 'ubm' ],
     $boolValues[ 'reporting' ],
     $boolValues[ 'isadmin' ],
+    $preferred_language,
     $id
   );
 
@@ -193,6 +197,17 @@ if ( !$operator ) {
         <div class="form-group">
           <label>Gebruikersnaam:
             <input type="text" name="username" value="<?= htmlspecialchars($operator['username']) ?>">
+          </label>
+        </div>
+        <br>
+        <div class="form-group">
+          <label><?= htmlspecialchars(t('operator.preferred_language')) ?>:
+            <select name="preferredlanguage">
+              <option value="">-</option>
+              <?php foreach ( itsm_available_languages() as $code => $label ): ?>
+              <option value="<?= htmlspecialchars($code) ?>" <?= ($operator['preferredlanguage'] ?? '') === $code ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+              <?php endforeach; ?>
+            </select>
           </label>
         </div>
         <hr>
