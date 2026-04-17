@@ -232,7 +232,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $comment_id = mysqli_insert_id( $con );
         attachment_save_upload( $con, 'incident', $incident_id, $created_by, $form_values['internalonly'], 'incidentcomment', $comment_id );
       }
-      mail_process_ticket_created( $con, 'incident', $incident_id );
+      mail_process_ticket_created( $con, 'incident', $incident_id, $created_by );
 
       header( 'Location: edit_incident.php?id=' . $incident_id );
       exit;

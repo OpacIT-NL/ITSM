@@ -225,7 +225,7 @@ if ( !$operator ) {
         <hr>
         <div class="form-group"> 
           <!-- Password (optional safe handling) -->
-          <label>Nieuw wachtwoord (laat leeg om niet te bewerken):
+          <label><?= htmlspecialchars(t('Nieuw wachtwoord (laat leeg om niet te bewerken)')) ?>:
             <input type="password" name="password">
           </label>
         </div>

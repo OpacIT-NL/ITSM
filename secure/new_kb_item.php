@@ -107,7 +107,7 @@ $markdown_preview = markdown_to_html( $form_values['content'] );
         </select>
       </div>
       <div class="form-group">
-        <label class="checkbox-label"><input type="checkbox" name="publicaccess" value="1" <?= (int)$form_values['publicaccess'] === 1 ? 'checked' : '' ?>> Zichtbaar in Self Service Portal</label>
+        <label class="checkbox-label"><input type="checkbox" name="publicaccess" value="1" <?= (int)$form_values['publicaccess'] === 1 ? 'checked' : '' ?>> <?= htmlspecialchars(t('Zichtbaar in Self Service Portal')) ?></label>
       </div>
       <div class="form-group">
         <label for="content"><?= htmlspecialchars(t('Inhoud (Markdown)')) ?></label>

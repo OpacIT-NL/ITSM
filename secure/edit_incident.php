@@ -453,7 +453,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         }
         attachment_save_upload( $con, 'incident', $incident_id, (int)$operator_context['id'], $form_values['internalonly'], 'incidentcomment', $attachment_comment_id );
       }
-      mail_process_status_change( $con, 'incident', $incident_id, $old_status_id, $status_id );
+      mail_process_status_change( $con, 'incident', $incident_id, $old_status_id, $status_id, (int)$operator_context['id'] );
       task_log_status_change( $con, 'incident', $incident_id, $old_status_id, $status_id, (int)$operator_context['id'] );
 
       header( 'Location: edit_incident.php?id=' . $incident_id );
@@ -538,26 +538,26 @@ $show_major_link_control = $current_mode !== 'major';
 $action_links = [];
 $action_buttons = [];
 if ( $incident['incidenttype'] === 'firstline' ) {
-  $action_buttons[] = [ 'value' => 'escalate', 'label' => 'Escaleren' ];
-  $action_buttons[] = [ 'value' => 'major', 'label' => 'Major aanmaken' ];
+  $action_buttons[] = [ 'value' => 'escalate', 'label' => t('Escaleren') ];
+  $action_buttons[] = [ 'value' => 'major', 'label' => t('Major aanmaken') ];
 } elseif ( $incident['incidenttype'] === 'secondline' ) {
-  $action_buttons[] = [ 'value' => 'deescalate', 'label' => 'De-escaleren' ];
-  $action_buttons[] = [ 'value' => 'major', 'label' => 'Major aanmaken' ];
+  $action_buttons[] = [ 'value' => 'deescalate', 'label' => t('De-escaleren') ];
+  $action_buttons[] = [ 'value' => 'major', 'label' => t('Major aanmaken') ];
 } elseif ( $incident['incidenttype'] === 'major' ) {
   $action_links[] = [
     'href' => 'incidents.php?view=all&major_target=' . $incident_id,
-    'label' => 'Incidenten koppelen'
+    'label' => t('Incidenten koppelen')
   ];
 }
 $action_links[] = [
   'href' => 'new_change.php?source_type=incident&source_id=' . $incident_id,
-  'label' => 'Wijziging aanmaken'
+  'label' => t('Wijziging aanmaken')
 ];
 $action_links[] = [
   'href' => 'new_problem.php?source_type=incident&source_id=' . $incident_id,
-  'label' => 'Problem aanmaken'
+  'label' => t('Problem aanmaken')
 ];
-$action_buttons[] = [ 'value' => 'save', 'label' => 'Opslaan' ];
+$action_buttons[] = [ 'value' => 'save', 'label' => t('Opslaan') ];
 $links_html = task_render_links_section( task_load_links( $con, 'incident', $incident_id, 'secure' ) ) . $linked_incidents_html;
 $task_logs_html = task_log_render_tab( task_log_load( $con, 'incident', $incident_id ) );
 $mail_tab_html = mail_render_manual_tab( mail_load_manual_rules( $con, 'incident' ), $mail_messages );

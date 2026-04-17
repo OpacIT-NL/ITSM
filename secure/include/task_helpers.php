@@ -133,7 +133,49 @@ function task_linkify_text( $text, $context = 'secure' ) {
     return htmlspecialchars( $number );
   }, $escaped );
 
-  return nl2br( $linked );
+  $lines = preg_split( "/\r\n|\r|\n/", (string)$linked );
+  $html = '';
+  $text_buffer = [];
+  $in_checklist = false;
+
+  $flush_text_buffer = function() use ( &$html, &$text_buffer ) {
+    if ( empty( $text_buffer ) ) {
+      return;
+    }
+    $html .= nl2br( implode( "\n", $text_buffer ) );
+    $text_buffer = [];
+  };
+
+  foreach ( $lines as $line ) {
+    if ( preg_match( '/^\s*[-*]\s+\[( |x|X)\]\s+(.*)$/', $line, $matches ) ) {
+      $flush_text_buffer();
+      if ( !$in_checklist ) {
+        $html .= '<ul class="task-checklist">';
+        $in_checklist = true;
+      }
+      $checked = strtolower( $matches[1] ) === 'x';
+      $item_text = $matches[2];
+      $html .= '<li class="task-checklist-item">';
+      $html .= '<input type="checkbox" disabled' . ( $checked ? ' checked' : '' ) . '>';
+      $html .= '<span>' . $item_text . '</span>';
+      $html .= '</li>';
+      continue;
+    }
+
+    if ( $in_checklist ) {
+      $html .= '</ul>';
+      $in_checklist = false;
+    }
+
+    $text_buffer[] = $line;
+  }
+
+  if ( $in_checklist ) {
+    $html .= '</ul>';
+  }
+  $flush_text_buffer();
+
+  return $html;
 }
 
 function task_relation_options() {

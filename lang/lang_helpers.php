@@ -119,6 +119,14 @@ function itsm_current_language_pack() {
   return $GLOBALS['itsm_language_pack'] ?? [ 'messages' => [], 'literals' => [] ];
 }
 
+function itsm_refresh_language_system( $con = null ) {
+  $language = itsm_language_from_context( $con );
+  $GLOBALS['itsm_current_language'] = $language;
+  $GLOBALS['itsm_language_pack'] = itsm_load_language_pack( $language );
+
+  return $language;
+}
+
 function t( $key, $replacements = [] ) {
   $pack = itsm_current_language_pack();
   $messages = $pack['messages'] ?? [];
@@ -175,9 +183,7 @@ function itsm_boot_language_system( $con = null ) {
   }
   $booted = true;
 
-  $language = itsm_language_from_context( $con );
-  $GLOBALS['itsm_current_language'] = $language;
-  $GLOBALS['itsm_language_pack'] = itsm_load_language_pack( $language );
+  itsm_refresh_language_system( $con );
 
   if ( PHP_SAPI !== 'cli' && itsm_should_translate_output() ) {
     ob_start( 'itsm_translate_output' );

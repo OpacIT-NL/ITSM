@@ -6,9 +6,9 @@ $person = ssp_require_login( $con );
 $view = $_GET['view'] ?? 'open';
 $scope = ssp_scope_from_request( $person, $_GET['scope'] ?? 'mine' );
 $view_labels = [
-  'open' => 'Open wijzigingen',
-  'requests' => 'Open wijzigingsaanvragen',
-  'all' => 'Alle wijzigingen'
+  'open' => t('Open wijzigingen'),
+  'requests' => t('Open wijzigingsaanvragen'),
+  'all' => t('Alle wijzigingen')
 ];
 if ( !isset( $view_labels[ $view ] ) ) {
   $view = 'open';
@@ -41,18 +41,18 @@ ssp_render_header( $person, 'changes' );
 <section class="ssp-page-head">
   <div>
     <h2><?= htmlspecialchars($view_labels[$view]) ?></h2>
-    <p><?= htmlspecialchars($scope === 'customer' ? 'Alle wijzigingsaanvragen en wijzigingen van alle personen van jouw klant.' : 'Alle wijzigingsaanvragen en wijzigingen die bij jouw persoon horen.') ?></p>
+    <p><?= htmlspecialchars($scope === 'customer' ? t('Alle wijzigingsaanvragen en wijzigingen van alle personen van jouw klant.') : t('Alle wijzigingsaanvragen en wijzigingen die bij jouw persoon horen.')) ?></p>
   </div>
-  <a class="ssp-button" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i> Wijziging aanvragen</a>
+  <a class="ssp-button" href="new_change.php"><i class="fa-solid fa-file-circle-plus"></i> <?= htmlspecialchars(t('Wijziging aanvragen')) ?></a>
 </section>
 
 <div class="ssp-filter-bar">
-  <a class="ssp-chip<?= $view === 'open' ? ' is-active' : '' ?>" href="changes.php?view=open&amp;scope=<?= htmlspecialchars($scope) ?>">Open</a>
-  <a class="ssp-chip<?= $view === 'requests' ? ' is-active' : '' ?>" href="changes.php?view=requests&amp;scope=<?= htmlspecialchars($scope) ?>">Aanvragen</a>
-  <a class="ssp-chip<?= $view === 'all' ? ' is-active' : '' ?>" href="changes.php?view=all&amp;scope=<?= htmlspecialchars($scope) ?>">Alle</a>
+  <a class="ssp-chip<?= $view === 'open' ? ' is-active' : '' ?>" href="changes.php?view=open&amp;scope=<?= htmlspecialchars($scope) ?>"><?= htmlspecialchars(t('Open')) ?></a>
+  <a class="ssp-chip<?= $view === 'requests' ? ' is-active' : '' ?>" href="changes.php?view=requests&amp;scope=<?= htmlspecialchars($scope) ?>"><?= htmlspecialchars(t('Aanvragen')) ?></a>
+  <a class="ssp-chip<?= $view === 'all' ? ' is-active' : '' ?>" href="changes.php?view=all&amp;scope=<?= htmlspecialchars($scope) ?>"><?= htmlspecialchars(t('Alle')) ?></a>
   <?php if ( ssp_person_is_manager( $person ) ): ?>
-  <a class="ssp-chip<?= $scope === 'mine' ? ' is-active' : '' ?>" href="changes.php?view=<?= htmlspecialchars($view) ?>&amp;scope=mine">Mijn wijzigingen</a>
-  <a class="ssp-chip<?= $scope === 'customer' ? ' is-active' : '' ?>" href="changes.php?view=<?= htmlspecialchars($view) ?>&amp;scope=customer">Klantwijzigingen</a>
+  <a class="ssp-chip<?= $scope === 'mine' ? ' is-active' : '' ?>" href="changes.php?view=<?= htmlspecialchars($view) ?>&amp;scope=mine"><?= htmlspecialchars(t('Mijn wijzigingen')) ?></a>
+  <a class="ssp-chip<?= $scope === 'customer' ? ' is-active' : '' ?>" href="changes.php?view=<?= htmlspecialchars($view) ?>&amp;scope=customer"><?= htmlspecialchars(t('Klantwijzigingen')) ?></a>
   <?php endif; ?>
 </div>
 
@@ -78,25 +78,25 @@ ssp_render_header( $person, 'changes' );
         <td data-label="Fase">
           <?php
           if ( $row['approvalstate'] === 'request' ) {
-            echo 'Wijzigingsaanvraag';
+            echo htmlspecialchars( t('Wijzigingsaanvraag') );
           } elseif ( $row['approvalstate'] === 'rejected' ) {
-            echo 'Afgewezen';
+            echo htmlspecialchars( t('Afgewezen') );
           } else {
-            echo htmlspecialchars( $row['requesttype'] === 'extended' ? 'Uitgebreide Wijziging' : 'Eenvoudige Wijziging' );
+            echo htmlspecialchars( $row['requesttype'] === 'extended' ? t('Uitgebreide wijziging') : t('Eenvoudige wijziging') );
           }
           ?>
         </td>
         <td data-label="Titel"><?= htmlspecialchars($row['title']) ?></td>
         <td data-label="Categorie"><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
-        <td data-label="Status"><?= htmlspecialchars($row['approvalstate'] === 'approved' ? ($row['status_name'] ?? '') : 'Aanvraag') ?></td>
+        <td data-label="Status"><?= htmlspecialchars($row['approvalstate'] === 'approved' ? ($row['status_name'] ?? '') : t('Aanvraag')) ?></td>
         <td data-label="Bijgewerkt"><?= htmlspecialchars($row['updatedat']) ?></td>
-        <td data-label="Actie"><a class="ssp-table-action" href="view_change.php?id=<?= (int)$row['id'] ?>">Open</a></td>
+        <td data-label="Actie"><a class="ssp-table-action" href="view_change.php?id=<?= (int)$row['id'] ?>"><?= htmlspecialchars(t('Open')) ?></a></td>
       </tr>
       <?php endwhile; ?>
     </tbody>
   </table>
   <?php if ( mysqli_num_rows( $result ) === 0 ): ?>
-  <div class="ssp-empty">Er zijn geen wijzigingen gevonden voor deze selectie.</div>
+  <div class="ssp-empty"><?= htmlspecialchars(t('Er zijn geen wijzigingen gevonden voor deze selectie.')) ?></div>
   <?php endif; ?>
 </section>
 <?php

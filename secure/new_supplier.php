@@ -101,7 +101,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         </div>
         <br>
         <div class="form-group">
-          <label>Primair e-mailadres:
+          <label><?= htmlspecialchars(t('Primair E-mailadres:')) ?>
             <input type="text" name="primaryemail">
           </label>
         </div>

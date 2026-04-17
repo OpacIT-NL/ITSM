@@ -241,7 +241,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         task_create_link( $con, 'change', $change_id, 'Afgeleid van', $source_type, $source_id, $created_by );
         task_log_add( $con, 'change', $change_id, 'link_created', 'Link toegevoegd: Afgeleid van ' . $source_type . ' #' . $source_id . '.', $created_by );
       }
-      mail_process_ticket_created( $con, 'change', $change_id );
+      mail_process_ticket_created( $con, 'change', $change_id, $created_by );
       header( 'Location: edit_change.php?id=' . $change_id );
       exit;
     }

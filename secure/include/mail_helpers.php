@@ -67,12 +67,57 @@ function mail_task_url( $type, $id ) {
   return $host !== '' ? $scheme . '://' . $host . $path : $path;
 }
 
-function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $new_status_id ) {
+function mail_full_name( $firstname, $lastname ) {
+  return trim( trim( (string)$firstname ) . ' ' . trim( (string)$lastname ) );
+}
+
+function mail_logged_in_operator_context( $con, $operator_id ) {
+  $operator_id = (int)$operator_id;
+  if ( $operator_id <= 0 ) {
+    return [
+      'logged_in_operator' => '',
+      'logged_in_operator_email' => '',
+      'logged_in_operator_group' => ''
+    ];
+  }
+
+  $stmt = mysqli_prepare( $con, "
+    SELECT o.firstname, o.lastname, o.email, g.groupname
+    FROM itsm_ob_operators o
+    LEFT JOIN itsm_ob_opgrouplinks l ON o.id = l.operatorid
+    LEFT JOIN itsm_ob_operatorgroups g ON l.groupid = g.id
+    WHERE o.id = ?
+    ORDER BY g.groupname ASC, l.id ASC
+    LIMIT 1
+  " );
+  mysqli_stmt_bind_param( $stmt, 'i', $operator_id );
+  mysqli_stmt_execute( $stmt );
+  $result = mysqli_stmt_get_result( $stmt );
+  $row = mysqli_fetch_assoc( $result );
+  mysqli_stmt_close( $stmt );
+
+  if ( !$row ) {
+    return [
+      'logged_in_operator' => '',
+      'logged_in_operator_email' => '',
+      'logged_in_operator_group' => ''
+    ];
+  }
+
+  return [
+    'logged_in_operator' => mail_full_name( $row['firstname'] ?? '', $row['lastname'] ?? '' ),
+    'logged_in_operator_email' => (string)( $row['email'] ?? '' ),
+    'logged_in_operator_group' => (string)( $row['groupname'] ?? '' )
+  ];
+}
+
+function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $new_status_id, $logged_in_operator_id = null ) {
   $queries = [
     'incident' => "
-      SELECT i.*, c.name AS customer_name, CONCAT(p.lastname, ', ', p.firstname) AS person_name,
+      SELECT i.*, c.name AS customer_name,
+             p.firstname AS person_firstname, p.lastname AS person_lastname,
              p.email AS person_email_real, g.groupname,
-             CONCAT(o.lastname, ', ', o.firstname) AS operator_name, o.email AS operator_email
+             o.firstname AS operator_firstname, o.lastname AS operator_lastname, o.email AS operator_email
       FROM itsm_im_incidents i
       LEFT JOIN itsm_ob_customers c ON i.customerid = c.id
       LEFT JOIN itsm_ob_persons p ON i.personid = p.id
@@ -81,10 +126,11 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
       WHERE i.id = ?
     ",
     'change' => "
-      SELECT ch.*, c.name AS customer_name, CONCAT(p.lastname, ', ', p.firstname) AS person_name,
+      SELECT ch.*, c.name AS customer_name,
+             p.firstname AS person_firstname, p.lastname AS person_lastname,
              p.email AS person_email_real, g.groupname,
-             CONCAT(o.lastname, ', ', o.firstname) AS operator_name, o.email AS operator_email,
-             CONCAT(co.lastname, ', ', co.firstname) AS coordinator_name, co.email AS coordinator_email
+             o.firstname AS operator_firstname, o.lastname AS operator_lastname, o.email AS operator_email,
+             co.firstname AS coordinator_firstname, co.lastname AS coordinator_lastname, co.email AS coordinator_email
       FROM itsm_cm_changes ch
       LEFT JOIN itsm_ob_customers c ON ch.customerid = c.id
       LEFT JOIN itsm_ob_persons p ON ch.personid = p.id
@@ -94,9 +140,10 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
       WHERE ch.id = ?
     ",
     'problem' => "
-      SELECT pr.*, c.name AS customer_name, CONCAT(p.lastname, ', ', p.firstname) AS person_name,
+      SELECT pr.*, c.name AS customer_name,
+             p.firstname AS person_firstname, p.lastname AS person_lastname,
              p.email AS person_email_real, g.groupname,
-             CONCAT(o.lastname, ', ', o.firstname) AS operator_name, o.email AS operator_email
+             o.firstname AS operator_firstname, o.lastname AS operator_lastname, o.email AS operator_email
       FROM itsm_pm_problems pr
       LEFT JOIN itsm_ob_customers c ON pr.customerid = c.id
       LEFT JOIN itsm_ob_persons p ON pr.personid = p.id
@@ -129,6 +176,10 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
   $new_status_name = mail_status_name( $con, $new_status_id );
   $task_number = mail_format_task_number( $row, $task_type );
   $latest_comment = mail_latest_comment( $con, $task_type, $task_id );
+  $logged_in_operator = mail_logged_in_operator_context( $con, $logged_in_operator_id );
+  $person_name = mail_full_name( $row['person_firstname'] ?? '', $row['person_lastname'] ?? '' );
+  $operator_name = mail_full_name( $row['operator_firstname'] ?? '', $row['operator_lastname'] ?? '' );
+  $coordinator_name = mail_full_name( $row['coordinator_firstname'] ?? '', $row['coordinator_lastname'] ?? '' );
 
   return [
     'task_type' => $task_type,
@@ -143,14 +194,18 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
     'status_id' => (string)$new_status_id,
     'status_name' => $new_status_name,
     'customer_name' => $row['customer_name'] ?? '',
-    'person_name' => $row['person_name'] ?? '',
+    'person_name' => $person_name,
     'person_email' => $row['person_email_real'] ?? ( $row['personemail'] ?? '' ),
     'person_phone' => $row['personphone'] ?? '',
-    'operator_name' => $row['operator_name'] ?? '',
+    'operator_name' => $operator_name,
     'operator_email' => $row['operator_email'] ?? '',
-    'coordinator_name' => $row['coordinator_name'] ?? '',
+    'coordinator_name' => $coordinator_name,
     'coordinator_email' => $row['coordinator_email'] ?? '',
     'group_name' => $row['groupname'] ?? '',
+    'operator_group' => $row['groupname'] ?? '',
+    'logged_in_operator' => $logged_in_operator['logged_in_operator'],
+    'logged_in_operator_email' => $logged_in_operator['logged_in_operator_email'],
+    'logged_in_operator_group' => $logged_in_operator['logged_in_operator_group'],
     'createdat' => $row['createdat'] ?? '',
     'updatedat' => $row['updatedat'] ?? ''
   ];
@@ -197,6 +252,38 @@ function mail_status_name( $con, $status_id ) {
   mysqli_stmt_fetch( $stmt );
   mysqli_stmt_close( $stmt );
   return (string)$name;
+}
+
+function mail_escape_html_variable( $value, $preserve_line_breaks = false ) {
+  $escaped = htmlspecialchars( (string)$value, ENT_QUOTES, 'UTF-8' );
+  if ( $preserve_line_breaks ) {
+    return nl2br( $escaped );
+  }
+
+  return $escaped;
+}
+
+function mail_prepare_subject_variables( $variables ) {
+  $prepared = [];
+  foreach ( $variables as $key => $value ) {
+    $prepared[$key] = preg_replace( "/\r\n|\r|\n/", ' ', (string)$value );
+  }
+
+  return $prepared;
+}
+
+function mail_prepare_body_variables( $variables ) {
+  $prepared = [];
+  $multiline_keys = [
+    'description',
+    'latest_comment'
+  ];
+
+  foreach ( $variables as $key => $value ) {
+    $prepared[$key] = mail_escape_html_variable( $value, in_array( $key, $multiline_keys, true ) );
+  }
+
+  return $prepared;
 }
 
 function mail_apply_variables( $content, $variables ) {
@@ -335,8 +422,8 @@ function mail_send_rule( $con, $rule, $variables, $operator_id = null, $manual =
     return [ 'ok' => false, 'message' => 'Geen geldige ontvangers gevonden voor deze regel.' ];
   }
 
-  $subject = mail_apply_variables( $rule['subject'] ?? '', $variables );
-  $body = mail_apply_variables( $template, $variables );
+  $subject = mail_apply_variables( $rule['subject'] ?? '', mail_prepare_subject_variables( $variables ) );
+  $body = mail_apply_variables( $template, mail_prepare_body_variables( $variables ) );
   $final_subject = $subject !== '' ? $subject : 'ITSM ' . $variables['task_number'];
   if ( !mail_smtp_send( $recipients, $final_subject, $body ) ) {
     return [ 'ok' => false, 'message' => 'E-mail verzenden mislukt. Controleer SMTP-instellingen en template.' ];
@@ -432,7 +519,7 @@ function mail_send_manual_rule( $con, $rule_id, $task_type, $task_id, $operator_
     return [ 'ok' => false, 'message' => 'Mailregel niet gevonden of niet actief.' ];
   }
 
-  $variables = mail_load_task_context( $con, $task_type, $task_id, null, null );
+  $variables = mail_load_task_context( $con, $task_type, $task_id, null, null, $operator_id );
   if ( empty( $variables ) ) {
     return [ 'ok' => false, 'message' => 'Taakgegevens konden niet geladen worden.' ];
   }
@@ -470,7 +557,7 @@ function mail_render_manual_tab( $rules, $messages = [] ) {
     <h3>Variabelen</h3>
     <p class="muted">Deze variabelen kun je in het onderwerp en HTML-template gebruiken met <code>%variable%</code> of <code>{{variable}}</code>.</p>
     <div class="mail-variable-list">
-      <?php foreach ( [ 'task_number', 'task_url', 'title', 'description', 'latest_comment', 'status_name', 'customer_name', 'person_name', 'person_email', 'person_phone', 'operator_name', 'operator_email', 'coordinator_name', 'coordinator_email', 'group_name', 'createdat', 'updatedat' ] as $variable ): ?>
+      <?php foreach ( [ 'task_number', 'task_url', 'title', 'description', 'latest_comment', 'status_name', 'customer_name', 'person_name', 'person_email', 'person_phone', 'operator_name', 'operator_email', 'coordinator_name', 'coordinator_email', 'group_name', 'operator_group', 'logged_in_operator', 'logged_in_operator_email', 'logged_in_operator_group', 'createdat', 'updatedat' ] as $variable ): ?>
       <code>%<?= htmlspecialchars( $variable ) ?>%</code>
       <?php endforeach; ?>
     </div>
@@ -479,7 +566,7 @@ function mail_render_manual_tab( $rules, $messages = [] ) {
   return ob_get_clean();
 }
 
-function mail_process_status_change( $con, $task_type, $task_id, $old_status_id, $new_status_id ) {
+function mail_process_status_change( $con, $task_type, $task_id, $old_status_id, $new_status_id, $logged_in_operator_id = null ) {
   if ( (int)$old_status_id === (int)$new_status_id ) {
     return;
   }
@@ -507,15 +594,15 @@ function mail_process_status_change( $con, $task_type, $task_id, $old_status_id,
     return;
   }
 
-  $variables = mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $new_status_id );
+  $variables = mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $new_status_id, $logged_in_operator_id );
   if ( empty( $variables ) ) {
     return;
   }
 
-  mail_dispatch_rules( $con, $rules, $variables );
+  mail_dispatch_rules( $con, $rules, $variables, $logged_in_operator_id );
 }
 
-function mail_process_ticket_created( $con, $task_type, $task_id ) {
+function mail_process_ticket_created( $con, $task_type, $task_id, $logged_in_operator_id = null ) {
   $stmt = mysqli_prepare( $con, "
     SELECT *
     FROM itsm_core_mailrules
@@ -537,10 +624,10 @@ function mail_process_ticket_created( $con, $task_type, $task_id ) {
     return;
   }
 
-  $variables = mail_load_task_context( $con, $task_type, $task_id, null, null );
+  $variables = mail_load_task_context( $con, $task_type, $task_id, null, null, $logged_in_operator_id );
   if ( empty( $variables ) ) {
     return;
   }
 
-  mail_dispatch_rules( $con, $rules, $variables );
+  mail_dispatch_rules( $con, $rules, $variables, $logged_in_operator_id );
 }

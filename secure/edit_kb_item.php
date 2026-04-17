@@ -42,7 +42,7 @@ $form_values = [
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   if ( isset( $_POST['delete_item'] ) ) {
     if ( !empty( $child_items ) ) {
-      $errors[] = 'Verwijderen is niet mogelijk zolang dit kennisitem nog subitems heeft.';
+      $errors[] = t('Verwijderen is niet mogelijk zolang dit kennisitem nog subitems heeft.');
     } else {
       $delete_stmt = mysqli_prepare( $con, "DELETE FROM itsm_km_items WHERE id = ?" );
       mysqli_stmt_bind_param( $delete_stmt, "i", $item_id );
@@ -56,7 +56,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         exit;
       }
 
-      $errors[] = 'Kennisitem verwijderen mislukt: ' . mysqli_stmt_error( $delete_stmt );
+      $errors[] = t('Kennisitem verwijderen mislukt:') . ' ' . mysqli_stmt_error( $delete_stmt );
       mysqli_stmt_close( $delete_stmt );
     }
   }
@@ -71,19 +71,19 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
   $parent_id = $form_values['parentid'] !== '' ? (int)$form_values['parentid'] : null;
   if ( $form_values['title'] === '' ) {
-    $errors[] = 'Titel is verplicht.';
+    $errors[] = t('Titel') . ' ' . t('is verplicht.');
   }
   if ( $form_values['content'] === '' ) {
-    $errors[] = 'Inhoud is verplicht.';
+    $errors[] = t('Inhoud') . ' ' . t('is verplicht.');
   }
   if ( $parent_id !== null && !kb_find_item_by_id( $all_items, $parent_id ) ) {
-    $errors[] = 'Geselecteerd bovenliggend kennisitem bestaat niet.';
+    $errors[] = t('Geselecteerd bovenliggend kennisitem bestaat niet.');
   }
   if ( $parent_id !== null && $parent_id === $item_id ) {
-    $errors[] = 'Een kennisitem kan niet onder zichzelf hangen.';
+    $errors[] = t('Een kennisitem kan niet onder zichzelf hangen.');
   }
   if ( $parent_id !== null && kb_is_descendant( $all_items, $parent_id, $item_id ) ) {
-    $errors[] = 'Je kan een kennisitem niet onder een eigen subitem hangen.';
+    $errors[] = t('Je kan een kennisitem niet onder een eigen subitem hangen.');
   }
 
   if ( empty( $errors ) ) {
@@ -108,7 +108,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Kennisitem bijwerken mislukt: ' . mysqli_stmt_error( $stmt );
+    $errors[] = t('Kennisitem bijwerken mislukt:') . ' ' . mysqli_stmt_error( $stmt );
     mysqli_stmt_close( $stmt );
   }
   }
@@ -123,11 +123,11 @@ $breadcrumbs = kb_build_breadcrumbs( $all_items, $item_id );
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <?php require_once(__DIR__ . '/include/back_links.php'); ?>
-  <h1>Kennisitem bewerken</h1>
+  <h1><?= htmlspecialchars(t('Kennisitem bewerken')) ?></h1>
 
   <?php if ( !empty( $breadcrumbs ) ): ?>
   <p class="info-note">
-    Pad:
+    <?= htmlspecialchars(t('Pad:')) ?>
     <?php foreach ( $breadcrumbs as $index => $crumb ): ?>
     <?php if ( $index > 0 ): ?> / <?php endif; ?>
     <a class="task-inline-link" href="view_kb_item.php?id=<?= (int)$crumb['id'] ?>"><?= htmlspecialchars($crumb['title']) ?></a>
@@ -140,22 +140,22 @@ $breadcrumbs = kb_build_breadcrumbs( $all_items, $item_id );
   <?php endif; ?>
 
   <div class="inline-link-row" style="margin-bottom: 14px;">
-    <a href="new_kb_item.php?parentid=<?= $item_id ?>">Nieuw subitem</a>
+    <a href="new_kb_item.php?parentid=<?= $item_id ?>"><?= htmlspecialchars(t('Nieuw subitem')) ?></a>
     <?php if ( (int)$item['publicaccess'] === 1 ): ?>
-    <a href="../public/view_kb_item.php?id=<?= $item_id ?>">Open publieke weergave</a>
+    <a href="../public/view_kb_item.php?id=<?= $item_id ?>"><?= htmlspecialchars(t('Open publieke weergave')) ?></a>
     <?php endif; ?>
   </div>
 
   <div class="form-card form-card-wide">
     <form method="post" class="form-grid">
       <div class="form-group">
-        <label for="title">Titel</label>
+        <label for="title"><?= htmlspecialchars(t('Titel')) ?></label>
         <input type="text" id="title" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
       </div>
       <div class="form-group">
-        <label for="parentid">Bovenliggend kennisitem</label>
+        <label for="parentid"><?= htmlspecialchars(t('Bovenliggend kennisitem')) ?></label>
         <select id="parentid" name="parentid">
-          <option value="">Geen, dit is een hoofditem</option>
+          <option value=""><?= htmlspecialchars(t('Geen, dit is een hoofditem')) ?></option>
           <?php foreach ( $parent_options as $option ): ?>
           <option value="<?= (int)$option['id'] ?>" <?= (int)$form_values['parentid'] === (int)$option['id'] ? 'selected' : '' ?>>
             <?= htmlspecialchars($option['label']) ?>
@@ -164,36 +164,36 @@ $breadcrumbs = kb_build_breadcrumbs( $all_items, $item_id );
         </select>
       </div>
       <div class="form-group">
-        <label class="checkbox-label"><input type="checkbox" name="publicaccess" value="1" <?= (int)$form_values['publicaccess'] === 1 ? 'checked' : '' ?>> Zichtbaar in Self Service Portal</label>
+        <label class="checkbox-label"><input type="checkbox" name="publicaccess" value="1" <?= (int)$form_values['publicaccess'] === 1 ? 'checked' : '' ?>> <?= htmlspecialchars(t('Zichtbaar in Self Service Portal')) ?></label>
       </div>
       <div class="form-group">
-        <label for="content">Inhoud (Markdown)</label>
+        <label for="content"><?= htmlspecialchars(t('Inhoud (Markdown)')) ?></label>
         <textarea id="content" name="content" class="kb-editor" rows="24" required><?= htmlspecialchars($form_values['content']) ?></textarea>
-        <p class="info-note">Ondersteunt Markdown</p>
+        <p class="info-note"><?= htmlspecialchars(t('Ondersteunt Markdown')) ?></p>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn-primary">Kennisitem opslaan</button>
-        <button type="submit" name="delete_item" value="1" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit kennisitem wilt verwijderen?');">Kennisitem verwijderen</button>
+        <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Kennisitem opslaan')) ?></button>
+        <button type="submit" name="delete_item" value="1" class="btn-danger" formnovalidate onclick="return confirm('<?= htmlspecialchars(t('Weet je zeker dat je dit kennisitem wilt verwijderen?'), ENT_QUOTES) ?>');"><?= htmlspecialchars(t('Kennisitem verwijderen')) ?></button>
       </div>
     </form>
   </div>
 
   <div class="form-card form-card-wide" style="margin-top: 20px;">
-    <h2>Voorbeeld</h2>
+    <h2><?= htmlspecialchars(t('Voorbeeld')) ?></h2>
     <div class="kb-markdown"><?= $markdown_preview ?></div>
   </div>
 
   <div class="form-card form-card-wide" style="margin-top: 20px;">
-    <h2>Subitems</h2>
+    <h2><?= htmlspecialchars(t('Subitems')) ?></h2>
     <?php if ( empty( $child_items ) ): ?>
-    <p>Dit kennisitem heeft nog geen subitems.</p>
+    <p><?= htmlspecialchars(t('Dit kennisitem heeft nog geen subitems.')) ?></p>
     <?php else: ?>
     <ul class="kb-tree">
       <?php foreach ( $child_items as $child ): ?>
       <li>
         <a class="task-inline-link" href="view_kb_item.php?id=<?= (int)$child['id'] ?>"><?= htmlspecialchars($child['title']) ?></a>
         <span class="kb-visibility-badge<?= (int)$child['publicaccess'] === 1 ? ' is-public' : '' ?>">
-          <?= (int)$child['publicaccess'] === 1 ? 'Publiek' : 'Intern' ?>
+          <?= htmlspecialchars((int)$child['publicaccess'] === 1 ? t('Publiek') : t('Intern')) ?>
         </span>
       </li>
       <?php endforeach; ?>

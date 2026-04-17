@@ -324,8 +324,8 @@ $show_template_actions = empty( $form_values['template_used'] );
               <?= attachment_render_links( $attachments_by_comment[(string)$comment['id']] ) ?>
               <?php endif; ?>
               <div class="form-actions">
-                <a href="edit_incident.php?id=<?= htmlspecialchars((string)$incident_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>">Commentaar bewerken</a>
-                <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit commentaar wil verwijderen?');">Commentaar verwijderen</button>
+                <a href="edit_incident.php?id=<?= htmlspecialchars((string)$incident_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>"><?= htmlspecialchars(t('Commentaar bewerken')) ?></a>
+                <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('<?= htmlspecialchars(t('Weet je zeker dat je dit commentaar wil verwijderen?'), ENT_QUOTES) ?>');"><?= htmlspecialchars(t('Commentaar verwijderen')) ?></button>
               </div>
             </div>
             <?php endforeach; ?>

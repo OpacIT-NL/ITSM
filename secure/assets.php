@@ -90,7 +90,7 @@ $result = mysqli_stmt_get_result( $stmt );
   </h1>
 </center>
 <?php if ( $filtertype !== null ): ?>
-  <a href="new_asset.php?type=<?= htmlspecialchars((string)$filtertype) ?>">Nieuw Asset</a>
+  <a href="new_asset.php?type=<?= htmlspecialchars((string)$filtertype) ?>"><?= htmlspecialchars(t('Nieuw Asset')) ?></a>
 <?php else: ?>
   <p>Kies eerst een asset type in het menu om een nieuw asset aan te maken.</p>
 <?php endif; ?>

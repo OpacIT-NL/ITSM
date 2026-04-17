@@ -46,6 +46,9 @@ function ssp_require_login( $con ) {
   } else {
     unset( $_SESSION['preferred_language'] );
   }
+  if ( function_exists( 'itsm_refresh_language_system' ) ) {
+    itsm_refresh_language_system( $con );
+  }
 
   $group_stmt = mysqli_prepare( $con, "
         SELECT l.persongroup, g.groupname
@@ -116,7 +119,7 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
   echo "    <header class=\"ssp-topbar\">\n";
   echo "      <div>\n";
   echo "        <h1>ITSM Selfservice</h1>\n";
-  echo "        <p>Ingelogd als {$name}</p>\n";
+  echo '        <p>' . htmlspecialchars( t( 'ssp.logged_in_as', [ 'name' => trim( ($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? '') ) ] ) ) . "</p>\n";
   echo "      </div>\n";
   echo "      <div class=\"ssp-topbar-actions\">\n";
   echo "        <a class=\"ssp-ghost-link\" href=\"logout.php\">Uitloggen <i class=\"fa-solid fa-right-from-bracket\"></i></a>\n";
