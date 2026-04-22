@@ -205,12 +205,16 @@ const categories = <?= $categories_json ?>;
 const subcategories = <?= $subcategories_json ?>;
 const selectedCategoryId = <?= json_encode((string)$form_values['categoryid']) ?>;
 const selectedSubcategoryId = <?= json_encode((string)$form_values['subcategoryid']) ?>;
+const templateFormI18n = {
+  selectCategory: <?= json_encode(t('Selecteer categorie')) ?>,
+  noSubcategory: <?= json_encode(t('Geen subcategorie')) ?>
+};
 
 function refreshTemplateCategories() {
   const type = document.getElementById('template_type').value;
   const categorySelect = document.getElementById('template_category');
   const filtered = categories.filter((row) => row.type === type);
-  categorySelect.innerHTML = '<option value="">Selecteer categorie</option>';
+  categorySelect.innerHTML = `<option value="">${templateFormI18n.selectCategory}</option>`;
   filtered.forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);
@@ -237,7 +241,7 @@ function refreshTemplateSubcategories(resetSelection) {
   const categoryId = document.getElementById('template_category').value;
   const subcategorySelect = document.getElementById('template_subcategory');
   const filtered = subcategories.filter((row) => String(row.parent) === String(categoryId));
-  subcategorySelect.innerHTML = '<option value="">Geen subcategorie</option>';
+  subcategorySelect.innerHTML = `<option value="">${templateFormI18n.noSubcategory}</option>`;
   filtered.forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

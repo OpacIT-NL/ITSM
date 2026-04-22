@@ -94,7 +94,7 @@ if ( !$operator ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $list_back_url = 'persongroups.php'; require(__DIR__ . '/include/back_links.php'); ?>
   <center>
-    <h1>Persoonsgroep bewerken:
+    <h1><?= htmlspecialchars(t('Persoonsgroep bewerken:')) ?>
       <?= htmlspecialchars($operator['groupname']) ?>
     </h1>
   </center>
@@ -103,7 +103,7 @@ if ( !$operator ) {
       <form method="post" class="form-grid">
         <div class="form-group"> 
           <!-- Basic fields -->
-          <label>Groepsnaam:
+          <label><?= htmlspecialchars(t('Groepsnaam')) ?>:
             <input type="text" name="groupname" value="<?= htmlspecialchars($operator['groupname']) ?>">
           </label>
         </div>
@@ -119,8 +119,8 @@ if ( !$operator ) {
   </div>
   <br>
   <center>
-  <h1>Groepsleden</h1>
-  <div class="results"> <a href="new_persongrouplink.php?id=<?= $id ?>">Persoon koppelen</a>
+  <h1><?= htmlspecialchars(t('Groepsleden')) ?></h1>
+  <div class="results"> <a href="new_persongrouplink.php?id=<?= $id ?>"><?= htmlspecialchars(t('Persoon koppelen')) ?></a>
     <table border="0" class=results>
       <thead>
         <tr>
@@ -133,7 +133,7 @@ if ( !$operator ) {
         <tr>
           <td><?= htmlspecialchars($row['firstname']) ?>
             <?= htmlspecialchars($row['lastname']) ?></td>
-          <td class="tblaction"><a class="btn" href="delete_persongrouplink.php?id=<?= $row['id'] ?>"> ontkoppelen </a></td>
+          <td class="tblaction"><a class="btn" href="delete_persongrouplink.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Ontkoppelen')) ?></a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>

@@ -41,20 +41,20 @@ if ( !$result ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $module_back_url = 'ob-menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
-    <h1>Behandelaars</h1>
+    <h1><?= htmlspecialchars(t('Behandelaars')) ?></h1>
   </center>
-  <a href="new_operator.php">Nieuwe Behandelaar</a>
+  <a href="new_operator.php"><?= htmlspecialchars(t('Nieuwe Behandelaar')) ?></a>
   <div class="results">
     <table border="0" class=results style="width: 100%;">
       <thead>
         <tr>
-          <th style="text-align: start;">Voornaam</th>
-          <th style="text-align: start;">Achternaam</th>
-          <th style="text-align: start;">E-mail</th>
-          <th style="text-align: start;">Telefoonnummer</th>
-          <th style="text-align: start;">Gebruikersnaam</th>
-          <th style="text-align: start;">Login toegestaan</th>
-          <th style="text-align: start;">Actie</th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Voornaam')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Achternaam')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('E-mail')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Telefoonnummer')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Gebruikersnaam')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Login toegestaan')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
         </tr>
       </thead>
       <tbody>
@@ -69,7 +69,7 @@ if ( !$result ) {
           '<span class="check">✔</span>' :
           '<span class="cross">✖</span>'
           ?></td>
-          <td class="tblaction"><a class="btn" href="edit_operator.php?id=<?= $row['id'] ?>"> Open Behandelaar </a></td>
+          <td class="tblaction"><a class="btn" href="edit_operator.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Open Behandelaar')) ?></a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>

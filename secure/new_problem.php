@@ -196,7 +196,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         task_create_link( $con, 'problem', $problem_id, 'Afgeleid van', 'incident', $source_id, $created_by );
         task_log_add( $con, 'problem', $problem_id, 'link_created', 'Link toegevoegd: Afgeleid van incident #' . $source_id . '.', $created_by );
       }
-      mail_process_ticket_created( $con, 'problem', $problem_id );
+      mail_process_ticket_created( $con, 'problem', $problem_id, $created_by );
 
       header( 'Location: edit_problem.php?id=' . $problem_id );
       exit;
@@ -205,7 +205,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 }
 
 $page_title = 'Probleem aanmaken';
-$tab_title = 'Nieuw';
+$tab_title = t( 'common.new' );
 $tab_subtitle = 'Problem';
 $submit_label = 'Probleem opslaan';
 $show_history = false;

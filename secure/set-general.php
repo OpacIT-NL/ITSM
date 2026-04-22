@@ -28,15 +28,62 @@ if ( $operators == 0 ) {
   header( "Location: index.php" );
   exit();
 }
+
+$message = '';
+$default_language = itsm_fetch_setting_value( $con, 'default_language', 'nl_NL' );
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+  $default_language = itsm_normalize_language_code( $_POST['default_language'] ?? 'nl_NL' );
+  $stmt = mysqli_prepare( $con, "
+    INSERT INTO itsm_core_settings (settingkey, settingvalue)
+    VALUES ('default_language', ?)
+    ON DUPLICATE KEY UPDATE settingvalue = VALUES(settingvalue)
+  " );
+  mysqli_stmt_bind_param( $stmt, 's', $default_language );
+  mysqli_stmt_execute( $stmt );
+  mysqli_stmt_close( $stmt );
+  header( 'Location: set-general.php?saved=1' );
+  exit;
+}
+
+if ( isset( $_GET['saved'] ) ) {
+  $message = t( 'language.saved' );
+}
+
+$languages = itsm_available_languages();
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/settings.php'); ?>
-<div class="module-section">
-  <h1>Algemene Instellingen</h1>
-  <div class="module-grid"> <a href="set-ls-cat.php"> Categoriebeheer </a> <a href="set-ls-status.php"> Statussen </a> </div>
-  <br>
-  Current Version:
-  <?= htmlspecialchars($version) ?>
-</div>
+<div class="content">
+  <div class="module-section">
+    <h1><?= htmlspecialchars(t('settings.general.title')) ?></h1>
+    <p class="info-note"><?= htmlspecialchars(t('settings.general.description')) ?></p>
+    <?php if ( $message !== '' ): ?>
+    <p class="info-note"><?= htmlspecialchars($message) ?></p>
+    <?php endif; ?>
+    <div class="form-wrapper">
+      <div class="form-card">
+        <form method="post" class="form-grid">
+          <div class="form-group">
+            <label><?= htmlspecialchars(t('language.default')) ?>:
+              <select name="default_language">
+                <?php foreach ( $languages as $code => $label ): ?>
+                <option value="<?= htmlspecialchars($code) ?>" <?= $default_language === $code ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+          <p class="info-note"><?= htmlspecialchars(t('settings.general.language_help')) ?></p>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary"><?= htmlspecialchars(t('language.save')) ?></button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="module-grid"> <a href="set-ls-cat.php"> Categoriebeheer </a> <a href="set-ls-status.php"> Statussen </a> </div>
+    <br>
+    Current Version:
+    <?= htmlspecialchars($version) ?>
+  </div>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

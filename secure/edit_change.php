@@ -461,9 +461,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
             'operatorgroupid' => 'Behandelaarsgroep',
             'operatorid' => 'Behandelaar',
             'coordinatorid' => 'Coordinator',
-            'impactid' => 'Impact',
-            'urgencyid' => 'Urgency',
-            'priorityid' => 'Priority'
+            'impactid' => t('Impact'),
+            'urgencyid' => t('Urgency'),
+            'priorityid' => t('Priority')
           ],
           (int)$operator_context['id']
         );
@@ -511,7 +511,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
           attachment_save_upload( $con, 'change', $change_id, (int)$operator_context['id'], $form_values['internalonly'], 'changecomment', $attachment_comment_id );
         }
         if ( $status_id !== null ) {
-          mail_process_status_change( $con, 'change', $change_id, $old_status_id, (int)$status_id );
+          mail_process_status_change( $con, 'change', $change_id, $old_status_id, (int)$status_id, (int)$operator_context['id'] );
           task_log_status_change( $con, 'change', $change_id, $old_status_id, (int)$status_id, (int)$operator_context['id'] );
         }
 
@@ -559,7 +559,7 @@ if ( $change['requesttype'] === 'extended' ) {
       LEFT JOIN itsm_ob_operatorgroups g ON a.operatorgroupid = g.id
       LEFT JOIN itsm_ob_operators o ON a.operatorid = o.id
       WHERE a.changeid = " . $change_id . "
-      ORDER BY a.title ASC, a.id ASC
+      ORDER BY a.activitynumber ASC, a.id ASC
   " );
   while ( $row = mysqli_fetch_assoc( $activities_result ) ) {
     $activities[] = $row;
@@ -575,8 +575,8 @@ $show_history = true;
 $show_activities = $change['requesttype'] === 'extended';
 $action_buttons = [];
 if ( $change['approvalstate'] === 'request' ) {
-  $action_buttons[] = [ 'value' => 'approve', 'label' => 'Goedkeuren', 'class' => 'btn-success' ];
-  $action_buttons[] = [ 'value' => 'reject', 'label' => 'Afwijzen', 'class' => 'btn-danger', 'formnovalidate' => true ];
+  $action_buttons[] = [ 'value' => 'approve', 'label' => t('Goedkeuren'), 'class' => 'btn-success' ];
+  $action_buttons[] = [ 'value' => 'reject', 'label' => t('Afwijzen'), 'class' => 'btn-danger', 'formnovalidate' => true ];
 }
 $action_buttons[] = [ 'value' => 'save', 'label' => 'Opslaan', 'class' => 'btn-primary' ];
 $links_html = task_render_links_section( task_load_links( $con, 'change', $change_id, 'secure' ) );

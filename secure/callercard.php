@@ -140,7 +140,7 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
             <input type="hidden" name="customerid" id="customer_id" value="<?= htmlspecialchars((string)$selected_customer_id) ?>">
             <div class="combo-box">
               <input type="text" id="customer_lookup" class="combo-input" autocomplete="off" required>
-              <button type="button" class="combo-toggle" data-target="customer_lookup" aria-label="Toon klanten">
+              <button type="button" class="combo-toggle" data-target="customer_lookup" aria-label="<?= htmlspecialchars(t('Toon klanten')) ?>">
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
               <div id="customers_list" class="combo-menu"></div>
@@ -151,7 +151,7 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
             <input type="hidden" name="personid" id="person_id" value="<?= htmlspecialchars((string)$selected_person_id) ?>">
             <div class="combo-box">
               <input type="text" id="person_lookup" class="combo-input" autocomplete="off" required>
-              <button type="button" class="combo-toggle" data-target="person_lookup" aria-label="Toon personen">
+              <button type="button" class="combo-toggle" data-target="person_lookup" aria-label="<?= htmlspecialchars(t('Toon personen')) ?>">
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
               <div id="persons_list" class="combo-menu"></div>
@@ -204,7 +204,7 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
   </div>
 
   <div class="incident-card caller-card-tabs-wrap">
-    <div class="caller-card-tabs" role="tablist" aria-label="Aanmelderskaart tabs">
+    <div class="caller-card-tabs" role="tablist" aria-label="<?= htmlspecialchars(t('Aanmelderskaart tabs')) ?>">
       <button type="button" class="caller-card-tab<?= $active_tab === 'incidents' ? ' is-active' : '' ?>" data-tab="incidents">Incidenten</button>
       <button type="button" class="caller-card-tab<?= $active_tab === 'changes' ? ' is-active' : '' ?>" data-tab="changes">Wijzigingen</button>
       <button type="button" class="caller-card-tab<?= $active_tab === 'assets' ? ' is-active' : '' ?>" data-tab="assets">Assets</button>

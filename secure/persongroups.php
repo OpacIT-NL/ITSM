@@ -40,22 +40,22 @@ if ( !$result ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $module_back_url = 'ob-menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center>
-    <h1>Persoonsgroepen</h1>
+    <h1><?= htmlspecialchars(t('Persoonsgroepen')) ?></h1>
   </center>
-  <a href="new_persongroup.php">Nieuwe Persoonsgroep</a>
+  <a href="new_persongroup.php"><?= htmlspecialchars(t('Nieuwe Persoonsgroep')) ?></a>
   <div class="results">
     <table border="0" class=results style="width: 100%;">
       <thead>
         <tr>
-          <th style="text-align: start;">Naam</th>
-          <th style="text-align: start;">Actie</th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Naam')) ?></th>
+          <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
         </tr>
       </thead>
       <tbody>
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
         <tr>
           <td><?= htmlspecialchars($row['groupname']) ?></td>
-          <td class="tblaction"><a class="btn" href="edit_persongroup.php?id=<?= $row['id'] ?>"> Open Persoonsgroep </a></td>
+          <td class="tblaction"><a class="btn" href="edit_persongroup.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Open Persoonsgroep')) ?></a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>

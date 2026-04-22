@@ -12,12 +12,12 @@ if ( !isset( $_POST[ 'username' ], $_POST[ 'password' ] ) ) {
 $username = (string)$_POST[ 'username' ];
 $password_input = (string)$_POST[ 'password' ];
 
-if ( $stmt = $con->prepare( 'SELECT id, password FROM itsm_ob_operators WHERE `username` = ? AND `allowlogin` = 1' ) ) {
+if ( $stmt = $con->prepare( 'SELECT id, password, preferredlanguage FROM itsm_ob_operators WHERE `username` = ? AND `allowlogin` = 1' ) ) {
   $stmt->bind_param( 's', $username );
   $stmt->execute();
   $stmt->store_result();
   if ( $stmt->num_rows > 0 ) {
-    $stmt->bind_result( $id, $password );
+    $stmt->bind_result( $id, $password, $preferredlanguage );
     $stmt->fetch();
     if ( password_verify( $password_input, $password ) ) {
       session_regenerate_id();
@@ -25,6 +25,11 @@ if ( $stmt = $con->prepare( 'SELECT id, password FROM itsm_ob_operators WHERE `u
       $_SESSION[ 'name' ] = $username;
       $_SESSION[ 'id' ] = $id;
       $_SESSION[ 'expires_at' ] = time() + ( 12 * 60 * 60 );
+      if ( !empty( $preferredlanguage ) ) {
+        $_SESSION['preferred_language'] = $preferredlanguage;
+      } else {
+        unset( $_SESSION['preferred_language'] );
+      }
       header( 'Location: index.php' );
       exit();
     } else {

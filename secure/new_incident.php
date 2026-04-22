@@ -232,7 +232,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $comment_id = mysqli_insert_id( $con );
         attachment_save_upload( $con, 'incident', $incident_id, $created_by, $form_values['internalonly'], 'incidentcomment', $comment_id );
       }
-      mail_process_ticket_created( $con, 'incident', $incident_id );
+      mail_process_ticket_created( $con, 'incident', $incident_id, $created_by );
 
       header( 'Location: edit_incident.php?id=' . $incident_id );
       exit;
@@ -240,8 +240,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   }
 }
 
-$page_title = incident_mode_label( $mode ) . ' aanmaken';
-$tab_title = 'Nieuw';
+$page_titles = [
+  'firstline' => t( 'incident.create.firstline' ),
+  'secondline' => t( 'incident.create.secondline' ),
+  'major' => t( 'incident.create.major' )
+];
+$page_title = $page_titles[ incident_normalize_mode( $mode ) ] ?? t( 'incident.create.firstline' );
+$tab_title = t( 'common.new' );
 $tab_subtitle = incident_mode_label( $mode );
 $submit_label = 'Incident opslaan';
 $show_history = false;

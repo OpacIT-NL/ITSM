@@ -32,19 +32,19 @@ $message = '';
 $edit_id = isset( $_GET['id'] ) && is_numeric( $_GET['id'] ) ? (int)$_GET['id'] : 0;
 
 $task_types = [
-  'incident' => 'Incident',
-  'change' => 'Wijziging',
-  'problem' => 'Problem'
+  'incident' => t( 'mailrules.tasktype.incident' ),
+  'change' => t( 'mailrules.tasktype.change' ),
+  'problem' => t( 'mailrules.tasktype.problem' )
 ];
 $trigger_types = [
-  'statuschange' => 'Wanneer status wijzigt',
-  'created' => 'Wanneer ticket is aangemaakt'
+  'statuschange' => t( 'mailrules.trigger.statuschange' ),
+  'created' => t( 'mailrules.trigger.created' )
 ];
 $recipient_types = [
-  'requester' => 'Aanmelder / klant',
-  'operator' => 'Behandelaar',
-  'coordinator' => 'Coordinator',
-  'custom' => 'Aangepaste ontvangers'
+  'requester' => t( 'mailrules.recipient.requester' ),
+  'operator' => t( 'mailrules.recipient.operator' ),
+  'coordinator' => t( 'mailrules.recipient.coordinator' ),
+  'custom' => t( 'mailrules.recipient.custom' )
 ];
 $variables = [
   'task_type',
@@ -107,27 +107,27 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_rule'] ) ) 
   ];
 
   if ( !array_key_exists( $form_values['tasktype'], $task_types ) ) {
-    $errors[] = 'Selecteer een geldige taaksoort.';
+    $errors[] = t( 'mailrules.error.invalid_tasktype' );
   }
   if ( !array_key_exists( $form_values['triggertype'], $trigger_types ) ) {
-    $errors[] = 'Selecteer een geldige trigger.';
+    $errors[] = t( 'mailrules.error.invalid_trigger' );
   }
   if ( $form_values['triggertype'] === 'statuschange' ) {
     if ( $form_values['tostatusid'] === '' || !is_numeric( $form_values['tostatusid'] ) ) {
-      $errors[] = 'Selecteer een geldige doelstatus.';
+      $errors[] = t( 'mailrules.error.invalid_to_status' );
     }
     if ( $form_values['fromstatusid'] !== '' && !is_numeric( $form_values['fromstatusid'] ) ) {
-      $errors[] = 'Selecteer een geldige bronstatus.';
+      $errors[] = t( 'mailrules.error.invalid_from_status' );
     }
   }
   if ( !array_key_exists( $form_values['recipienttype'], $recipient_types ) ) {
-    $errors[] = 'Selecteer een geldige ontvanger.';
+    $errors[] = t( 'mailrules.error.invalid_recipient' );
   }
   if ( $form_values['subject'] === '' ) {
-    $errors[] = 'Onderwerp is verplicht.';
+    $errors[] = t( 'mailrules.error.subject_required' );
   }
   if ( mail_template_safe_path( $form_values['templatefile'] ) === '' ) {
-    $errors[] = 'Gebruik een geldige HTML-templatebestandsnaam, bijvoorbeeld incident_status.html.';
+    $errors[] = t( 'mailrules.error.invalid_template' );
   }
 
   if ( empty( $errors ) ) {
@@ -160,7 +160,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_rule'] ) ) 
     }
 
     if ( !mysqli_stmt_execute( $save_stmt ) ) {
-      $errors[] = 'Mailregel opslaan mislukt: ' . mysqli_stmt_error( $save_stmt );
+      $errors[] = t( 'mailrules.error.save_failed', [ 'error' => mysqli_stmt_error( $save_stmt ) ] );
     } else {
       header( 'Location: set-mailrules.php' );
       exit;
@@ -209,7 +209,7 @@ if ( is_dir( $template_dir ) ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
   <?php $module_back_url = 'settings.php'; require(__DIR__ . '/include/module_links.php'); ?>
-  <center><h1>SMTP e-mailregels</h1></center>
+  <center><h1><?= htmlspecialchars( t( 'mailrules.title' ) ) ?></h1></center>
 
   <?php foreach ( $errors as $error ): ?>
     <p class="ssp-error"><?= htmlspecialchars($error) ?></p>
@@ -217,13 +217,16 @@ if ( is_dir( $template_dir ) ) {
 
   <div class="form-wrapper">
     <div class="form-card form-card-wide">
-      <h2><?= $form_values['id'] !== '' ? 'Mailregel bewerken' : 'Nieuwe mailregel' ?></h2>
-      <p class="info-note">SMTP-configuratie wordt gelezen uit <code>../config/smtp.ini</code>. HTML templates worden gelezen uit <code>secure/itsm-config/templates/mail</code>.</p>
+      <h2><?= htmlspecialchars( $form_values['id'] !== '' ? t( 'mailrules.edit' ) : t( 'mailrules.new' ) ) ?></h2>
+      <p class="info-note"><?= t( 'mailrules.config_help', [
+        'smtp_path' => '<code>../config/smtp.ini</code>',
+        'template_path' => '<code>secure/itsm-config/templates/mail</code>'
+      ] ) ?></p>
       <form method="post" class="form-grid">
         <input type="hidden" name="id" value="<?= htmlspecialchars((string)$form_values['id']) ?>">
 
         <div class="form-group">
-          <label>Taaksoort</label>
+          <label><?= htmlspecialchars( t( 'Taaksoort' ) ) ?></label>
           <select name="tasktype" required>
             <?php foreach ( $task_types as $value => $label ): ?>
               <option value="<?= htmlspecialchars($value) ?>" <?= $form_values['tasktype'] === $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
@@ -232,7 +235,7 @@ if ( is_dir( $template_dir ) ) {
         </div>
 
         <div class="form-group">
-          <label>Trigger</label>
+          <label><?= htmlspecialchars( t( 'Trigger' ) ) ?></label>
           <select name="triggertype" id="mailrule_trigger_type" required>
             <?php foreach ( $trigger_types as $value => $label ): ?>
               <option value="<?= htmlspecialchars($value) ?>" <?= $form_values['triggertype'] === $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
@@ -241,9 +244,9 @@ if ( is_dir( $template_dir ) ) {
         </div>
 
         <div class="form-group mailrule-status-field">
-          <label>Van status</label>
+          <label><?= htmlspecialchars( t( 'Van status' ) ) ?></label>
           <select name="fromstatusid">
-            <option value="">Elke vorige status</option>
+            <option value=""><?= htmlspecialchars( t( 'Elke vorige status' ) ) ?></option>
             <?php foreach ( $statuses as $status ): ?>
               <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['fromstatusid'] === (string)$status['id'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($status['type'] . ' - ' . $status['name']) ?>
@@ -253,9 +256,9 @@ if ( is_dir( $template_dir ) ) {
         </div>
 
         <div class="form-group mailrule-status-field">
-          <label>Naar status</label>
+          <label><?= htmlspecialchars( t( 'Naar status' ) ) ?></label>
           <select name="tostatusid" id="mailrule_to_status">
-            <option value="">Selecteer status</option>
+            <option value=""><?= htmlspecialchars( t( 'Selecteer status' ) ) ?></option>
             <?php foreach ( $statuses as $status ): ?>
               <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['tostatusid'] === (string)$status['id'] ? 'selected' : '' ?>>
                 <?= htmlspecialchars($status['type'] . ' - ' . $status['name']) ?>
@@ -265,7 +268,7 @@ if ( is_dir( $template_dir ) ) {
         </div>
 
         <div class="form-group">
-          <label>Ontvanger</label>
+          <label><?= htmlspecialchars( t( 'Ontvanger' ) ) ?></label>
           <select name="recipienttype" required>
             <?php foreach ( $recipient_types as $value => $label ): ?>
               <option value="<?= htmlspecialchars($value) ?>" <?= $form_values['recipienttype'] === $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
@@ -274,18 +277,18 @@ if ( is_dir( $template_dir ) ) {
         </div>
 
         <div class="form-group">
-          <label>Aangepaste ontvangers</label>
-          <textarea name="customrecipients" placeholder="Alleen nodig bij aangepaste ontvangers. Scheid adressen met komma, puntkomma of nieuwe regel."><?= htmlspecialchars($form_values['customrecipients']) ?></textarea>
+          <label><?= htmlspecialchars( t( 'Aangepaste ontvangers' ) ) ?></label>
+          <textarea name="customrecipients" placeholder="<?= htmlspecialchars( t( 'mailrules.custom_placeholder' ) ) ?>"><?= htmlspecialchars($form_values['customrecipients']) ?></textarea>
         </div>
 
         <div class="form-group">
-          <label>Onderwerp</label>
-          <input type="text" name="subject" value="<?= htmlspecialchars($form_values['subject']) ?>" placeholder="Bijvoorbeeld: Status gewijzigd voor %task_number%" required>
+          <label><?= htmlspecialchars( t( 'Onderwerp' ) ) ?></label>
+          <input type="text" name="subject" value="<?= htmlspecialchars($form_values['subject']) ?>" placeholder="<?= htmlspecialchars( t( 'mailrules.subject_placeholder' ) ) ?>" required>
         </div>
 
         <div class="form-group">
-          <label>HTML-template</label>
-          <input type="text" name="templatefile" list="mail_template_files" value="<?= htmlspecialchars($form_values['templatefile']) ?>" placeholder="status_update.html" required>
+          <label><?= htmlspecialchars( t( 'HTML-template' ) ) ?></label>
+          <input type="text" name="templatefile" list="mail_template_files" value="<?= htmlspecialchars($form_values['templatefile']) ?>" placeholder="<?= htmlspecialchars( t( 'mailrules.template_placeholder' ) ) ?>" required>
           <datalist id="mail_template_files">
             <?php foreach ( $template_files as $file ): ?>
               <option value="<?= htmlspecialchars($file) ?>"></option>
@@ -293,13 +296,13 @@ if ( is_dir( $template_dir ) ) {
           </datalist>
         </div>
 
-        <label class="checkbox-label"><input type="checkbox" name="active" <?= !empty($form_values['active']) ? 'checked' : '' ?>> Actief</label>
+        <label class="checkbox-label"><input type="checkbox" name="active" <?= !empty($form_values['active']) ? 'checked' : '' ?>> <?= htmlspecialchars( t( 'Actief' ) ) ?></label>
 
         <div class="form-actions">
-          <button type="submit" class="btn-primary">Mailregel opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars( t( 'mailrules.save' ) ) ?></button>
           <?php if ( $form_values['id'] !== '' ): ?>
-            <button type="submit" name="delete_rule" class="btn-danger" onclick="return confirm('Weet je zeker dat je deze mailregel wil verwijderen?');">Mailregel verwijderen</button>
-            <a href="set-mailrules.php">Nieuwe regel</a>
+            <button type="submit" name="delete_rule" class="btn-danger" onclick="return confirm('<?= htmlspecialchars( t( 'mailrules.delete_confirm' ), ENT_QUOTES ) ?>');"><?= htmlspecialchars( t( 'mailrules.delete' ) ) ?></button>
+            <a href="set-mailrules.php"><?= htmlspecialchars( t( 'mailrules.new_link' ) ) ?></a>
           <?php endif; ?>
         </div>
       </form>
@@ -307,8 +310,8 @@ if ( is_dir( $template_dir ) ) {
   </div>
 
   <div class="form-card form-card-wide">
-    <h2>Beschikbare variabelen</h2>
-    <p class="info-note">Gebruik bijvoorbeeld <code>%task_number%</code> of <code>{{task_number}}</code> in onderwerp en HTML-template.</p>
+    <h2><?= htmlspecialchars( t( 'Beschikbare variabelen' ) ) ?></h2>
+    <p class="info-note"><?= t( 'mailrules.variables_help' ) ?></p>
     <p><?= htmlspecialchars( implode( ', ', $variables ) ) ?></p>
   </div>
 
@@ -316,14 +319,14 @@ if ( is_dir( $template_dir ) ) {
     <table>
       <thead>
         <tr>
-          <th>Taaksoort</th>
-          <th>Trigger</th>
-          <th>Van</th>
-          <th>Naar</th>
-          <th>Ontvanger</th>
-          <th>Template</th>
-          <th>Actief</th>
-          <th>Actie</th>
+          <th><?= htmlspecialchars( t( 'Taaksoort' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'Trigger' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'mailrules.from' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'mailrules.to' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'Ontvanger' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'mailrules.template' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'Actief' ) ) ?></th>
+          <th><?= htmlspecialchars( t( 'Actie' ) ) ?></th>
         </tr>
       </thead>
       <tbody>
@@ -331,12 +334,12 @@ if ( is_dir( $template_dir ) ) {
           <tr>
             <td><?= htmlspecialchars($task_types[$rule['tasktype']] ?? $rule['tasktype']) ?></td>
             <td><?= htmlspecialchars($trigger_types[$rule['triggertype'] ?? 'statuschange'] ?? ($rule['triggertype'] ?? '')) ?></td>
-            <td><?= ($rule['triggertype'] ?? 'statuschange') === 'created' ? '-' : htmlspecialchars($rule['from_status_name'] ?? 'Elke vorige status') ?></td>
+            <td><?= ($rule['triggertype'] ?? 'statuschange') === 'created' ? '-' : htmlspecialchars($rule['from_status_name'] ?? t( 'Elke vorige status' )) ?></td>
             <td><?= ($rule['triggertype'] ?? 'statuschange') === 'created' ? '-' : htmlspecialchars($rule['to_status_name'] ?? '') ?></td>
             <td><?= htmlspecialchars($recipient_types[$rule['recipienttype']] ?? $rule['recipienttype']) ?></td>
             <td><?= htmlspecialchars($rule['templatefile']) ?></td>
-            <td><?= (int)$rule['active'] === 1 ? 'Ja' : 'Nee' ?></td>
-            <td class="tblaction"><a href="set-mailrules.php?id=<?= htmlspecialchars((string)$rule['id']) ?>">Open regel</a></td>
+            <td><?= (int)$rule['active'] === 1 ? htmlspecialchars( t( 'Ja' ) ) : htmlspecialchars( t( 'Nee' ) ) ?></td>
+            <td class="tblaction"><a href="set-mailrules.php?id=<?= htmlspecialchars((string)$rule['id']) ?>"><?= htmlspecialchars( t( 'mailrules.open_rule' ) ) ?></a></td>
           </tr>
         <?php endwhile; ?>
       </tbody>

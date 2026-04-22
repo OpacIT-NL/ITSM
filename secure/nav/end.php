@@ -2,6 +2,18 @@
 <?php if ( function_exists( 'itsm_render_local_datetime_script' ) ) { itsm_render_local_datetime_script(); } ?>
 <script>
 (function () {
+  const i18n = {
+    dashboard: <?= json_encode(t('Dashboard')) ?>,
+    openTabs: <?= json_encode(t('Open tabbladen')) ?>,
+    closeTab: <?= json_encode(t('Tab sluiten')) ?>,
+    refresh: <?= json_encode(t('Verversen')) ?>,
+    someoneElseSaved: <?= json_encode(t('Iemand anders heeft deze kaart opgeslagen. Ververs voordat je opslaat; je concept blijft lokaal bewaard.')) ?>,
+    saveBlocked: <?= json_encode(t('Opslaan is geblokkeerd omdat iemand anders deze kaart heeft opgeslagen. Je concept blijft bewaard; klik op Verversen.')) ?>,
+    someoneElse: <?= json_encode(t('Iemand anders')) ?>,
+    operatorSingular: <?= json_encode(t('behandelaar heeft')) ?>,
+    operatorPlural: <?= json_encode(t('behandelaren hebben')) ?>,
+    alsoOpen: <?= json_encode(t('deze kaart ook open:')) ?>
+  };
   const maxTabs = 15;
   const storageKey = 'itsm_secure_tabs_v1';
   const activeTabKeyStorage = 'itsm_secure_active_tab_key_v1';
@@ -36,7 +48,7 @@
     return {
       key: '/secure/index.php',
       url: '/secure/index.php',
-      title: 'Dashboard',
+      title: i18n.dashboard,
       icon: 'home',
       pinned: true,
       lastActive: 0,
@@ -204,7 +216,7 @@
         oldestIndex = tabs.findIndex((tab) => !tab.pinned);
       }
       if (oldestIndex === -1) {
-        break;
+        return;
       }
       tabs.splice(oldestIndex, 1);
     }
@@ -255,8 +267,8 @@
         const icon = document.createElement('i');
         icon.className = 'fa-solid fa-home';
         link.appendChild(icon);
-        link.setAttribute('aria-label', tab.title || 'Dashboard');
-        link.setAttribute('title', tab.title || 'Dashboard');
+        link.setAttribute('aria-label', tab.title || i18n.dashboard);
+        link.setAttribute('title', tab.title || i18n.dashboard);
       } else {
         if (tab.subtitle) {
           const primary = document.createElement('span');
@@ -281,8 +293,8 @@
         const close = document.createElement('button');
         close.type = 'button';
         close.className = 'secure-tab-close';
-        close.setAttribute('aria-label', 'Tab sluiten');
-        close.textContent = 'x';
+        close.setAttribute('aria-label', i18n.closeTab);
+        close.textContent = '×';
         close.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -486,7 +498,7 @@
     banner.id = 'form_presence_warning';
     banner.className = 'form-presence-warning';
     banner.style.display = 'none';
-    banner.innerHTML = '<span></span><button type="button" class="btn-primary form-presence-refresh">Verversen</button>';
+    banner.innerHTML = '<span></span><button type="button" class="btn-primary form-presence-refresh">' + i18n.refresh + '</button>';
     const firstChild = content.firstElementChild;
     if (firstChild) {
       content.insertBefore(banner, firstChild);
@@ -536,7 +548,7 @@
         if (form.dataset.presenceStale === '1') {
           form.dataset.keepDraftOnSubmit = '1';
           event.preventDefault();
-          showPresenceWarning('Opslaan is geblokkeerd omdat iemand anders deze kaart heeft opgeslagen. Je concept blijft bewaard; klik op Verversen.', true);
+          showPresenceWarning(i18n.saveBlocked, true);
           return;
         }
         submittingPresenceForm = true;
@@ -566,12 +578,12 @@
             form.dataset.presenceStale = stale ? '1' : '';
           });
           if (stale) {
-            showPresenceWarning((data.saved_by || 'Iemand anders') + ' heeft deze kaart opgeslagen. Ververs voordat je opslaat; je concept blijft lokaal bewaard.', true);
+            showPresenceWarning((data.saved_by || i18n.someoneElse) + ' ' + i18n.someoneElseSaved, true);
             return;
           }
           const names = (data.others || []).map((row) => row.operatorname).filter(Boolean);
           if (names.length > 0) {
-            showPresenceWarning(names.length + (names.length === 1 ? ' behandelaar heeft' : ' behandelaren hebben') + ' deze kaart ook open: ' + names.join(', ') + '.', false);
+            showPresenceWarning(names.length + ' ' + (names.length === 1 ? i18n.operatorSingular : i18n.operatorPlural) + ' ' + i18n.alsoOpen + ' ' + names.join(', ') + '.', false);
           } else {
             showPresenceWarning('', false);
           }
@@ -670,4 +682,3 @@
 </script>
 </body>
 </html>
-

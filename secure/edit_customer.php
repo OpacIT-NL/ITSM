@@ -50,6 +50,8 @@ if ( isset( $_POST[ 'delete' ] ) ) {
 
 // Handle form submit
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
+  $default_language = trim( (string)( $_POST['defaultlanguage'] ?? '' ) );
+  $default_language = $default_language !== '' ? itsm_normalize_language_code( $default_language ) : null;
 
 
   $stmt = mysqli_prepare( $con, "
@@ -59,15 +61,16 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 			primarybuilding=?,
 			address=?,
 			postalcode=?,
-			city=?,
+            city=?,
 			primaryemail=?,
-			primaryphone=?
+			primaryphone=?,
+      defaultlanguage=?
         WHERE id=?
     " );
 
   mysqli_stmt_bind_param(
     $stmt,
-    "ssssssssi",
+    "sssssssssi",
     $_POST[ 'din' ],
     $_POST[ 'name' ],
     $_POST[ 'primarybuilding' ],
@@ -76,6 +79,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     $_POST[ 'city' ],
     $_POST[ 'primaryemail' ],
     $_POST[ 'primaryphone' ],
+    $default_language,
     $id
   );
 
@@ -201,6 +205,18 @@ if ( !$result ) {
             <input type="text" name="primaryphone" value="<?= htmlspecialchars($row2['primaryphone'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
           </label>
         </div>
+        <br>
+        <div class="form-group">
+          <label><?= htmlspecialchars(t('customer.default_language')) ?>:
+            <select name="defaultlanguage">
+              <option value="">-</option>
+              <?php foreach ( itsm_available_languages() as $code => $label ): ?>
+              <option value="<?= htmlspecialchars($code) ?>" <?= ($row2['defaultlanguage'] ?? '') === $code ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        </div>
+        <p class="info-note"><?= htmlspecialchars(t('customer.default_language_help')) ?></p>
         <br>
         <br>
         <br>

@@ -392,14 +392,14 @@ function populateOwners(customerId, selectedOwnerId) {
   if (!customerId) {
     const option = document.createElement('option');
     option.value = '';
-    option.textContent = 'Selecteer eerst een klant';
+    option.textContent = <?= json_encode(t('Selecteer eerst een klant')) ?>;
     ownerSelect.appendChild(option);
     return;
   }
 
   const defaultOption = document.createElement('option');
   defaultOption.value = '';
-  defaultOption.textContent = 'Selecteer een persoon';
+  defaultOption.textContent = <?= json_encode(t('Selecteer een persoon')) ?>;
   ownerSelect.appendChild(defaultOption);
 
   persons
