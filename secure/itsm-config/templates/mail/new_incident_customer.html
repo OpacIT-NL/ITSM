@@ -8,45 +8,33 @@
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef3f7; margin:0; padding:28px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px; background:#ffffff; border:1px solid #d9e3ec; border-radius:14px; overflow:hidden;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:750px; background:#ffffff; border:1px solid #d9e3ec; border-radius:14px; overflow:hidden;">
           <tr>
-            <td style="background:#2f74d7; padding:24px 28px; color:#ffffff;">
-              <div style="font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; opacity:0.9;">ITSM SelfService</div>
-              <h1 style="margin:8px 0 0; font-size:26px; line-height:1.25; font-weight:700;">Je melding is aangemaakt</h1>
+            <td style="background:#7b0e7f; padding:24px 28px; color:#ffffff;">
+              <div style="font-size:13px; font-weight:700; letter-spacing:0.08em;">Incident aangemaakt</div>
+              <h1 style="margin:8px 0 0; font-size:26px; line-height:1.25; font-weight:700;">%task_number%</h1>
             </td>
+            <td align="right" style="background:#7b0e7f; padding:24px 28px; color:#ffffff; margin:8px 0 0; font-size:26px; line-height:1.25; font-weight:700;">OpacIT</td>
           </tr>
           <tr>
-            <td style="padding:28px;">
-              <p style="margin:0 0 16px;">Hallo %person_name%,</p>
-              <p style="margin:0 0 22px;">We hebben je melding ontvangen en geregistreerd. Onze servicedesk gaat ermee aan de slag.</p>
-
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate; border-spacing:0; background:#f7fafc; border:1px solid #dfe8f0; border-radius:10px; margin:0 0 22px;">
-                <tr>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; width:34%; color:#5f7185; font-size:13px; font-weight:700; text-transform:uppercase;">Meldingsnummer</td>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; font-size:16px; font-weight:700; color:#203040;">%task_number%</td>
-                </tr>
-                <tr>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; color:#5f7185; font-size:13px; font-weight:700; text-transform:uppercase;">Titel</td>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; color:#203040;">%title%</td>
-                </tr>
-                <tr>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; color:#5f7185; font-size:13px; font-weight:700; text-transform:uppercase;">Status</td>
-                  <td style="padding:16px 18px; border-bottom:1px solid #dfe8f0; color:#203040;">%status_name%</td>
-                </tr>
-                <tr>
-                  <td style="padding:16px 18px; color:#5f7185; font-size:13px; font-weight:700; text-transform:uppercase; vertical-align:top;">Omschrijving</td>
-                  <td style="padding:16px 18px; color:#203040; white-space:pre-line;">%description%</td>
-                </tr>
-              </table>
-
-              <p style="margin:0 0 22px;">Je kunt de voortgang bekijken en aanvullingen plaatsen via de SelfService Portal.</p>
+            <td colspan="2" style="padding:28px;">
+              <p style="margin:0 0 16px;">Beste %firstname% %lastname%,</p>
+              <p style="margin:0 0 22px;">We hebben uw melding geregistreerd onder incidentnummer %task_number%.<br>Hieronder ziet u de details van uw melding.</p>
+                <table role="presentation" borders="0" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate; border-spacing:0; background:#f7fafc; border:1px solid #dfe8f0; border-radius:10px; margin:0 0 22px;">
+                  <tr>
+                    <td style="padding:16px 18px; color:#203040; white-space:pre-line;"><b>%firstname% %lastname%:</b>
+                      Betreft: %title%<br>
+                      %description%
+                    </td>
+                  </tr>
+                </table>
+              <p style="margin:0 0 22px;">U kunt de voortgang van het incident volgen via het Self Service Portaal.</p>
               <p style="margin:0 0 28px;">
-                <a href="%task_url%" style="display:inline-block; background:#2f74d7; color:#ffffff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:700;">
-                  Melding bekijken
+                <a href="%task_url%" style="display:inline-block; background:#7b0e7f; color:#ffffff; padding:12px 18px; border-radius:8px; text-decoration:none; font-weight:700;">
+                  Incident openen
                 </a>
               </p>
-
-              <p style="margin:0; color:#6b7c8f; font-size:13px;">Deze e-mail is automatisch verzonden. Reageer bij voorkeur via de SelfService Portal, zodat je reactie direct aan de melding wordt gekoppeld.</p>
+              <p style="margin:0; color:#6b7c8f; font-size:13px;">Deze e-mail is automatisch verzonden. Reageer bij voorkeur via het Self Service Portaal, zodat uw reactie direct aan de melding wordt gekoppeld.</p>
             </td>
           </tr>
         </table>
