@@ -51,6 +51,7 @@ $variables = [
   'task_id',
   'task_number',
   'task_url',
+  'task_public_url',
   'title',
   'description',
   'latest_comment',

@@ -135,6 +135,7 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
     'task_id' => (string)$task_id,
     'task_number' => $task_number,
     'task_url' => mail_task_url( $task_type, $task_id ),
+    'task_public_url' => mail_task_public_url( $task_type, $task_id ),
     'title' => $row['title'] ?? '',
     'description' => $row['description'] ?? '',
     'latest_comment' => $latest_comment,
