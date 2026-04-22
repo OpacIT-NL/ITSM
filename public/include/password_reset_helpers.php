@@ -163,9 +163,9 @@ function ssp_reset_send_mail( $person, $token_data ) {
 
   $template = mail_read_template( 'password_reset.html' );
   if ( $template === '' ) {
-    $template = '<p>Hallo %firstname%,</p><p>Gebruik deze link om je wachtwoord opnieuw in te stellen:</p><p><a href="%reset_link%">Wachtwoord opnieuw instellen</a></p><p>Deze link verloopt over %expires_minutes% minuten.</p>';
+    $template = t( 'password_reset.fallback_template_html' );
   }
 
   $body = mail_apply_variables( $template, $variables );
-  return mail_smtp_send( [ $person['email'] ], 'Wachtwoord resetten voor ITSM SelfService', $body );
+  return mail_smtp_send( [ $person['email'] ], t( 'auth.reset_email_subject' ), $body );
 }

@@ -61,7 +61,7 @@ function priority_validate_selection( $data, $reference_data ) {
     $errors[] = 'Selecteer een geldige urgentie.';
   }
   if ( $impact_id && $urgency_id && !$priority_id ) {
-    $errors[] = 'Er is geen prioriteit ingesteld voor deze Impact/Urgency combinatie.';
+    $errors[] = t('Er is geen prioriteit ingesteld voor deze Impact/Urgency combinatie.');
   }
 
   return [

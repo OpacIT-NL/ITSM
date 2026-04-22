@@ -104,13 +104,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   }
 }
 
-ssp_page_title( 'Incident melden' );
+ssp_page_title( t( 'Incident melden' ) );
 ssp_render_header( $person, 'new_incident' );
 ?>
 <section class="ssp-page-head">
   <div>
-    <h2>Incident melden</h2>
-    <p>Maak een nieuwe melding aan. De servicedesk vult classificatie en object later aan.</p>
+    <h2><?= htmlspecialchars(t('Incident melden')) ?></h2>
+    <p><?= htmlspecialchars(t('Maak een nieuwe melding aan. De servicedesk vult classificatie en object later aan.')) ?></p>
   </div>
 </section>
 
@@ -122,32 +122,32 @@ ssp_render_header( $person, 'new_incident' );
 
 <section class="ssp-form-grid">
   <article class="ssp-form-card">
-    <h3>Jouw gegevens</h3>
+    <h3><?= htmlspecialchars(t('Jouw gegevens')) ?></h3>
     <dl class="ssp-summary-list">
-      <div><dt>Klant</dt><dd><?= htmlspecialchars($person['customer_name'] ?? '') ?></dd></div>
-      <div><dt>Persoon</dt><dd><?= htmlspecialchars(trim(($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? ''))) ?></dd></div>
-      <div><dt>E-mail</dt><dd><?= htmlspecialchars($person['email'] ?? '') ?></dd></div>
-      <div><dt>Telefoon</dt><dd><?= htmlspecialchars($person['phone'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Klant')) ?></dt><dd><?= htmlspecialchars($person['customer_name'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Persoon')) ?></dt><dd><?= htmlspecialchars(trim(($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? ''))) ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('E-mail')) ?></dt><dd><?= htmlspecialchars($person['email'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Telefoon')) ?></dt><dd><?= htmlspecialchars($person['phone'] ?? '') ?></dd></div>
     </dl>
   </article>
 
   <article class="ssp-form-card">
     <form method="post" enctype="multipart/form-data" class="ssp-form-stack">
       <div class="ssp-field">
-        <label for="title">Korte titel</label>
+        <label for="title"><?= htmlspecialchars(t('Korte titel')) ?></label>
         <input id="title" name="title" type="text" value="<?= htmlspecialchars($form_values['title']) ?>" required>
       </div>
       <div class="ssp-field">
-        <label for="description">Omschrijving</label>
+        <label for="description"><?= htmlspecialchars(t('Omschrijving')) ?></label>
         <textarea id="description" name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
       </div>
       <div class="ssp-field">
-        <label for="commenttext">Aanvullend commentaar</label>
+        <label for="commenttext"><?= htmlspecialchars(t('Aanvullend commentaar')) ?></label>
         <textarea id="commenttext" name="commenttext"><?= htmlspecialchars($form_values['commenttext']) ?></textarea>
       </div>
       <?php ssp_attachment_render_upload_field(); ?>
       <div class="ssp-form-actions">
-        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Incident opslaan</button>
+        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> <?= htmlspecialchars(t('Incident opslaan')) ?></button>
       </div>
     </form>
   </article>

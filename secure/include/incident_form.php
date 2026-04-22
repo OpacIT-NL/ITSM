@@ -41,10 +41,10 @@ $show_template_actions = empty( $form_values['template_used'] );
 
   <?php if ( !empty( $task_logs_html ) || !empty( $links_html ) || !empty( $mail_tab_html ) ): ?>
   <div class="ticket-view-tabs caller-card-tabs" role="tablist">
-    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true">Taak</button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false">Links</button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="mail" role="tab" aria-selected="false">E-mail</button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true"><?= htmlspecialchars(t('Taak')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false"><?= htmlspecialchars(t('Links')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="mail" role="tab" aria-selected="false"><?= htmlspecialchars(t('E-mail')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false"><?= htmlspecialchars(t('Audit log')) ?></button>
   </div>
   <?php endif; ?>
 
@@ -52,12 +52,12 @@ $show_template_actions = empty( $form_values['template_used'] );
     <div class="incident-column">
       <div class="incident-card incident-left-card">
         <div class="form-grid">
-          <h2 class="incident-section-title">Algemeen</h2>
+          <h2 class="incident-section-title"><?= htmlspecialchars(t('Algemeen')) ?></h2>
 
           <hr>
 
           <div class="form-group">
-            <label class="incident-meta-label">Klant</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Klant')) ?></label>
             <label>
               <input type="hidden" name="customerid" id="customer_id" value="<?= htmlspecialchars((string)$form_values['customerid']) ?>">
               <input type="text" id="customer_lookup" list="customers_list" autocomplete="off" required>
@@ -96,7 +96,7 @@ $show_template_actions = empty( $form_values['template_used'] );
               <input type="hidden" name="categoryid" id="category_id" value="<?= htmlspecialchars((string)$form_values['categoryid']) ?>">
               <div class="combo-box">
                 <input type="text" id="category_lookup" class="combo-input" autocomplete="off" required>
-                <button type="button" class="combo-toggle" data-target="category_lookup" aria-label="Toon categorieen">
+                <button type="button" class="combo-toggle" data-target="category_lookup" aria-label="<?= htmlspecialchars(t('Toon categorieen')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="categories_list" class="combo-menu"></div>
@@ -110,7 +110,7 @@ $show_template_actions = empty( $form_values['template_used'] );
               <input type="hidden" name="subcategoryid" id="subcategory_id" value="<?= htmlspecialchars((string)$form_values['subcategoryid']) ?>">
               <div class="combo-box">
                 <input type="text" id="subcategory_lookup" class="combo-input" autocomplete="off">
-                <button type="button" class="combo-toggle" data-target="subcategory_lookup" aria-label="Toon subcategorieen">
+                <button type="button" class="combo-toggle" data-target="subcategory_lookup" aria-label="<?= htmlspecialchars(t('Toon subcategorieen')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="subcategories_list" class="combo-menu"></div>
@@ -126,7 +126,7 @@ $show_template_actions = empty( $form_values['template_used'] );
               <input type="hidden" name="assetid" id="asset_id" value="<?= htmlspecialchars((string)$form_values['assetid']) ?>">
               <div class="combo-box">
                 <input type="text" id="asset_lookup" class="combo-input" autocomplete="off">
-                <button type="button" class="combo-toggle" data-target="asset_lookup" aria-label="Toon objecten">
+                <button type="button" class="combo-toggle" data-target="asset_lookup" aria-label="<?= htmlspecialchars(t('Toon objecten')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="assets_list" class="combo-menu"></div>
@@ -145,7 +145,7 @@ $show_template_actions = empty( $form_values['template_used'] );
 
           <?php if ( $show_major_link_control ): ?>
           <div class="form-group">
-            <label class="incident-meta-label">Major incident</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Major incident')) ?></label>
             <label>
               <input type="hidden" name="majorincidentid" id="majorincident_id" value="<?= htmlspecialchars((string)$form_values['majorincidentid']) ?>">
               <input type="text" id="majorincident_lookup" list="major_incidents_list" autocomplete="off">
@@ -157,10 +157,10 @@ $show_template_actions = empty( $form_values['template_used'] );
           <hr>
 
           <div class="form-group">
-            <label class="incident-meta-label">Impact</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Impact')) ?></label>
             <label>
               <select name="impactid" id="impact_id">
-                <option value="">Selecteer impact</option>
+                <option value=""><?= htmlspecialchars(t('Selecteer impact')) ?></option>
                 <?php foreach ( $reference_data['impacts'] ?? [] as $impact ): ?>
                 <option value="<?= htmlspecialchars((string)$impact['id']) ?>" <?= (string)($form_values['impactid'] ?? '') === (string)$impact['id'] ? 'selected' : '' ?>><?= htmlspecialchars($impact['name']) ?></option>
                 <?php endforeach; ?>
@@ -169,10 +169,10 @@ $show_template_actions = empty( $form_values['template_used'] );
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Urgency</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Urgency')) ?></label>
             <label>
               <select name="urgencyid" id="urgency_id">
-                <option value="">Selecteer urgency</option>
+                <option value=""><?= htmlspecialchars(t('Selecteer urgency')) ?></option>
                 <?php foreach ( $reference_data['urgencies'] ?? [] as $urgency ): ?>
                 <option value="<?= htmlspecialchars((string)$urgency['id']) ?>" <?= (string)($form_values['urgencyid'] ?? '') === (string)$urgency['id'] ? 'selected' : '' ?>><?= htmlspecialchars($urgency['name']) ?></option>
                 <?php endforeach; ?>
@@ -181,7 +181,7 @@ $show_template_actions = empty( $form_values['template_used'] );
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Priority</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Priority')) ?></label>
             <label>
               <input type="hidden" name="priorityid" id="priority_id" value="<?= htmlspecialchars((string)($form_values['priorityid'] ?? '')) ?>">
               <input type="text" id="priority_display" class="incident-readonly" value="<?= htmlspecialchars((string)($form_values['priorityname'] ?? '')) ?>" readonly>
@@ -204,7 +204,7 @@ $show_template_actions = empty( $form_values['template_used'] );
             <label class="assign-to-me-row">
               <input type="hidden" name="operatorid" id="operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
               <input type="text" id="operator_lookup" list="operators_list" autocomplete="off">
-              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
               <datalist id="operators_list"></datalist>
             </label>
           </div>
@@ -389,6 +389,9 @@ const urgencies = <?= $urgencies_json ?>;
 const priorities = <?= $priorities_json ?>;
 const priorityMatrix = <?= $priority_matrix_json ?>;
 const currentOperatorId = <?= $current_operator_id_json ?>;
+const incidentFormI18n = {
+  selectTemplate: <?= json_encode(t('Selecteer sjabloon')) ?>
+};
 const currentOperatorGroupIds = [...new Set(opLinks.filter((row) => String(row.operatorid) === String(currentOperatorId)).map((row) => String(row.groupid)))];
 
 document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
@@ -712,7 +715,7 @@ function refreshTemplateSelect() {
   }
 
   const rows = currentTemplates();
-  templateSelect.innerHTML = '<option value="">Selecteer sjabloon</option>';
+  templateSelect.innerHTML = '<option value="">' + incidentFormI18n.selectTemplate + '</option>';
   rows.forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

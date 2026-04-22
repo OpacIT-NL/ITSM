@@ -93,7 +93,7 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
 
           <div class="form-group">
             <label class="incident-meta-label">Subcategorie</label>
-            <label><select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select></label>
+            <label><select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select></label>
           </div>
 
           <div class="form-group">
@@ -142,10 +142,10 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
           <hr>
 
           <div class="form-group">
-            <label class="incident-meta-label">Impact</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Impact')) ?></label>
             <label>
               <select name="impactid" id="impact_id">
-                <option value="">Selecteer impact</option>
+                <option value=""><?= htmlspecialchars(t('Selecteer impact')) ?></option>
                 <?php foreach ( $reference_data['impacts'] ?? [] as $impact ): ?>
                 <option value="<?= htmlspecialchars((string)$impact['id']) ?>" <?= (string)($form_values['impactid'] ?? '') === (string)$impact['id'] ? 'selected' : '' ?>><?= htmlspecialchars($impact['name']) ?></option>
                 <?php endforeach; ?>
@@ -154,10 +154,10 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Urgency</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Urgency')) ?></label>
             <label>
               <select name="urgencyid" id="urgency_id">
-                <option value="">Selecteer urgency</option>
+                <option value=""><?= htmlspecialchars(t('Selecteer urgency')) ?></option>
                 <?php foreach ( $reference_data['urgencies'] ?? [] as $urgency ): ?>
                 <option value="<?= htmlspecialchars((string)$urgency['id']) ?>" <?= (string)($form_values['urgencyid'] ?? '') === (string)$urgency['id'] ? 'selected' : '' ?>><?= htmlspecialchars($urgency['name']) ?></option>
                 <?php endforeach; ?>
@@ -166,7 +166,7 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Priority</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Priority')) ?></label>
             <label>
               <input type="hidden" name="priorityid" id="priority_id" value="<?= htmlspecialchars((string)($form_values['priorityid'] ?? '')) ?>">
               <input type="text" id="priority_display" class="incident-readonly" value="<?= htmlspecialchars((string)($form_values['priorityname'] ?? '')) ?>" readonly>
@@ -192,8 +192,8 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
           <div class="form-group">
             <label class="incident-meta-label">Behandelaar</label>
             <label class="assign-to-me-row">
-              <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
-              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+              <select name="operatorid" id="operator_id"><option value=""><?= htmlspecialchars(t('Selecteer een behandelaar')) ?></option></select>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             </label>
           </div>
         </div>
@@ -318,6 +318,10 @@ const currentSubcategoryId = <?= json_encode((string)$form_values['subcategoryid
 const currentOperatorId = <?= json_encode((string)$form_values['operatorid']) ?>;
 const loggedInOperatorId = <?= $logged_in_operator_id_json ?>;
 const loggedInOperatorGroupIds = [...new Set(opLinks.filter((row) => String(row.operatorid) === String(loggedInOperatorId)).map((row) => String(row.groupid)))];
+const problemFormI18n = {
+  selectSubcategory: <?= json_encode(t('Selecteer een subcategorie')) ?>,
+  selectOperator: <?= json_encode(t('Selecteer een behandelaar')) ?>
+};
 
 document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
   tab.addEventListener('click', () => {
@@ -380,7 +384,7 @@ function refreshPersonOptions(resetSelection) {
 function refreshSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
-  select.innerHTML = '<option value="">Selecteer een subcategorie</option>';
+  select.innerHTML = `<option value="">${problemFormI18n.selectSubcategory}</option>`;
   subcategories.filter((row) => String(row.parent) === String(categoryId)).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);
@@ -396,7 +400,7 @@ function refreshOperators() {
   const groupId = document.getElementById('operatorgroup_id').value;
   const operatorIds = groupId ? opLinks.filter((row) => String(row.groupid) === String(groupId)).map((row) => String(row.operatorid)) : operators.map((row) => String(row.id));
   const select = document.getElementById('operator_id');
-  select.innerHTML = '<option value="">Selecteer een behandelaar</option>';
+  select.innerHTML = `<option value="">${problemFormI18n.selectOperator}</option>`;
   operators.filter((row) => operatorIds.includes(String(row.id))).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

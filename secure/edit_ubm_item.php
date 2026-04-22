@@ -222,7 +222,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
           </div>
           <div class="form-group">
             <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
           </div>
           <div class="form-group">
             <label>Team</label>
@@ -236,8 +236,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
           <div class="form-group">
             <label>Behandelaar</label>
             <label class="assign-to-me-row">
-              <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
-              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+              <select name="operatorid" id="operator_id"><option value=""><?= htmlspecialchars(t('Selecteer een behandelaar')) ?></option></select>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             </label>
           </div>
           <div class="form-group">
@@ -331,6 +331,10 @@ const editUbmOpLinks = <?= json_encode($reference_data['op_links'], JSON_HEX_TAG
 const editUbmCurrentOperatorId = <?= json_encode((string)$item['operatorid']) ?>;
 const editUbmLoggedInOperatorId = <?= json_encode((string)($operator_context['id'] ?? '')) ?>;
 const editUbmLoggedInOperatorGroupIds = [...new Set(editUbmOpLinks.filter((row) => String(row.operatorid) === String(editUbmLoggedInOperatorId)).map((row) => String(row.groupid)))];
+const editUbmFormI18n = {
+  selectSubcategory: <?= json_encode(t('Selecteer een subcategorie')) ?>,
+  selectOperator: <?= json_encode(t('Selecteer een behandelaar')) ?>
+};
 document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
   tab.addEventListener('click', () => {
     const target = tab.dataset.ticketViewTab;
@@ -347,7 +351,7 @@ document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
 function refreshEditUbmSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
-  select.innerHTML = '<option value="">Selecteer een subcategorie</option>';
+  select.innerHTML = `<option value="">${editUbmFormI18n.selectSubcategory}</option>`;
   editUbmSubcategories.filter((row) => String(row.parent) === String(categoryId)).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);
@@ -363,7 +367,7 @@ function refreshEditUbmOperators() {
   const groupId = document.getElementById('operatorgroup_id').value;
   const select = document.getElementById('operator_id');
   const operatorIds = groupId ? editUbmOpLinks.filter((row) => String(row.groupid) === String(groupId)).map((row) => String(row.operatorid)) : editUbmOperators.map((row) => String(row.id));
-  select.innerHTML = '<option value="">Selecteer een behandelaar</option>';
+  select.innerHTML = `<option value="">${editUbmFormI18n.selectOperator}</option>`;
   editUbmOperators.filter((row) => operatorIds.includes(String(row.id))).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

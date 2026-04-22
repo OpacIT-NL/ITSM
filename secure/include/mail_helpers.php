@@ -324,6 +324,28 @@ function filter_var_email( $value ) {
   return filter_var( $value, FILTER_VALIDATE_EMAIL ) !== false;
 }
 
+function mail_message_id_domain( $from_email ) {
+  $from_email = (string)$from_email;
+  $parts = explode( '@', $from_email, 2 );
+  if ( count( $parts ) === 2 && $parts[1] !== '' ) {
+    return $parts[1];
+  }
+
+  $host = (string)( $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost' );
+  $host = preg_replace( '/:\d+$/', '', $host );
+  return $host !== '' ? $host : 'localhost';
+}
+
+function mail_build_message_id( $from_email ) {
+  try {
+    $random = bin2hex( random_bytes( 12 ) );
+  } catch ( Exception $exception ) {
+    $random = md5( uniqid( '', true ) );
+  }
+
+  return sprintf( '<%s@%s>', $random, mail_message_id_domain( $from_email ) );
+}
+
 function mail_smtp_command( $socket, $command, $expected_codes ) {
   if ( $command !== null ) {
     fwrite( $socket, $command . "\r\n" );
@@ -387,10 +409,17 @@ function mail_smtp_send( $to, $subject, $html_body ) {
     $from_name = trim( (string)( $config['from_name'] ?? 'ITSM' ) );
     $encoded_from_name = function_exists( 'mb_encode_mimeheader' ) ? mb_encode_mimeheader( $from_name ) : $from_name;
     $encoded_subject = function_exists( 'mb_encode_mimeheader' ) ? mb_encode_mimeheader( $subject ) : $subject;
+    $date_header = date( 'r' );
+    $message_id = mail_build_message_id( $from_email );
     $headers = [
       'From: ' . ( $from_name !== '' ? $encoded_from_name . ' <' . $from_email . '>' : $from_email ),
+      'Sender: ' . $from_email,
+      'Reply-To: ' . $from_email,
       'To: ' . implode( ', ', $to ),
       'Subject: ' . $encoded_subject,
+      'Date: ' . $date_header,
+      'Message-ID: ' . $message_id,
+      'X-Mailer: ITSM',
       'MIME-Version: 1.0',
       'Content-Type: text/html; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit'

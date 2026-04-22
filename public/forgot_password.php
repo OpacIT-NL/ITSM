@@ -28,15 +28,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ITSM SelfService - Wachtwoord vergeten</title>
+<title><?= htmlspecialchars(t('ITSM SelfService - Wachtwoord vergeten')) ?></title>
 <link href="include/login.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
 </head>
 <body class="login-page">
 <?= news_render_banners( news_fetch_items( $con, 'login', 10 ) ) ?>
 <div class="login-box">
-  <h1>ITSM SelfService</h1>
-  <h2>Wachtwoord vergeten</h2>
+  <h1><?= htmlspecialchars(t('ITSM SelfService')) ?></h1>
+  <h2><?= htmlspecialchars(t('Wachtwoord vergeten')) ?></h2>
   <?php if ( $sent ): ?>
   <p class="success">Als dit e-mailadres bekend is voor SelfService, ontvang je binnen enkele minuten een resetlink.</p>
   <p><a href="login.php" class="login-helper-link">Terug naar inloggen</a></p>
@@ -44,9 +44,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <p class="login-hint">Vul je e-mailadres in. We sturen dan een beveiligde link waarmee je je wachtwoord opnieuw kunt instellen.</p>
   <form action="forgot_password.php" method="post" class="login-form">
     <div class="input-group"> <i class="fas fa-envelope"></i>
-      <input type="email" name="email" placeholder="E-mail" required>
+      <input type="email" name="email" placeholder="<?= htmlspecialchars(t('E-mail')) ?>" required>
     </div>
-    <button type="submit" class="login-button">Resetlink versturen</button>
+    <button type="submit" class="login-button"><?= htmlspecialchars(t('Resetlink versturen')) ?></button>
   </form>
   <p><a href="login.php" class="login-helper-link">Terug naar inloggen</a></p>
   <?php endif; ?>

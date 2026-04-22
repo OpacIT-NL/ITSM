@@ -26,8 +26,8 @@ $template_id = isset( $_GET['template'] ) ? (int)$_GET['template'] : 0;
 $selected_template = $template_id > 0 ? ssp_find_by_id( $templates, $template_id ) : null;
 $template_variables = $selected_template ? ssp_extract_template_variables( $selected_template ) : [];
 $page_key = 'new_change';
-$page_title = 'Wijziging aanvragen';
-$page_intro = 'Klik op een formulier om direct de juiste selfservice-aanvraag te openen.';
+$page_title = t( 'Wijziging aanvragen' );
+$page_intro = t( 'Klik op een formulier om direct de juiste selfservice-aanvraag te openen.' );
 
 $form_values = [
   'variables' => []
@@ -144,8 +144,8 @@ $grouped_templates = [];
 foreach ( $templates as $template ) {
   $category = ssp_find_by_id( $reference_data['categories'], (int)$template['categoryid'] );
   $subcategory = !empty( $template['subcategoryid'] ) ? ssp_find_by_id( $reference_data['subcategories'], (int)$template['subcategoryid'] ) : null;
-  $category_label = $category['name'] ?? 'Overig';
-  $subcategory_label = $subcategory['name'] ?? 'Algemeen';
+  $category_label = $category['name'] ?? t( 'Overig' );
+  $subcategory_label = $subcategory['name'] ?? t( 'Algemeen' );
 
   if ( !isset( $grouped_templates[ $category_label ] ) ) {
     $grouped_templates[ $category_label ] = [];
@@ -199,13 +199,13 @@ ssp_render_header( $person, $page_key );
 <?php else: ?>
 <section class="ssp-form-grid">
   <article class="ssp-form-card">
-    <h3>Jouw gegevens</h3>
+    <h3><?= htmlspecialchars(t('Jouw gegevens')) ?></h3>
     <dl class="ssp-summary-list">
-      <div><dt>Klant</dt><dd><?= htmlspecialchars($person['customer_name'] ?? '') ?></dd></div>
-      <div><dt>Persoon</dt><dd><?= htmlspecialchars(trim(($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? ''))) ?></dd></div>
-      <div><dt>E-mail</dt><dd><?= htmlspecialchars($person['email'] ?? '') ?></dd></div>
-      <div><dt>Telefoon</dt><dd><?= htmlspecialchars($person['phone'] ?? '') ?></dd></div>
-      <div><dt>Formulier</dt><dd><?= htmlspecialchars($selected_template['name']) ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Klant')) ?></dt><dd><?= htmlspecialchars($person['customer_name'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Persoon')) ?></dt><dd><?= htmlspecialchars(trim(($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? ''))) ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('E-mail')) ?></dt><dd><?= htmlspecialchars($person['email'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Telefoon')) ?></dt><dd><?= htmlspecialchars($person['phone'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Formulier')) ?></dt><dd><?= htmlspecialchars($selected_template['name']) ?></dd></div>
     </dl>
   </article>
 
@@ -226,7 +226,7 @@ ssp_render_header( $person, $page_key );
       <?php endforeach; ?>
       <?php ssp_attachment_render_upload_field(); ?>
       <div class="ssp-form-actions">
-        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Wijzigingsaanvraag opslaan</button>
+        <button class="ssp-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> <?= htmlspecialchars(t('Wijzigingsaanvraag opslaan')) ?></button>
       </div>
     </form>
   </article>

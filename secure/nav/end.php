@@ -3,16 +3,16 @@
 <script>
 (function () {
   const i18n = {
-    dashboard: 'Dashboard',
-    openTabs: 'Open tabbladen',
-    closeTab: 'Tab sluiten',
-    refresh: 'Verversen',
-    someoneElseSaved: 'Iemand anders heeft deze kaart opgeslagen. Ververs voordat je opslaat; je concept blijft lokaal bewaard.',
-    saveBlocked: 'Opslaan is geblokkeerd omdat iemand anders deze kaart heeft opgeslagen. Je concept blijft bewaard; klik op Verversen.',
-    someoneElse: 'Iemand anders',
-    operatorSingular: 'behandelaar heeft',
-    operatorPlural: 'behandelaren hebben',
-    alsoOpen: 'deze kaart ook open:'
+    dashboard: <?= json_encode(t('Dashboard')) ?>,
+    openTabs: <?= json_encode(t('Open tabbladen')) ?>,
+    closeTab: <?= json_encode(t('Tab sluiten')) ?>,
+    refresh: <?= json_encode(t('Verversen')) ?>,
+    someoneElseSaved: <?= json_encode(t('Iemand anders heeft deze kaart opgeslagen. Ververs voordat je opslaat; je concept blijft lokaal bewaard.')) ?>,
+    saveBlocked: <?= json_encode(t('Opslaan is geblokkeerd omdat iemand anders deze kaart heeft opgeslagen. Je concept blijft bewaard; klik op Verversen.')) ?>,
+    someoneElse: <?= json_encode(t('Iemand anders')) ?>,
+    operatorSingular: <?= json_encode(t('behandelaar heeft')) ?>,
+    operatorPlural: <?= json_encode(t('behandelaren hebben')) ?>,
+    alsoOpen: <?= json_encode(t('deze kaart ook open:')) ?>
   };
   const maxTabs = 15;
   const storageKey = 'itsm_secure_tabs_v1';
@@ -294,7 +294,7 @@
         close.type = 'button';
         close.className = 'secure-tab-close';
         close.setAttribute('aria-label', i18n.closeTab);
-        close.textContent = 'x';
+        close.textContent = '×';
         close.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -682,4 +682,3 @@
 </script>
 </body>
 </html>
-

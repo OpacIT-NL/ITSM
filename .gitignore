@@ -1,3 +1,4 @@
 _notes/dwsync.xml
 *.xml
 .vscode/sftp.json
+*.DS_Store

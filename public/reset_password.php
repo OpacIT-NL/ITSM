@@ -33,15 +33,15 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ITSM SelfService - Wachtwoord resetten</title>
+<title><?= htmlspecialchars(t('ITSM SelfService - Wachtwoord resetten')) ?></title>
 <link href="include/login.css" rel="stylesheet" type="text/css">
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
 </head>
 <body class="login-page">
 <?= news_render_banners( news_fetch_items( $con, 'login', 10 ) ) ?>
 <div class="login-box">
-  <h1>ITSM SelfService</h1>
-  <h2>Nieuw wachtwoord</h2>
+  <h1><?= htmlspecialchars(t('ITSM SelfService')) ?></h1>
+  <h2><?= htmlspecialchars(t('Nieuw wachtwoord')) ?></h2>
   <?php if ( !$reset && $error === '' ): ?>
   <p class="error">Deze resetlink is ongeldig of verlopen.</p>
   <p><a href="forgot_password.php" class="login-helper-link">Nieuwe resetlink aanvragen</a></p>
@@ -50,16 +50,16 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <p class="error"><?= htmlspecialchars( $error ) ?></p>
   <?php endif; ?>
   <?php if ( $reset ): ?>
-  <p class="login-hint">Stel een nieuw wachtwoord in voor <?= htmlspecialchars( $reset['email'] ) ?>.</p>
+  <p class="login-hint"><?= htmlspecialchars(t('Stel een nieuw wachtwoord in voor')) ?> <?= htmlspecialchars( $reset['email'] ) ?>.</p>
   <form action="reset_password.php" method="post" class="login-form">
     <input type="hidden" name="token" value="<?= htmlspecialchars( $token ) ?>">
     <div class="input-group"> <i class="fas fa-lock"></i>
-      <input type="password" name="password" placeholder="Nieuw wachtwoord" required minlength="8">
+      <input type="password" name="password" placeholder="<?= htmlspecialchars(t('Nieuw wachtwoord')) ?>" required minlength="8">
     </div>
     <div class="input-group"> <i class="fas fa-lock"></i>
-      <input type="password" name="password_confirm" placeholder="Herhaal wachtwoord" required minlength="8">
+      <input type="password" name="password_confirm" placeholder="<?= htmlspecialchars(t('Herhaal wachtwoord')) ?>" required minlength="8">
     </div>
-    <button type="submit" class="login-button">Wachtwoord wijzigen</button>
+    <button type="submit" class="login-button"><?= htmlspecialchars(t('Wachtwoord wijzigen')) ?></button>
   </form>
   <?php endif; ?>
   <p><a href="login.php" class="login-helper-link">Terug naar inloggen</a></p>

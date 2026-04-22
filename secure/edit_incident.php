@@ -396,9 +396,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
           'assetid' => 'Object ID',
           'operatorgroupid' => 'Behandelaarsgroep',
           'operatorid' => 'Behandelaar',
-          'impactid' => 'Impact',
-          'urgencyid' => 'Urgency',
-          'priorityid' => 'Priority'
+          'impactid' => t('Impact'),
+          'urgencyid' => t('Urgency'),
+          'priorityid' => t('Priority')
         ],
         (int)$operator_context['id']
       );

@@ -188,7 +188,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <span data-tab-title="<?= htmlspecialchars(change_format_activity_number($activity), ENT_QUOTES) ?>" data-tab-subtitle="Wijzigingsactiviteit" hidden></span>
+  <span data-tab-title="<?= htmlspecialchars(change_format_activity_number($activity), ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(t('Wijzigingsactiviteit'), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = 'change_activities.php'; require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Wijzigingsactiviteit <?= htmlspecialchars(change_format_activity_number($activity)) ?></h1>
@@ -241,7 +241,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
           <label class="assign-to-me-row">
             <input type="hidden" name="operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
             <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
-            <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+            <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             <datalist id="activity_operators_list"></datalist>
           </label>
         </div>

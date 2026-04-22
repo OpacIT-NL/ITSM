@@ -54,7 +54,7 @@ $activity_tab_active = $show_activity_tab && (
     <?php endif; ?>
     <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false"><?= htmlspecialchars(t('Links')) ?></button>
     <button type="button" class="caller-card-tab" data-ticket-view-tab="mail" role="tab" aria-selected="false"><?= htmlspecialchars(t('E-mail')) ?></button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false"><?= htmlspecialchars(t('Audit log')) ?></button>
   </div>
   <?php endif; ?>
 
@@ -66,7 +66,7 @@ $activity_tab_active = $show_activity_tab && (
           <hr>
 
           <div class="form-group">
-            <label class="incident-meta-label">Klant</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Klant')) ?></label>
             <label>
               <input type="hidden" name="customerid" id="customer_id" value="<?= htmlspecialchars((string)$form_values['customerid']) ?>">
               <input type="text" id="customer_lookup" list="customers_list" autocomplete="off" required>
@@ -75,7 +75,7 @@ $activity_tab_active = $show_activity_tab && (
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Persoon</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Persoon')) ?></label>
             <label>
               <input type="hidden" name="personid" id="person_id" value="<?= htmlspecialchars((string)$form_values['personid']) ?>">
               <input type="text" id="person_lookup" list="persons_list" autocomplete="off" required>
@@ -84,14 +84,14 @@ $activity_tab_active = $show_activity_tab && (
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">E-mail</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('E-mail')) ?></label>
             <label>
               <input type="text" id="person_email" class="incident-readonly" value="<?= htmlspecialchars($form_values['personemail']) ?>" readonly>
             </label>
           </div>
 
           <div class="form-group">
-            <label class="incident-meta-label">Telefoonnummer</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Telefoonnummer')) ?></label>
             <label>
               <input type="text" id="person_phone" class="incident-readonly" value="<?= htmlspecialchars($form_values['personphone']) ?>" readonly>
             </label>
@@ -127,7 +127,7 @@ $activity_tab_active = $show_activity_tab && (
               <input type="hidden" name="categoryid" id="category_id" value="<?= htmlspecialchars((string)$form_values['categoryid']) ?>">
               <div class="combo-box">
                 <input type="text" id="category_lookup" class="combo-input" autocomplete="off" required>
-                <button type="button" class="combo-toggle" data-target="category_lookup" aria-label="Toon categorieen">
+                <button type="button" class="combo-toggle" data-target="category_lookup" aria-label="<?= htmlspecialchars(t('Toon categorieen')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="categories_list" class="combo-menu"></div>
@@ -141,7 +141,7 @@ $activity_tab_active = $show_activity_tab && (
               <input type="hidden" name="subcategoryid" id="subcategory_id" value="<?= htmlspecialchars((string)$form_values['subcategoryid']) ?>">
               <div class="combo-box">
                 <input type="text" id="subcategory_lookup" class="combo-input" autocomplete="off">
-                <button type="button" class="combo-toggle" data-target="subcategory_lookup" aria-label="Toon subcategorieen">
+                <button type="button" class="combo-toggle" data-target="subcategory_lookup" aria-label="<?= htmlspecialchars(t('Toon subcategorieen')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="subcategories_list" class="combo-menu"></div>
@@ -157,7 +157,7 @@ $activity_tab_active = $show_activity_tab && (
               <input type="hidden" name="assetid" id="asset_id" value="<?= htmlspecialchars((string)$form_values['assetid']) ?>">
               <div class="combo-box">
                 <input type="text" id="asset_lookup" class="combo-input" autocomplete="off">
-                <button type="button" class="combo-toggle" data-target="asset_lookup" aria-label="Toon objecten">
+                <button type="button" class="combo-toggle" data-target="asset_lookup" aria-label="<?= htmlspecialchars(t('Toon objecten')) ?>">
                   <i class="fa-solid fa-chevron-down"></i>
                 </button>
                 <div id="assets_list" class="combo-menu"></div>
@@ -221,7 +221,7 @@ $activity_tab_active = $show_activity_tab && (
               <input type="hidden" name="operatorid" id="operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
               <input type="hidden" name="coordinatorid" id="coordinator_id" value="<?= htmlspecialchars((string)$form_values['coordinatorid']) ?>">
               <input type="text" id="operator_lookup" list="operators_list" autocomplete="off">
-              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
               <datalist id="operators_list"></datalist>
             </label>
           </div>
@@ -398,7 +398,7 @@ $activity_tab_active = $show_activity_tab && (
                 <label class="assign-to-me-row">
                   <input type="hidden" name="activity_operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$activity_values['operatorid']) ?>">
                   <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
-                  <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+                  <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
                   <datalist id="activity_operators_list"></datalist>
                 </label>
               </div>

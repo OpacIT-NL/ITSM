@@ -85,7 +85,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <span data-tab-title="Nieuw" data-tab-subtitle="Event" hidden></span>
+  <span data-tab-title="<?= htmlspecialchars(t('Nieuw'), ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(t('Event'), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = event_get_list_back_url( 'events.php?view=open' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Event aanmaken</h1>
@@ -108,7 +108,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           </div>
           <div class="form-group">
             <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
           </div>
           <div class="form-group">
             <label>Object ID</label>
@@ -135,10 +135,13 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 <script>
 const eventSubcategories = <?= json_encode($reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const eventCurrentSubcategoryId = <?= json_encode((string)$form_values['subcategoryid']) ?>;
+const eventFormI18n = {
+  selectSubcategory: <?= json_encode(t('Selecteer een subcategorie')) ?>
+};
 function refreshEventSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
-  select.innerHTML = '<option value="">Selecteer een subcategorie</option>';
+  select.innerHTML = `<option value="">${eventFormI18n.selectSubcategory}</option>`;
   eventSubcategories.filter((row) => String(row.parent) === String(categoryId)).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

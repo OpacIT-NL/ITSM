@@ -216,7 +216,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'event', $event_id )
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <span data-tab-title="<?= htmlspecialchars(event_format_display_number($event), ENT_QUOTES) ?>" data-tab-subtitle="Event" hidden></span>
+  <span data-tab-title="<?= htmlspecialchars(event_format_display_number($event), ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(t('Event'), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = event_get_list_back_url( 'events.php?view=open' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>Event <?= htmlspecialchars(event_format_display_number($event)) ?></h1>
@@ -245,7 +245,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'event', $event_id )
           </div>
           <div class="form-group">
             <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
           </div>
           <div class="form-group">
             <label>Object ID</label>
@@ -306,6 +306,9 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'event', $event_id )
 <script>
 const editEventSubcategories = <?= json_encode($reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 const currentEditEventSubcategoryId = <?= json_encode((string)$event['subcategoryid']) ?>;
+const editEventFormI18n = {
+  selectSubcategory: <?= json_encode(t('Selecteer een subcategorie')) ?>
+};
 document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
   tab.addEventListener('click', () => {
     const target = tab.dataset.ticketViewTab;
@@ -322,7 +325,7 @@ document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
 function refreshEditEventSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
-  select.innerHTML = '<option value="">Selecteer een subcategorie</option>';
+  select.innerHTML = `<option value="">${editEventFormI18n.selectSubcategory}</option>`;
   editEventSubcategories.filter((row) => String(row.parent) === String(categoryId)).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);
