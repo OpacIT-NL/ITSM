@@ -194,6 +194,8 @@ function mail_load_task_context( $con, $task_type, $task_id, $old_status_id, $ne
     'status_id' => (string)$new_status_id,
     'status_name' => $new_status_name,
     'customer_name' => $row['customer_name'] ?? '',
+    'firstname' => $row['person_firstname'] ?? '',
+    'lastname' => $row['person_lastname'] ?? '',
     'person_name' => $person_name,
     'person_email' => $row['person_email_real'] ?? ( $row['personemail'] ?? '' ),
     'person_phone' => $row['personphone'] ?? '',
@@ -557,7 +559,7 @@ function mail_render_manual_tab( $rules, $messages = [] ) {
     <h3>Variabelen</h3>
     <p class="muted">Deze variabelen kun je in het onderwerp en HTML-template gebruiken met <code>%variable%</code> of <code>{{variable}}</code>.</p>
     <div class="mail-variable-list">
-      <?php foreach ( [ 'task_number', 'task_url', 'title', 'description', 'latest_comment', 'status_name', 'customer_name', 'person_name', 'person_email', 'person_phone', 'operator_name', 'operator_email', 'coordinator_name', 'coordinator_email', 'group_name', 'operator_group', 'logged_in_operator', 'logged_in_operator_email', 'logged_in_operator_group', 'createdat', 'updatedat' ] as $variable ): ?>
+      <?php foreach ( [ 'task_number', 'task_url', 'title', 'description', 'latest_comment', 'status_name', 'customer_name', 'firstname', 'lastname', 'person_name', 'person_email', 'person_phone', 'operator_name', 'operator_email', 'coordinator_name', 'coordinator_email', 'group_name', 'operator_group', 'logged_in_operator', 'logged_in_operator_email', 'logged_in_operator_group', 'createdat', 'updatedat' ] as $variable ): ?>
       <code>%<?= htmlspecialchars( $variable ) ?>%</code>
       <?php endforeach; ?>
     </div>
