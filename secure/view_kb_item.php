@@ -23,7 +23,7 @@ $item_id = (int)$_GET['id'];
 $all_items = kb_load_all_items( $con );
 $item = kb_find_item_by_id( $all_items, $item_id );
 if ( !$item ) {
-  die( 'Kennisitem niet gevonden' );
+  die( t('Kennisitem niet gevonden') );
 }
 
 $children = array_values( array_filter( $all_items, function( $row ) use ( $item_id ) {
@@ -39,7 +39,7 @@ $list_back_url = 'kb_items.php';
 
   <?php if ( !empty( $breadcrumbs ) ): ?>
   <p class="info-note">
-    Pad:
+    <?= htmlspecialchars(t('Pad:')) ?>
     <?php foreach ( $breadcrumbs as $index => $crumb ): ?>
     <?php if ( $index > 0 ): ?> / <?php endif; ?>
     <a class="task-inline-link" href="view_kb_item.php?id=<?= (int)$crumb['id'] ?>"><?= htmlspecialchars($crumb['title']) ?></a>
@@ -48,20 +48,20 @@ $list_back_url = 'kb_items.php';
   <?php endif; ?>
 
   <div class="inline-link-row" style="margin: 14px 0;">
-    <a href="edit_kb_item.php?id=<?= $item_id ?>">Bewerken</a>
-    <a href="new_kb_item.php?parentid=<?= $item_id ?>">Nieuw subitem</a>
+    <a href="edit_kb_item.php?id=<?= $item_id ?>"><?= htmlspecialchars(t('Bewerken')) ?></a>
+    <a href="new_kb_item.php?parentid=<?= $item_id ?>"><?= htmlspecialchars(t('Nieuw subitem')) ?></a>
     <?php if ( (int)$item['publicaccess'] === 1 ): ?>
-    <a href="../public/view_kb_item.php?id=<?= $item_id ?>">Open publieke weergave</a>
+    <a href="../public/view_kb_item.php?id=<?= $item_id ?>"><?= htmlspecialchars(t('Open publieke weergave')) ?></a>
     <?php endif; ?>
   </div>
 
   <div class="form-card form-card-wide">
     <div class="inline-link-row" style="margin-bottom: 12px;">
       <span class="kb-visibility-badge<?= (int)$item['publicaccess'] === 1 ? ' is-public' : '' ?>">
-        <?= (int)$item['publicaccess'] === 1 ? 'Publiek zichtbaar' : 'Alleen secure zichtbaar' ?>
+        <?= htmlspecialchars((int)$item['publicaccess'] === 1 ? t('Publiek zichtbaar') : t('Alleen secure zichtbaar')) ?>
       </span>
       <?php if ( !empty( $item['creator_firstname'] ) || !empty( $item['creator_lastname'] ) ): ?>
-      <span class="info-note">Aangemaakt door <?= htmlspecialchars(trim(($item['creator_firstname'] ?? '') . ' ' . ($item['creator_lastname'] ?? ''))) ?></span>
+      <span class="info-note"><?= htmlspecialchars(t('Aangemaakt door')) ?> <?= htmlspecialchars(trim(($item['creator_firstname'] ?? '') . ' ' . ($item['creator_lastname'] ?? ''))) ?></span>
       <?php endif; ?>
     </div>
     <div class="kb-markdown"><?= markdown_to_html( $item['content'] ) ?></div>
@@ -69,13 +69,13 @@ $list_back_url = 'kb_items.php';
 
   <?php if ( !empty( $children ) ): ?>
   <div class="form-card form-card-wide" style="margin-top: 20px;">
-    <h2>Subitems</h2>
+    <h2><?= htmlspecialchars(t('Subitems')) ?></h2>
     <ul class="kb-tree">
       <?php foreach ( $children as $child ): ?>
       <li>
         <a class="task-inline-link" href="view_kb_item.php?id=<?= (int)$child['id'] ?>"><?= htmlspecialchars($child['title']) ?></a>
         <span class="kb-visibility-badge<?= (int)$child['publicaccess'] === 1 ? ' is-public' : '' ?>">
-          <?= (int)$child['publicaccess'] === 1 ? 'Publiek' : 'Intern' ?>
+          <?= htmlspecialchars((int)$child['publicaccess'] === 1 ? t('Publiek') : t('Intern')) ?>
         </span>
       </li>
       <?php endforeach; ?>

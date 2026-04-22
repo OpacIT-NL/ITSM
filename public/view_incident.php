@@ -75,40 +75,40 @@ $comments_result = mysqli_stmt_get_result( $comments_stmt );
 $attachments = ssp_attachment_load_for_task( $con, 'incident', $incident_id );
 $attachments_by_comment = ssp_attachment_group_by_comment( $attachments );
 
-ssp_page_title( 'Incident ' . ($incident['incidentnumber'] ?: ('#' . $incident['id'])) );
+ssp_page_title( t('Incident') . ' ' . ($incident['incidentnumber'] ?: ('#' . $incident['id'])) );
 ssp_render_header( $person, 'incidents' );
 ?>
 <section class="ssp-page-head">
   <div>
     <h2><?= htmlspecialchars($incident['incidentnumber'] ?: ('#' . $incident['id'])) ?> - <?= htmlspecialchars($incident['title']) ?></h2>
-    <p>Bekijk de status en communicatie van je melding.</p>
+    <p><?= htmlspecialchars(t('Bekijk de status en communicatie van je melding.')) ?></p>
   </div>
-  <a class="ssp-ghost-link" href="incidents.php<?= $is_manager ? '?scope=customer' : '' ?>">Terug naar incidenten</a>
+  <a class="ssp-ghost-link" href="incidents.php<?= $is_manager ? '?scope=customer' : '' ?>"><?= htmlspecialchars(t('Terug naar incidenten')) ?></a>
 </section>
 
 <section class="ssp-detail-grid">
   <article class="ssp-detail-card">
-    <h3>Details</h3>
+    <h3><?= htmlspecialchars(t('Details')) ?></h3>
     <dl class="ssp-summary-list">
-      <div><dt>Status</dt><dd><?= htmlspecialchars($incident['status_name'] ?? '') ?></dd></div>
-      <div><dt>Categorie</dt><dd><?= htmlspecialchars($incident['category_name'] ?? '') ?></dd></div>
-      <div><dt>Subcategorie</dt><dd><?= htmlspecialchars($incident['subcategory_name'] ?? '') ?></dd></div>
-      <div><dt>Object</dt><dd><?= htmlspecialchars($incident['asset_objectid'] ?? '') ?></dd></div>
-      <div><dt>Type</dt><dd><?= htmlspecialchars($incident['asset_type'] ?? '') ?></dd></div>
-      <div><dt>Aangemaakt</dt><dd><?= htmlspecialchars($incident['createdat']) ?></dd></div>
-      <div><dt>Bijgewerkt</dt><dd><?= htmlspecialchars($incident['updatedat']) ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Status')) ?></dt><dd><?= htmlspecialchars($incident['status_name'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Categorie')) ?></dt><dd><?= htmlspecialchars($incident['category_name'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Subcategorie')) ?></dt><dd><?= htmlspecialchars($incident['subcategory_name'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Object')) ?></dt><dd><?= htmlspecialchars($incident['asset_objectid'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Type')) ?></dt><dd><?= htmlspecialchars($incident['asset_type'] ?? '') ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Aangemaakt')) ?></dt><dd><?= htmlspecialchars($incident['createdat']) ?></dd></div>
+      <div><dt><?= htmlspecialchars(t('Bijgewerkt')) ?></dt><dd><?= htmlspecialchars($incident['updatedat']) ?></dd></div>
     </dl>
   </article>
 
   <article class="ssp-detail-card">
-    <h3>Omschrijving</h3>
+    <h3><?= htmlspecialchars(t('Omschrijving')) ?></h3>
     <p><?= task_linkify_text($incident['description'] ?? '', 'public') ?></p>
   </article>
 </section>
 
 <section class="ssp-panel" style="margin-top: 22px;">
   <div class="ssp-panel-head">
-    <h3>Commentaar</h3>
+    <h3><?= htmlspecialchars(t('Commentaar')) ?></h3>
   </div>
   <?php if ( !empty( $errors ) ): ?>
   <div class="ssp-error">
@@ -117,12 +117,12 @@ ssp_render_header( $person, 'incidents' );
   <?php endif; ?>
   <form method="post" enctype="multipart/form-data" class="ssp-form-stack" style="margin-bottom: 18px;">
     <div class="ssp-field">
-      <label for="commenttext">Nieuwe reactie</label>
-      <textarea id="commenttext" name="commenttext" placeholder="Plaats hier je aanvullende informatie of reactie."></textarea>
+      <label for="commenttext"><?= htmlspecialchars(t('Nieuwe reactie')) ?></label>
+      <textarea id="commenttext" name="commenttext" placeholder="<?= htmlspecialchars(t('Plaats hier je aanvullende informatie of reactie.')) ?>"></textarea>
     </div>
     <?php ssp_attachment_render_upload_field(); ?>
     <div class="ssp-form-actions">
-      <button class="ssp-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Reactie plaatsen</button>
+      <button class="ssp-button" type="submit"><i class="fa-solid fa-paper-plane"></i> <?= htmlspecialchars(t('Reactie plaatsen')) ?></button>
     </div>
   </form>
   <div class="ssp-comment-list">

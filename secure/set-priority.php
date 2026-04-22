@@ -90,53 +90,53 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <center><h1>Impact / Urgency / Priority</h1></center>
+  <center><h1><?= htmlspecialchars(t('Impact / Urgency / Priority')) ?></h1></center>
   <?php if ( $success !== '' ): ?><p class="success"><?= htmlspecialchars($success) ?></p><?php endif; ?>
   <?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?>
 
   <div class="page-layout">
     <div class="page-sidebar">
       <div class="form-card">
-        <h2>Impact toevoegen</h2>
+        <h2><?= htmlspecialchars(t('Impact toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_impact">
-          <div class="form-group"><label>Naam</label><input type="text" name="name" required></div>
+          <div class="form-group"><label><?= htmlspecialchars(t('Naam')) ?></label><input type="text" name="name" required></div>
           <div class="form-group"><label>Sorteervolgorde</label><input type="number" name="sortorder" value="0"></div>
-          <button type="submit" class="btn-primary">Impact opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Impact opslaan')) ?></button>
         </form>
       </div>
       <br>
       <div class="form-card">
-        <h2>Urgency toevoegen</h2>
+        <h2><?= htmlspecialchars(t('Urgency toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_urgency">
-          <div class="form-group"><label>Naam</label><input type="text" name="name" required></div>
+          <div class="form-group"><label><?= htmlspecialchars(t('Naam')) ?></label><input type="text" name="name" required></div>
           <div class="form-group"><label>Sorteervolgorde</label><input type="number" name="sortorder" value="0"></div>
-          <button type="submit" class="btn-primary">Urgency opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Urgency opslaan')) ?></button>
         </form>
       </div>
       <br>
       <div class="form-card">
-        <h2>Priority toevoegen</h2>
+        <h2><?= htmlspecialchars(t('Priority toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_priority">
-          <div class="form-group"><label>Naam</label><input type="text" name="name" required></div>
+          <div class="form-group"><label><?= htmlspecialchars(t('Naam')) ?></label><input type="text" name="name" required></div>
           <div class="form-group"><label>Sorteervolgorde</label><input type="number" name="sortorder" value="0"></div>
-          <button type="submit" class="btn-primary">Priority opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Priority opslaan')) ?></button>
         </form>
       </div>
     </div>
     <div class="page-content">
       <div class="results">
         <table class="results" style="width:100%;">
-          <thead><tr><th>Impact</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <thead><tr><th><?= htmlspecialchars(t('Impact')) ?></th><th><?= htmlspecialchars(t('Sorteervolgorde')) ?></th><th><?= htmlspecialchars(t('Actief')) ?></th><th><?= htmlspecialchars(t('Actie')) ?></th></tr></thead>
           <tbody>
             <?php while ( $row = mysqli_fetch_assoc( $all_impacts ) ): ?>
             <tr>
               <td><?= htmlspecialchars($row['name']) ?></td>
               <td><?= (int)$row['sortorder'] ?></td>
               <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
-              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=impact&id=<?= (int)$row['id'] ?>">Open Impact</a></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=impact&id=<?= (int)$row['id'] ?>"><?= htmlspecialchars(t('Open Impact')) ?></a></td>
             </tr>
             <?php endwhile; ?>
           </tbody>
@@ -145,14 +145,14 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
       <br>
       <div class="results">
         <table class="results" style="width:100%;">
-          <thead><tr><th>Urgency</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <thead><tr><th><?= htmlspecialchars(t('Urgency')) ?></th><th><?= htmlspecialchars(t('Sorteervolgorde')) ?></th><th><?= htmlspecialchars(t('Actief')) ?></th><th><?= htmlspecialchars(t('Actie')) ?></th></tr></thead>
           <tbody>
             <?php while ( $row = mysqli_fetch_assoc( $all_urgencies ) ): ?>
             <tr>
               <td><?= htmlspecialchars($row['name']) ?></td>
               <td><?= (int)$row['sortorder'] ?></td>
               <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
-              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=urgency&id=<?= (int)$row['id'] ?>">Open Urgency</a></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=urgency&id=<?= (int)$row['id'] ?>"><?= htmlspecialchars(t('Open Urgency')) ?></a></td>
             </tr>
             <?php endwhile; ?>
           </tbody>
@@ -161,14 +161,14 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
       <br>
       <div class="results">
         <table class="results" style="width:100%;">
-          <thead><tr><th>Priority</th><th>Sorteervolgorde</th><th>Actief</th><th>Actie</th></tr></thead>
+          <thead><tr><th><?= htmlspecialchars(t('Priority')) ?></th><th><?= htmlspecialchars(t('Sorteervolgorde')) ?></th><th><?= htmlspecialchars(t('Actief')) ?></th><th><?= htmlspecialchars(t('Actie')) ?></th></tr></thead>
           <tbody>
             <?php while ( $row = mysqli_fetch_assoc( $all_priorities ) ): ?>
             <tr>
               <td><?= htmlspecialchars($row['name']) ?></td>
               <td><?= (int)$row['sortorder'] ?></td>
               <td><?= (int)$row['active'] === 1 ? 'Ja' : 'Nee' ?></td>
-              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=priority&id=<?= (int)$row['id'] ?>">Open Priority</a></td>
+              <td class="tblaction"><a class="btn" href="edit_priority_item.php?kind=priority&id=<?= (int)$row['id'] ?>"><?= htmlspecialchars(t('Open Priority')) ?></a></td>
             </tr>
             <?php endwhile; ?>
           </tbody>
@@ -176,43 +176,43 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
       </div>
       <br>
       <div class="form-card form-card-wide">
-        <h2>Priority matrix</h2>
+        <h2><?= htmlspecialchars(t('Priority matrix')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="save_matrix">
           <div class="form-group">
-            <label>Impact</label>
+            <label><?= htmlspecialchars(t('Impact')) ?></label>
             <select name="impactid" required>
-              <option value="">Selecteer impact</option>
+              <option value=""><?= htmlspecialchars(t('Selecteer impact')) ?></option>
               <?php foreach ( $reference_data['impacts'] as $impact ): ?>
               <option value="<?= (int)$impact['id'] ?>"><?= htmlspecialchars($impact['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
           <div class="form-group">
-            <label>Urgency</label>
+            <label><?= htmlspecialchars(t('Urgency')) ?></label>
             <select name="urgencyid" required>
-              <option value="">Selecteer urgency</option>
+              <option value=""><?= htmlspecialchars(t('Selecteer urgency')) ?></option>
               <?php foreach ( $reference_data['urgencies'] as $urgency ): ?>
               <option value="<?= (int)$urgency['id'] ?>"><?= htmlspecialchars($urgency['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
           <div class="form-group">
-            <label>Priority</label>
+            <label><?= htmlspecialchars(t('Priority')) ?></label>
             <select name="priorityid" required>
-              <option value="">Selecteer priority</option>
+              <option value=""><?= htmlspecialchars(t('Selecteer priority')) ?></option>
               <?php foreach ( $reference_data['priorities'] as $priority ): ?>
               <option value="<?= (int)$priority['id'] ?>"><?= htmlspecialchars($priority['name']) ?></option>
               <?php endforeach; ?>
             </select>
           </div>
-          <button type="submit" class="btn-primary">Matrixregel opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Matrixregel opslaan')) ?></button>
         </form>
       </div>
       <br>
       <div class="results">
         <table class="results" style="width:100%;">
-          <thead><tr><th>Impact</th><th>Urgency</th><th>Priority</th></tr></thead>
+          <thead><tr><th><?= htmlspecialchars(t('Impact')) ?></th><th><?= htmlspecialchars(t('Urgency')) ?></th><th><?= htmlspecialchars(t('Priority')) ?></th></tr></thead>
           <tbody>
             <?php while ( $row = mysqli_fetch_assoc( $matrix_result ) ): ?>
             <tr>

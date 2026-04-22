@@ -32,9 +32,9 @@ if ( !isset( $_GET['kind'], $_GET['id'] ) || !is_numeric( $_GET['id'] ) ) {
 $kind = (string)$_GET['kind'];
 $id = (int)$_GET['id'];
 $kind_map = [
-  'impact' => [ 'table' => 'itsm_core_impacts', 'label' => 'Impact' ],
-  'urgency' => [ 'table' => 'itsm_core_urgencies', 'label' => 'Urgency' ],
-  'priority' => [ 'table' => 'itsm_core_priorities', 'label' => 'Priority' ]
+  'impact' => [ 'table' => 'itsm_core_impacts', 'label' => t('Impact') ],
+  'urgency' => [ 'table' => 'itsm_core_urgencies', 'label' => t('Urgency') ],
+  'priority' => [ 'table' => 'itsm_core_priorities', 'label' => t('Priority') ]
 ];
 
 if ( !isset( $kind_map[$kind] ) ) {
@@ -120,7 +120,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete'] ) ) {
           <label class="checkbox-label"><input type="checkbox" name="active" value="1" <?= (int)$item['active'] === 1 ? 'checked' : '' ?>> Actief</label>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-primary"><?= htmlspecialchars($label) ?> opslaan</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars($label . ' ' . t('opslaan')) ?></button>
           <button type="submit" name="delete" value="1" class="btn-danger" onclick="return confirm('Weet je zeker dat je dit item wil verwijderen?');">Verwijderen</button>
         </div>
       </form>

@@ -33,7 +33,7 @@ $result3 = $stmt2->get_result();
 $selected_customer_id = isset( $_GET['customerid'] ) && is_numeric( $_GET['customerid'] ) ? (int)$_GET['customerid'] : 0;
 // Boolean fields with display names
 $boolFields = [
-  'allowssp' => 'Mag inloggen (SSP)'
+  'allowssp' => t('Mag inloggen (SSP)')
 ];
 
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
@@ -86,7 +86,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $list_back_url = 'persons.php'; require(__DIR__ . '/include/back_links.php'); ?>
   <center>
-    <h1>Nieuw Persoon</h1>
+    <h1><?= htmlspecialchars(t('Nieuw persoon')) ?></h1>
   </center>
   <div class="form-wrapper">
     <div class="form-card">
@@ -94,12 +94,12 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         
         <!-- Basic fields -->
         
-        <h3>Basis informatie</h3>
-        Klant:
+        <h3><?= htmlspecialchars(t('Basis informatie')) ?></h3>
+        <?= htmlspecialchars(t('Klant')) ?>:
         <div class="form-group">
           <?
 
-          echo '<select name="customerid" required><option value="">--selecteer een klant--</option>';
+          echo '<select name="customerid" required><option value="">--' . htmlspecialchars( t('selecteer een klant') ) . '--</option>';
 
           // Check if nothing is selected
 
@@ -115,29 +115,29 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         </div>
         <br>
         <div class="form-group">
-          <label>Voornaam:
+          <label><?= htmlspecialchars(t('Voornaam')) ?>:
             <input type="text" name="firstname" required>
           </label>
         </div>
         <br>
         <div class="form-group">
-          <label>Achternaam:
+          <label><?= htmlspecialchars(t('Achternaam')) ?>:
             <input type="text" name="lastname" required>
           </label>
         </div>
         <br>
         <div class="form-group">
-          <label>E-mail:
+          <label><?= htmlspecialchars(t('E-mail')) ?>:
             <input type="email" name="email" required>
           </label>
         </div>
         <br>
         <div class="form-group">
-          <label>Telefoonnummer:
+          <label><?= htmlspecialchars(t('Telefoonnummer')) ?>:
             <input type="text" name="phone">
           </label>
         </div>
-        <p class="info-note">Het wachtwoord wordt automatisch willekeurig gezet. De gebruiker stelt zelf een wachtwoord in via een SelfService wachtwoordreset.</p>
+        <p class="info-note"><?= htmlspecialchars(t('Het wachtwoord wordt automatisch willekeurig gezet. De gebruiker stelt zelf een wachtwoord in via een SelfService wachtwoordreset.')) ?></p>
         
         <!-- Permissions -->
         
@@ -151,7 +151,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         </div>
         <br>
         <div class="form-actions">
-          <button type="submit" class="btn-primary">Maak persoon</button>
+          <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Maak persoon')) ?></button>
         </div>
       </form>
     </div>

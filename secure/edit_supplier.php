@@ -98,7 +98,7 @@ if ( !$result ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content"> <?php $list_back_url = 'suppliers.php'; require(__DIR__ . '/include/back_links.php'); ?>
   <center>
-    <h1>Leverancier Bewerken:
+    <h1><?= htmlspecialchars(t('Leverancier bewerken:')) ?>
       <?= htmlspecialchars($row2['name']) ?>
     </h1>
   </center>

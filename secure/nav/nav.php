@@ -18,7 +18,7 @@
 
 <!-- Secure page tabs -->
 <div class="secure-tabbar-wrap">
-  <div class="secure-tabbar" id="secure_tabbar" aria-label="Open tabbladen"></div>
+  <div class="secure-tabbar" id="secure_tabbar" aria-label="<?= htmlspecialchars(t('Open tabbladen')) ?>"></div>
 </div>
 
 <!-- Sidebar -->

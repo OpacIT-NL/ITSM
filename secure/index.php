@@ -379,8 +379,8 @@ if ( (int)$operator['ubm'] === 1 ) {
             <thead>
               <tr>
                 <th style="text-align: start;">Module</th>
-                <th class="dashboard-task-count-heading" title="Op mijn naam" aria-label="Op mijn naam"><i class="fa-solid fa-user"></i></th>
-                <th class="dashboard-task-count-heading" title="Mijn naam of groepen" aria-label="Mijn naam of groepen"><i class="fa-solid fa-users"></i></th>
+                <th class="dashboard-task-count-heading" title="<?= htmlspecialchars(t('Op mijn naam')) ?>" aria-label="<?= htmlspecialchars(t('Op mijn naam')) ?>"><i class="fa-solid fa-user"></i></th>
+                <th class="dashboard-task-count-heading" title="<?= htmlspecialchars(t('Mijn naam of groepen')) ?>" aria-label="<?= htmlspecialchars(t('Mijn naam of groepen')) ?>"><i class="fa-solid fa-users"></i></th>
               </tr>
             </thead>
             <tbody>

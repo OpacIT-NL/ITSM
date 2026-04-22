@@ -17,11 +17,11 @@ if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <?php require_once(__DIR__ . '/nav/modules.php'); ?>
 <div class="module-section">
-  <h1>Kennisbank</h1>
+  <h1><?= htmlspecialchars(t('Kennisbank')) ?></h1>
   <div class="module-grid">
-    <a href="new_kb_item.php">Nieuw kennisitem</a>
-    <a href="kb_items.php">Alle kennisitems</a>
-    <a href="kb_items.php?visibility=public">Publieke kennisitems</a>
+    <a href="new_kb_item.php"><?= htmlspecialchars(t('Nieuw kennisitem')) ?></a>
+    <a href="kb_items.php"><?= htmlspecialchars(t('Alle kennisitems')) ?></a>
+    <a href="kb_items.php?visibility=public"><?= htmlspecialchars(t('Publieke kennisitems')) ?></a>
   </div>
 </div>
 </div>

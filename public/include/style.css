@@ -487,6 +487,26 @@ a {
   background: #ffffff;
   object-fit: contain;
 }
+.task-checklist {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.task-checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.task-checklist-item input[type="checkbox"] {
+  margin: 2px 0 0;
+  accent-color: #356f9d;
+}
+.task-checklist-item span {
+  flex: 1;
+}
 
 .ssp-attachment-hint {
   display: block;

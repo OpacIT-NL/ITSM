@@ -91,24 +91,28 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' && !isset( $_POST['send_password_re
     $boolValues[ $field ] = isset( $_POST[ $field ] ) ? 1 : 0;
   }
 
+  $preferred_language = trim( (string)( $_POST['preferredlanguage'] ?? '' ) );
+  $preferred_language = $preferred_language !== '' ? itsm_normalize_language_code( $preferred_language ) : null;
   $stmt = mysqli_prepare( $con, "
         UPDATE itsm_ob_persons SET
             firstname=?,
             lastname=?,
             email=?,
             phone=?,
-            allowssp=?
+            allowssp=?,
+            preferredlanguage=?
         WHERE id=?
     " );
 
   mysqli_stmt_bind_param(
     $stmt,
-    "ssssii",
+    "ssssisi",
     $_POST[ 'firstname' ],
     $_POST[ 'lastname' ],
     $_POST[ 'email' ],
     $_POST[ 'phone' ],
     $boolValues[ 'allowssp' ],
+    $preferred_language,
     $id
   );
 
@@ -167,6 +171,17 @@ if ( !$operator ) {
         <div class="form-group">
           <label>Telefoonnummer:
             <input type="text" name="phone" value="<?= htmlspecialchars($operator['phone']) ?>">
+          </label>
+        </div>
+        <br>
+        <div class="form-group">
+          <label><?= htmlspecialchars(t('person.preferred_language')) ?>:
+            <select name="preferredlanguage">
+              <option value="">-</option>
+              <?php foreach ( itsm_available_languages() as $code => $label ): ?>
+              <option value="<?= htmlspecialchars($code) ?>" <?= ($operator['preferredlanguage'] ?? '') === $code ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+              <?php endforeach; ?>
+            </select>
           </label>
         </div>
         <br>

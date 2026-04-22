@@ -107,7 +107,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
 <div class="content">
-  <span data-tab-title="Nieuw" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($form_values['itemtype']), ENT_QUOTES) ?>" hidden></span>
+  <span data-tab-title="<?= htmlspecialchars(t('Nieuw'), ENT_QUOTES) ?>" data-tab-subtitle="<?= htmlspecialchars(ubm_type_label($form_values['itemtype']), ENT_QUOTES) ?>" hidden></span>
   <?php $list_back_url = ubm_get_list_back_url( 'ubm-menu.php' ); require(__DIR__ . '/include/back_links.php'); ?>
   <center>
     <h1>UBM-item aanmaken</h1>
@@ -151,7 +151,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           </div>
           <div class="form-group">
             <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value="">Selecteer een subcategorie</option></select>
+            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
           </div>
           <div class="form-group">
             <label>Team</label>
@@ -165,8 +165,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
           <div class="form-group">
             <label>Behandelaar</label>
             <label class="assign-to-me-row">
-              <select name="operatorid" id="operator_id"><option value="">Selecteer een behandelaar</option></select>
-              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="Aan mij toewijzen" aria-label="Aan mij toewijzen"><i class="fa-solid fa-user"></i></button>
+              <select name="operatorid" id="operator_id"><option value=""><?= htmlspecialchars(t('Selecteer een behandelaar')) ?></option></select>
+              <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             </label>
           </div>
           <div class="form-group">
@@ -194,10 +194,14 @@ const ubmOpLinks = <?= json_encode($reference_data['op_links'], JSON_HEX_TAG | J
 const ubmCurrentOperatorId = <?= json_encode((string)$form_values['operatorid']) ?>;
 const ubmLoggedInOperatorId = <?= json_encode((string)($operator_context['id'] ?? '')) ?>;
 const ubmLoggedInOperatorGroupIds = [...new Set(ubmOpLinks.filter((row) => String(row.operatorid) === String(ubmLoggedInOperatorId)).map((row) => String(row.groupid)))];
+const ubmFormI18n = {
+  selectSubcategory: <?= json_encode(t('Selecteer een subcategorie')) ?>,
+  selectOperator: <?= json_encode(t('Selecteer een behandelaar')) ?>
+};
 function refreshUbmSubcategories() {
   const categoryId = document.getElementById('category_id').value;
   const select = document.getElementById('subcategory_id');
-  select.innerHTML = '<option value="">Selecteer een subcategorie</option>';
+  select.innerHTML = `<option value="">${ubmFormI18n.selectSubcategory}</option>`;
   ubmSubcategories.filter((row) => String(row.parent) === String(categoryId)).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);
@@ -213,7 +217,7 @@ function refreshUbmOperators() {
   const groupId = document.getElementById('operatorgroup_id').value;
   const select = document.getElementById('operator_id');
   const operatorIds = groupId ? ubmOpLinks.filter((row) => String(row.groupid) === String(groupId)).map((row) => String(row.operatorid)) : ubmOperators.map((row) => String(row.id));
-  select.innerHTML = '<option value="">Selecteer een behandelaar</option>';
+  select.innerHTML = `<option value="">${ubmFormI18n.selectOperator}</option>`;
   ubmOperators.filter((row) => operatorIds.includes(String(row.id))).forEach((row) => {
     const option = document.createElement('option');
     option.value = String(row.id);

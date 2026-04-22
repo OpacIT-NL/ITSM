@@ -319,9 +319,9 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
           'assetid' => 'Object ID',
           'operatorgroupid' => 'Behandelaarsgroep',
           'operatorid' => 'Behandelaar',
-          'impactid' => 'Impact',
-          'urgencyid' => 'Urgency',
-          'priorityid' => 'Priority'
+          'impactid' => t('Impact'),
+          'urgencyid' => t('Urgency'),
+          'priorityid' => t('Priority')
         ],
         (int)$operator_context['id']
       );
@@ -361,7 +361,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_comment_id'
         }
         attachment_save_upload( $con, 'problem', $problem_id, (int)$operator_context['id'], $form_values['internalonly'], 'problemcomment', $attachment_comment_id );
       }
-      mail_process_status_change( $con, 'problem', $problem_id, $old_status_id, $status_id );
+      mail_process_status_change( $con, 'problem', $problem_id, $old_status_id, $status_id, (int)$operator_context['id'] );
       task_log_status_change( $con, 'problem', $problem_id, $old_status_id, $status_id, (int)$operator_context['id'] );
 
       header( 'Location: edit_problem.php?id=' . $problem_id );

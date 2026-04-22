@@ -42,18 +42,18 @@ if ( !$result ) {
 <div class="content">
 <?php $module_back_url = 'ob-menu.php'; require(__DIR__ . '/include/module_links.php'); ?>
 <center>
-  <h1>Leveranciers</h1>
+  <h1><?= htmlspecialchars(t('Leveranciers')) ?></h1>
 </center>
-<a href="new_supplier.php">Nieuwe Leverancier</a>
+<a href="new_supplier.php"><?= htmlspecialchars(t('Nieuwe Leverancier')) ?></a>
 <div class="results">
 <table border="0" class=results style="width: 100%;">
 <thead>
   <tr>
     <th style="text-align: start;">CIN</th>
-    <th style="text-align: start;">Naam</th>
-    <th style="text-align: start;">E-mail</th>
-    <th style="text-align: start;">Telefoonnummer</th>
-    <th style="text-align: start;">Actie</th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Naam')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('E-mail')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Telefoonnummer')) ?></th>
+    <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
   </tr>
 </thead>
 <tbody>
@@ -63,7 +63,7 @@ if ( !$result ) {
     <td><?= htmlspecialchars($row['name']) ?></td>
     <td><?= htmlspecialchars($row['primaryemail']) ?></td>
     <td><?= htmlspecialchars($row['primaryphone']) ?></td>
-    <td class="tblaction"><a class="btn" href="edit_supplier.php?id=<?= $row['id'] ?>"> Open Leverancier </a></td>
+    <td class="tblaction"><a class="btn" href="edit_supplier.php?id=<?= $row['id'] ?>"><?= htmlspecialchars(t('Open Leverancier')) ?></a></td>
   </tr>
   <?php endwhile; ?>
 </div>
