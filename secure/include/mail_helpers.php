@@ -67,6 +67,45 @@ function mail_task_url( $type, $id ) {
   return $host !== '' ? $scheme . '://' . $host . $path : $path;
 }
 
+function mail_task_public_url( $type, $id ) {
+  $path = '';
+  if ( $type === 'incident' ) {
+    $path = '/public/view_incident.php?id=' . (int)$id;
+  } elseif ( $type === 'change' ) {
+    $path = '/public/view_change.php?id=' . (int)$id;
+  }
+
+  if ( $path === '' ) {
+    return '';
+  }
+
+  $scheme = !empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+  $host = $_SERVER['HTTP_HOST'] ?? '';
+  return $host !== '' ? $scheme . '://' . $host . $path : $path;
+}
+
+function mail_message_id_domain( $from_email ) {
+  $from_email = (string)$from_email;
+  $parts = explode( '@', $from_email, 2 );
+  if ( count( $parts ) === 2 && $parts[1] !== '' ) {
+    return $parts[1];
+  }
+
+  $host = (string)( $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost' );
+  $host = preg_replace( '/:\d+$/', '', $host );
+  return $host !== '' ? $host : 'localhost';
+}
+
+function mail_build_message_id( $from_email ) {
+  try {
+    $random = bin2hex( random_bytes( 12 ) );
+  } catch ( Exception $exception ) {
+    $random = md5( uniqid( '', true ) );
+  }
+
+  return sprintf( '<%s@%s>', $random, mail_message_id_domain( $from_email ) );
+}
+
 function mail_full_name( $firstname, $lastname ) {
   return trim( trim( (string)$firstname ) . ' ' . trim( (string)$lastname ) );
 }
@@ -325,28 +364,6 @@ function filter_var_email( $value ) {
   return filter_var( $value, FILTER_VALIDATE_EMAIL ) !== false;
 }
 
-function mail_message_id_domain( $from_email ) {
-  $from_email = (string)$from_email;
-  $parts = explode( '@', $from_email, 2 );
-  if ( count( $parts ) === 2 && $parts[1] !== '' ) {
-    return $parts[1];
-  }
-
-  $host = (string)( $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost' );
-  $host = preg_replace( '/:\d+$/', '', $host );
-  return $host !== '' ? $host : 'localhost';
-}
-
-function mail_build_message_id( $from_email ) {
-  try {
-    $random = bin2hex( random_bytes( 12 ) );
-  } catch ( Exception $exception ) {
-    $random = md5( uniqid( '', true ) );
-  }
-
-  return sprintf( '<%s@%s>', $random, mail_message_id_domain( $from_email ) );
-}
-
 function mail_smtp_command( $socket, $command, $expected_codes ) {
   if ( $command !== null ) {
     fwrite( $socket, $command . "\r\n" );
@@ -508,28 +525,12 @@ function mail_load_manual_rules( $con, $task_type ) {
 }
 
 function mail_manual_rule_label( $rule ) {
-  $trigger = $rule['triggertype'] ?? '';
-  if ( $trigger === 'created' ) {
-    $trigger_label = 'Bij aanmaak';
-  } elseif ( $trigger === 'statuschange' ) {
-    $from = $rule['from_status_name'] ?? '';
-    $to = $rule['to_status_name'] ?? '';
-    $trigger_label = 'Status: ' . ( $from !== '' ? $from : 'elke status' ) . ' -> ' . ( $to !== '' ? $to : 'onbekend' );
-  } else {
-    $trigger_label = $trigger !== '' ? $trigger : 'Handmatig';
-  }
-
   $subject = trim( (string)( $rule['subject'] ?? '' ) );
-  $template = trim( (string)( $rule['templatefile'] ?? '' ) );
-  $parts = [ $trigger_label ];
   if ( $subject !== '' ) {
-    $parts[] = $subject;
-  }
-  if ( $template !== '' ) {
-    $parts[] = $template;
+    return $subject;
   }
 
-  return implode( ' - ', $parts );
+  return 'ITSM ' . ( $rule['id'] ?? '' );
 }
 
 function mail_send_manual_rule( $con, $rule_id, $task_type, $task_id, $operator_id ) {
