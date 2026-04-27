@@ -170,82 +170,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   form_presence_redirect_if_stale( $con, 'change', $change_id, $_POST['presence_token'] ?? '', 'edit_change.php?id=' . $change_id );
   $action = $_POST['change_action'] ?? 'save';
 
-  $form_values = [
-    'commentid' => $_POST['commentid'] ?? '',
-    'requesttype' => $_POST['requesttype'] ?? $change['requesttype'],
-    'changetype' => $_POST['changetype'] ?? $change['changetype'],
-    'title' => trim( $_POST['title'] ?? '' ),
-    'description' => trim( $_POST['description'] ?? '' ),
-    'commenttext' => trim( $_POST['commenttext'] ?? '' ),
-    'internalonly' => isset( $_POST['internalonly'] ) ? 1 : 0,
-    'customerid' => $_POST['customerid'] ?? '',
-    'personid' => $_POST['personid'] ?? '',
-    'personemail' => '',
-    'personphone' => '',
-    'categoryid' => $_POST['categoryid'] ?? '',
-    'subcategoryid' => $_POST['subcategoryid'] ?? '',
-    'assetid' => $_POST['assetid'] ?? '',
-    'assettype' => '',
-    'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
-    'operatorid' => $_POST['operatorid'] ?? '',
-    'coordinatorid' => $_POST['coordinatorid'] ?? '',
-    'statusid' => $_POST['statusid'] ?? '',
-    'statusready' => 0,
-    'statusclosed' => 0,
-    'impactid' => $_POST['impactid'] ?? '',
-    'urgencyid' => $_POST['urgencyid'] ?? '',
-    'priorityid' => '',
-    'priorityname' => '',
-    'applied_template_id' => $_POST['applied_template_id'] ?? '',
-    'template_used' => ( $change['template_used'] ?? '' ) !== '' ? (string)$change['template_used'] : ( $_POST['applied_template_id'] ?? '' )
-  ];
-
-  $requires_status = $change['approvalstate'] === 'approved';
-  $validation = change_validate_form(
-    [
-      'requesttype' => $form_values['requesttype'],
-      'changetype' => $form_values['changetype'],
-      'title' => $form_values['title'],
-      'customerid' => (int)$form_values['customerid'],
-      'personid' => (int)$form_values['personid'],
-      'categoryid' => (int)$form_values['categoryid'],
-      'subcategoryid' => (int)$form_values['subcategoryid'],
-      'assetid' => (int)$form_values['assetid'],
-      'operatorgroupid' => (int)$form_values['operatorgroupid'],
-      'operatorid' => (int)$form_values['operatorid'],
-      'coordinatorid' => (int)$form_values['coordinatorid'],
-      'statusid' => $requires_status ? (int)$form_values['statusid'] : 0,
-      'impactid' => (int)$form_values['impactid'],
-      'urgencyid' => (int)$form_values['urgencyid'],
-      'requires_status' => $requires_status
-    ],
-    $reference_data
-  );
-
-  $errors = $validation['errors'];
-  if ( $validation['person'] ) {
-    $form_values['personemail'] = $validation['person']['email'] ?? '';
-    $form_values['personphone'] = $validation['person']['phone'] ?? '';
-  }
-  if ( $validation['asset'] ) {
-    $form_values['assettype'] = $validation['asset']['typename'] ?? '';
-  }
-  $form_values['priorityid'] = $validation['priority']['priorityid'] ? (string)$validation['priority']['priorityid'] : '';
-  $form_values['priorityname'] = priority_name_by_id( $reference_data, $validation['priority']['priorityid'] );
-  if ( $validation['status'] ) {
-    $form_values['statusready'] = (int)$validation['status']['ready'];
-    $form_values['statusclosed'] = (int)$validation['status']['closed'];
-  }
-
-  if ( $action === 'approve' ) {
-    if ( $form_values['requesttype'] === 'simple' && (int)$operator_context['simplechange'] === 0 ) {
-      $errors[] = 'Je hebt geen rechten om een eenvoudige wijziging goed te keuren.';
-    }
-    if ( $form_values['requesttype'] === 'extended' && (int)$operator_context['extchange'] === 0 ) {
-      $errors[] = 'Je hebt geen rechten om een uitgebreide wijziging goed te keuren.';
-    }
-  }
-
   if ( $action === 'add_activity' ) {
     $activity_values = [
       'title' => trim( $_POST['activity_title'] ?? '' ),
@@ -254,50 +178,14 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
       'operatorid' => $_POST['activity_operatorid'] ?? '',
       'statusid' => $_POST['activity_statusid'] ?? ''
     ];
-  }
-  $errors = array_merge( $errors, attachment_upload_errors() );
-  if ( $action === 'add_activity' ) {
     $errors = array_merge( $errors, attachment_upload_errors( 'activity_attachment' ) );
-  }
-  $presence_check = form_presence_check_before_save( $con, 'change', $change_id, $_POST['presence_token'] ?? '' );
-  if ( !$presence_check['ok'] ) {
-    $errors[] = $presence_check['message'];
-  }
-
-  if ( empty( $errors ) ) {
-    $customer_id = (int)$validation['customer']['id'];
-    $person_id = (int)$validation['person']['id'];
-    $category_id = (int)$validation['category']['id'];
-    $subcategory_id = $validation['subcategory'] ? (int)$validation['subcategory']['id'] : null;
-    $asset_id = $validation['asset'] ? (int)$validation['asset']['id'] : null;
-    $group_id = $validation['group'] ? (int)$validation['group']['id'] : null;
-    $operator_id = $form_values['requesttype'] === 'simple' && $validation['operator'] ? (int)$validation['operator']['id'] : null;
-    $coordinator_id = $form_values['requesttype'] === 'extended' && $validation['coordinator'] ? (int)$validation['coordinator']['id'] : null;
-    $old_status_id = (int)($change['statusid'] ?? 0);
-    $status_id = $validation['status'] ? (int)$validation['status']['id'] : null;
-    $impact_id = $validation['priority']['impactid'];
-    $urgency_id = $validation['priority']['urgencyid'];
-    $priority_id = $validation['priority']['priorityid'];
-    $person_email = $validation['person']['email'] ?? '';
-    $person_phone = $validation['person']['phone'] ?? '';
-    $template_used = $form_values['template_used'] !== '' ? (int)$form_values['template_used'] : null;
-    $approval_state = $change['approvalstate'];
-    $closed = (int)$change['closed'];
-
-    if ( $action === 'approve' ) {
-      $approval_state = 'approved';
-      $closed = 0;
-      if ( !$status_id ) {
-        $status_id = change_default_status_id( $reference_data['statuses'] );
-      }
-    } elseif ( $action === 'reject' ) {
-      $approval_state = 'rejected';
-      $closed = 1;
-      $status_id = null;
+    $presence_check = form_presence_check_before_save( $con, 'change', $change_id, $_POST['presence_token'] ?? '' );
+    if ( !$presence_check['ok'] ) {
+      $errors[] = $presence_check['message'];
     }
 
-    if ( $action === 'add_activity' ) {
-      if ( $form_values['requesttype'] !== 'extended' ) {
+    if ( empty( $errors ) ) {
+      if ( $change['requesttype'] !== 'extended' ) {
         $errors[] = 'Wijzigingsactiviteiten zijn alleen beschikbaar op uitgebreide wijzigingen.';
       } else {
         $activity_validation = change_validate_activity_form(
@@ -344,7 +232,122 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
           exit;
         }
       }
-    } elseif ( empty( $errors ) ) {
+    }
+  } else {
+    $form_values = [
+      'commentid' => $_POST['commentid'] ?? '',
+      'requesttype' => $_POST['requesttype'] ?? $change['requesttype'],
+      'changetype' => $_POST['changetype'] ?? $change['changetype'],
+      'title' => trim( $_POST['title'] ?? '' ),
+      'description' => trim( $_POST['description'] ?? '' ),
+      'commenttext' => trim( $_POST['commenttext'] ?? '' ),
+      'internalonly' => isset( $_POST['internalonly'] ) ? 1 : 0,
+      'customerid' => $_POST['customerid'] ?? '',
+      'personid' => $_POST['personid'] ?? '',
+      'personemail' => '',
+      'personphone' => '',
+      'categoryid' => $_POST['categoryid'] ?? '',
+      'subcategoryid' => $_POST['subcategoryid'] ?? '',
+      'assetid' => $_POST['assetid'] ?? '',
+      'assettype' => '',
+      'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
+      'operatorid' => $_POST['operatorid'] ?? '',
+      'coordinatorid' => $_POST['coordinatorid'] ?? '',
+      'statusid' => $_POST['statusid'] ?? '',
+      'statusready' => 0,
+      'statusclosed' => 0,
+      'impactid' => $_POST['impactid'] ?? '',
+      'urgencyid' => $_POST['urgencyid'] ?? '',
+      'priorityid' => '',
+      'priorityname' => '',
+      'applied_template_id' => $_POST['applied_template_id'] ?? '',
+      'template_used' => ( $change['template_used'] ?? '' ) !== '' ? (string)$change['template_used'] : ( $_POST['applied_template_id'] ?? '' )
+    ];
+
+    $requires_status = $change['approvalstate'] === 'approved';
+    $validation = change_validate_form(
+      [
+        'requesttype' => $form_values['requesttype'],
+        'changetype' => $form_values['changetype'],
+        'title' => $form_values['title'],
+        'customerid' => (int)$form_values['customerid'],
+        'personid' => (int)$form_values['personid'],
+        'categoryid' => (int)$form_values['categoryid'],
+        'subcategoryid' => (int)$form_values['subcategoryid'],
+        'assetid' => (int)$form_values['assetid'],
+        'operatorgroupid' => (int)$form_values['operatorgroupid'],
+        'operatorid' => (int)$form_values['operatorid'],
+        'coordinatorid' => (int)$form_values['coordinatorid'],
+        'statusid' => $requires_status ? (int)$form_values['statusid'] : 0,
+        'impactid' => (int)$form_values['impactid'],
+        'urgencyid' => (int)$form_values['urgencyid'],
+        'requires_status' => $requires_status
+      ],
+      $reference_data
+    );
+
+    $errors = $validation['errors'];
+    if ( $validation['person'] ) {
+      $form_values['personemail'] = $validation['person']['email'] ?? '';
+      $form_values['personphone'] = $validation['person']['phone'] ?? '';
+    }
+    if ( $validation['asset'] ) {
+      $form_values['assettype'] = $validation['asset']['typename'] ?? '';
+    }
+    $form_values['priorityid'] = $validation['priority']['priorityid'] ? (string)$validation['priority']['priorityid'] : '';
+    $form_values['priorityname'] = priority_name_by_id( $reference_data, $validation['priority']['priorityid'] );
+    if ( $validation['status'] ) {
+      $form_values['statusready'] = (int)$validation['status']['ready'];
+      $form_values['statusclosed'] = (int)$validation['status']['closed'];
+    }
+
+    if ( $action === 'approve' ) {
+      if ( $form_values['requesttype'] === 'simple' && (int)$operator_context['simplechange'] === 0 ) {
+        $errors[] = 'Je hebt geen rechten om een eenvoudige wijziging goed te keuren.';
+      }
+      if ( $form_values['requesttype'] === 'extended' && (int)$operator_context['extchange'] === 0 ) {
+        $errors[] = 'Je hebt geen rechten om een uitgebreide wijziging goed te keuren.';
+      }
+    }
+
+    $errors = array_merge( $errors, attachment_upload_errors() );
+    $presence_check = form_presence_check_before_save( $con, 'change', $change_id, $_POST['presence_token'] ?? '' );
+    if ( !$presence_check['ok'] ) {
+      $errors[] = $presence_check['message'];
+    }
+
+    if ( empty( $errors ) ) {
+      $customer_id = (int)$validation['customer']['id'];
+      $person_id = (int)$validation['person']['id'];
+      $category_id = (int)$validation['category']['id'];
+      $subcategory_id = $validation['subcategory'] ? (int)$validation['subcategory']['id'] : null;
+      $asset_id = $validation['asset'] ? (int)$validation['asset']['id'] : null;
+      $group_id = $validation['group'] ? (int)$validation['group']['id'] : null;
+      $operator_id = $form_values['requesttype'] === 'simple' && $validation['operator'] ? (int)$validation['operator']['id'] : null;
+      $coordinator_id = $form_values['requesttype'] === 'extended' && $validation['coordinator'] ? (int)$validation['coordinator']['id'] : null;
+      $old_status_id = (int)($change['statusid'] ?? 0);
+      $status_id = $validation['status'] ? (int)$validation['status']['id'] : null;
+      $impact_id = $validation['priority']['impactid'];
+      $urgency_id = $validation['priority']['urgencyid'];
+      $priority_id = $validation['priority']['priorityid'];
+      $person_email = $validation['person']['email'] ?? '';
+      $person_phone = $validation['person']['phone'] ?? '';
+      $template_used = $form_values['template_used'] !== '' ? (int)$form_values['template_used'] : null;
+      $approval_state = $change['approvalstate'];
+      $closed = (int)$change['closed'];
+
+      if ( $action === 'approve' ) {
+        $approval_state = 'approved';
+        $closed = 0;
+        if ( !$status_id ) {
+          $status_id = change_default_status_id( $reference_data['statuses'] );
+        }
+      } elseif ( $action === 'reject' ) {
+        $approval_state = 'rejected';
+        $closed = 1;
+        $status_id = null;
+      }
+
       $update_stmt = mysqli_prepare( $con, "
                 UPDATE itsm_cm_changes SET
                     requesttype = ?,
@@ -519,11 +522,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         if ( $applied_template && $form_values['requesttype'] === 'extended' && ($applied_template['changerequesttype'] ?? '') === 'extended' ) {
           change_copy_template_activities_to_change( $con, (int)$applied_template['id'], $change_id, (int)$operator_context['id'] );
         }
-        header( 'Location: edit_change.php?id=' . $change_id );
-        exit;
-      }
+      header( 'Location: edit_change.php?id=' . $change_id );
+      exit;
     }
   }
+}
 }
 
 $comments_result = mysqli_query( $con, "
