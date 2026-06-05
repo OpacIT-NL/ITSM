@@ -34,6 +34,7 @@ smtp.ini
 host = "smtp.example.com"
 port = 587
 encryption = "tls"
+validate_cert = 1
 username = "smtp-user@example.com"
 password = "change-me"
 from_email = "itsm@example.com"

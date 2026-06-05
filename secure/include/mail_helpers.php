@@ -399,8 +399,18 @@ function mail_smtp_send( $to, $subject, $html_body ) {
   $port = (int)( $config['port'] ?? 587 );
   $encryption = strtolower( (string)( $config['encryption'] ?? 'tls' ) );
   $timeout = (int)( $config['timeout'] ?? 15 );
-  $remote = $encryption === 'ssl' ? 'ssl://' . $host : $host;
-  $socket = fsockopen( $remote, $port, $errno, $errstr, $timeout );
+  $validate_cert = (int)( $config['validate_cert'] ?? 1 );
+  $context_options = [];
+  if ( $validate_cert === 0 ) {
+    $context_options['ssl'] = [
+      'verify_peer' => false,
+      'verify_peer_name' => false,
+      'allow_self_signed' => true
+    ];
+  }
+  $context = stream_context_create( $context_options );
+  $remote = ( $encryption === 'ssl' ? 'ssl://' : 'tcp://' ) . $host . ':' . $port;
+  $socket = stream_socket_client( $remote, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context );
 
   if ( !$socket ) {
     return false;
