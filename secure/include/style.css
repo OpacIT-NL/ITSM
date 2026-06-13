@@ -594,6 +594,37 @@ p {
   min-width: 0;
   width: 100%;
 }
+.operator-form-card {
+  max-width: 760px;
+}
+.operator-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.operator-group-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  background: #f8fbfe;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.operator-group-option:hover {
+  border-color: var(--topdesk-border-strong);
+  background: #edf4ff;
+}
+.operator-group-option input {
+  flex: 0 0 auto;
+}
+.operator-group-option span {
+  overflow-wrap: anywhere;
+}
 .manual-mail-rule-form {
   margin: 18px 0;
 }

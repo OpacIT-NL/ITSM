@@ -81,7 +81,7 @@ $result3 = $stmt2->get_result();
       <form method="post" class="form-grid">
         
         <!-- Basic fields -->
-        <div class="form-group"> <? echo '<select name="person">';
+        <div class="form-group"> <?php echo '<select name="person">';
 
         while ( $row = $result3->fetch_assoc() ) {
           $id = $row[ 'id' ];

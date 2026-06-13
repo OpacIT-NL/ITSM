@@ -523,6 +523,15 @@ CREATE TABLE `itsm_ubm_items` (
   `updatedat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_ubm_itemcomments` (
+  `id` int(11) NOT NULL,
+  `ubmitemid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `commenttext` longtext NOT NULL,
+  `internalonly` int(1) NOT NULL DEFAULT 0,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 
 ALTER TABLE `itsm_am_assets`
   ADD PRIMARY KEY (`id`),
@@ -768,6 +777,11 @@ ALTER TABLE `itsm_ubm_items`
   ADD KEY `categoryid` (`categoryid`),
   ADD KEY `subcategoryid` (`subcategoryid`);
 
+ALTER TABLE `itsm_ubm_itemcomments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ubmitemid` (`ubmitemid`),
+  ADD KEY `operatorid` (`operatorid`);
+
 
 ALTER TABLE `itsm_am_assets`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
@@ -893,6 +907,9 @@ ALTER TABLE `itsm_public_password_resets`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_ubm_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_ubm_itemcomments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 
@@ -1037,6 +1054,10 @@ ALTER TABLE `itsm_ubm_items`
   ADD CONSTRAINT `itsm_ubm_items_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_6` FOREIGN KEY (`categoryid`) REFERENCES `itsm_core_category` (`id`),
   ADD CONSTRAINT `itsm_ubm_items_ibfk_7` FOREIGN KEY (`subcategoryid`) REFERENCES `itsm_core_subcategory` (`id`);
+
+ALTER TABLE `itsm_ubm_itemcomments`
+  ADD CONSTRAINT `itsm_ubm_itemcomments_ibfk_1` FOREIGN KEY (`ubmitemid`) REFERENCES `itsm_ubm_items` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_ubm_itemcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

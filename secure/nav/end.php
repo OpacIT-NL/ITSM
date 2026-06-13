@@ -21,7 +21,10 @@
   const scrollPrefix = 'itsm_secure_tab_scroll_v1:';
   const presenceTokenPrefix = 'itsm_secure_presence_token_v1:';
   const pendingPresenceSubmitPrefix = 'itsm_secure_pending_presence_submit_v1:';
+  const closedDraftPrefix = 'itsm_secure_closed_draft_v1:';
   const tabbar = document.getElementById('secure_tabbar');
+  const initialActiveTabKey = sessionStorage.getItem(activeTabKeyStorage);
+  let existingTabIdentifiersBeforeBoot = new Set();
 
   if (!tabbar) {
     return;
@@ -95,7 +98,8 @@
       'new_person.php', 'new_persongroup.php', 'new_operator.php', 'new_operatorgroup.php', 'new_supplier.php', 'new_building.php', 'new_customer.php',
       'new_opgrouplink.php', 'new_persongrouplink.php',
       'new_status.php', 'edit_status.php', 'new_cat.php', 'edit_cat.php', 'new_subcat.php', 'edit_subcat.php',
-      'new_template.php', 'edit_template.php', 'edit_template_activity.php', 'new_assettype.php', 'edit_assettype.php', 'edit_amfield.php'
+      'new_template.php', 'edit_template.php', 'edit_template_activity.php', 'new_assettype.php', 'edit_assettype.php', 'edit_amfield.php',
+      'new_news.php', 'edit_news.php'
     ].includes(page)) {
       return 'new-task';
     }
@@ -218,25 +222,62 @@
       if (oldestIndex === -1) {
         return;
       }
+      clearTabState(tabs[oldestIndex]);
       tabs.splice(oldestIndex, 1);
     }
 
     return tabs;
   }
 
+  function identifierVariants(identifier) {
+    if (!identifier) {
+      return [];
+    }
+    const variants = [identifier];
+    try {
+      const url = new URL(identifier, window.location.origin);
+      variants.push(url.pathname + url.search);
+      variants.push(url.pathname);
+    } catch (error) {}
+    return [...new Set(variants.filter(Boolean))];
+  }
+
+  function removeStateForIdentifier(identifier) {
+    identifierVariants(identifier).forEach((variant) => {
+      sessionStorage.removeItem(draftPrefix + variant);
+      sessionStorage.removeItem(scrollPrefix + variant);
+      sessionStorage.removeItem(presenceTokenPrefix + variant);
+      sessionStorage.removeItem(pendingPresenceSubmitPrefix + variant);
+      sessionStorage.setItem(closedDraftPrefix + variant, String(Date.now()));
+    });
+  }
+
+  function clearTabState(tab) {
+    if (!tab) {
+      return;
+    }
+    const identifiers = [...new Set(
+      (typeof tab === 'string' ? [tab] : [tab.url, tab.key]).filter(Boolean)
+    )];
+    identifiers.forEach(removeStateForIdentifier);
+  }
+
   function closeTab(identifier) {
     const currentUrl = normalizeUrl();
     const activeKey = sessionStorage.getItem(activeTabKeyStorage);
-    let tabs = readTabs().filter((tab) => tab.pinned || (tab.url !== identifier && tab.key !== identifier));
-    tabs = ensureDashboardTab(tabs);
-    writeTabs(tabs);
+    let tabs = readTabs();
+    clearTabState(identifier);
+    tabs.filter((tab) => !tab.pinned && (tab.url === identifier || tab.key === identifier)).forEach(clearTabState);
+    let nextTabs = tabs.filter((tab) => tab.pinned || (tab.url !== identifier && tab.key !== identifier));
+    nextTabs = ensureDashboardTab(nextTabs);
+    writeTabs(nextTabs);
 
     if (identifier === currentUrl || identifier === activeKey) {
-      tabs = tabs.sort((a, b) => Number(b.lastActive || 0) - Number(a.lastActive || 0));
-      if (tabs[0]) {
-        sessionStorage.setItem(activeTabKeyStorage, tabs[0].key || tabs[0].url);
+      nextTabs = nextTabs.sort((a, b) => Number(b.lastActive || 0) - Number(a.lastActive || 0));
+      if (nextTabs[0]) {
+        sessionStorage.setItem(activeTabKeyStorage, nextTabs[0].key || nextTabs[0].url);
       }
-      window.location.href = tabs[0] ? tabs[0].url : '/secure/index.php';
+      window.location.href = nextTabs[0] ? nextTabs[0].url : '/secure/index.php';
       return;
     }
 
@@ -381,6 +422,16 @@
     const draftKey = draftPrefix + normalizeUrl();
     const pendingSubmitKey = pendingPresenceSubmitPrefix + normalizeUrl();
     const presenceBlocked = new URLSearchParams(window.location.search).get('presence_blocked') === '1';
+    const currentKey = currentTabKey();
+    const draftIdentifiers = [...new Set(identifierVariants(normalizeUrl()).concat(identifierVariants(currentKey)))];
+    const wasClosed = draftIdentifiers.some((identifier) => sessionStorage.getItem(closedDraftPrefix + identifier));
+    const shouldRestoreDraft = presenceBlocked
+      || (!wasClosed && (
+        initialActiveTabKey === currentKey
+        || initialActiveTabKey === normalizeUrl()
+        || existingTabIdentifiersBeforeBoot.has(currentKey)
+        || existingTabIdentifiersBeforeBoot.has(normalizeUrl())
+      ));
 
     if (sessionStorage.getItem(pendingSubmitKey) === '1') {
       if (!presenceBlocked) {
@@ -389,15 +440,21 @@
       sessionStorage.removeItem(pendingSubmitKey);
     }
 
-    try {
-      const draft = JSON.parse(sessionStorage.getItem(draftKey) || '{}');
-      forms.forEach((form, formIndex) => {
-        if (draft[formIndex]) {
-          restoreDraft(form, draft[formIndex]);
-        }
+    if (!shouldRestoreDraft) {
+      draftIdentifiers.forEach((identifier) => {
+        sessionStorage.removeItem(draftPrefix + identifier);
       });
-    } catch (error) {
-      sessionStorage.removeItem(draftKey);
+    } else {
+      try {
+        const draft = JSON.parse(sessionStorage.getItem(draftKey) || '{}');
+        forms.forEach((form, formIndex) => {
+          if (draft[formIndex]) {
+            restoreDraft(form, draft[formIndex]);
+          }
+        });
+      } catch (error) {
+        sessionStorage.removeItem(draftKey);
+      }
     }
 
     const saveDraft = () => {
@@ -406,6 +463,9 @@
         draft[formIndex] = collectDraft(form);
       });
       sessionStorage.setItem(draftKey, JSON.stringify(draft));
+      draftIdentifiers.forEach((identifier) => {
+        sessionStorage.removeItem(closedDraftPrefix + identifier);
+      });
     };
 
     forms.forEach((form) => {
@@ -624,6 +684,15 @@
   }
 
   let tabs = ensureDashboardTab(readTabs().filter(shouldKeepStoredTab));
+  existingTabIdentifiersBeforeBoot = new Set();
+  tabs.forEach((tab) => {
+    if (tab.url) {
+      existingTabIdentifiersBeforeBoot.add(tab.url);
+    }
+    if (tab.key) {
+      existingTabIdentifiersBeforeBoot.add(tab.key);
+    }
+  });
   if (shouldCreateTabForCurrentPage()) {
     const kind = pageKind(currentPathName());
     const activeKey = sessionStorage.getItem(activeTabKeyStorage);
@@ -672,7 +741,7 @@
       sessionStorage.removeItem(storageKey);
       sessionStorage.removeItem(activeTabKeyStorage);
       Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith(draftPrefix) || key.startsWith(scrollPrefix) || key.startsWith(presenceTokenPrefix)) {
+        if (key.startsWith(draftPrefix) || key.startsWith(scrollPrefix) || key.startsWith(presenceTokenPrefix) || key.startsWith(closedDraftPrefix)) {
           sessionStorage.removeItem(key);
         }
       });

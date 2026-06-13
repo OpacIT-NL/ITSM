@@ -150,7 +150,7 @@ if ( !$result ) {
         </div>
         <br>
         <div class="form-group"> Primair gebouw:
-          <?
+          <?php
           $selectedId = $row2[ 'primarybuilding' ] ?? null;
 
           echo '<select name="primarybuilding">';

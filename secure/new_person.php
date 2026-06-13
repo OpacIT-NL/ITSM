@@ -97,7 +97,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         <h3><?= htmlspecialchars(t('Basis informatie')) ?></h3>
         <?= htmlspecialchars(t('Klant')) ?>:
         <div class="form-group">
-          <?
+          <?php
 
           echo '<select name="customerid" required><option value="">--' . htmlspecialchars( t('selecteer een klant') ) . '--</option>';
 
