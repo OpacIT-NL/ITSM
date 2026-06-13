@@ -7,6 +7,11 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+--
+-- Update ITSM v0.5.1 naar v0.6.0
+-- Deze migratie voegt alleen tabellen toe die nog niet in de 0.5.1 database bestaan.
+--
+
 CREATE TABLE IF NOT EXISTS `itsm_am_configurationtemplates` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
