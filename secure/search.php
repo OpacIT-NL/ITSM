@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
@@ -7,8 +8,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -337,8 +337,8 @@ if ( isset( $_GET['tasknumber'] ) ) {
     <h1>Taak zoeken</h1>
   </center>
 
-  <div class="form-wrapper">
-    <form method="get" class="form-card search-card">
+  <div class="form-wrapper record-form-wrapper">
+    <form method="get" class="form-card search-card record-form-card">
       <div class="form-grid">
         <?php if ( $error !== '' ): ?>
         <p class="error"><?= htmlspecialchars($error) ?></p>

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -7,8 +8,7 @@ if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
 }
 
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -240,98 +240,94 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   <h1>Nieuw asset (<?= htmlspecialchars($type_name) ?>)</h1>
 </center>
 
-<div class="form-wrapper">
-  <div class="form-card">
-
-    <form method="post" class="form-grid">
-
-      <div class="form-group">
-        <label>Object ID:
-          <input type="text" name="objectid" value="<?= htmlspecialchars($form_values['objectid']) ?>" required>
-        </label>
+<form method="post" class="record-layout">
+  <div class="incident-column">
+    <div class="incident-card incident-left-card">
+      <div class="form-grid">
+        <h2 class="incident-section-title">Algemeen</h2>
+        <hr>
+        <div class="form-group">
+          <label class="incident-meta-label">Status</label>
+          <label>
+            <select name="status" required>
+              <option value="">Selecteer een status</option>
+              <?php foreach ( $statuses as $status ): ?>
+              <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['status'] === (string)$status['id'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars($status['name']) ?>
+              </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="incident-meta-label">Klant</label>
+          <label>
+            <select id="customer" name="customer" required>
+              <option value="">Selecteer een klant</option>
+              <?php foreach ( $customers as $customer ): ?>
+              <option value="<?= htmlspecialchars((string)$customer['id']) ?>" <?= (string)$form_values['customer'] === (string)$customer['id'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars(trim(($customer['din'] ?? '') . ' - ' . $customer['name'], ' -')) ?>
+              </option>
+              <?php endforeach; ?>
+            </select>
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="incident-meta-label">Persoon</label>
+          <label>
+            <select id="owner" name="owner" required>
+              <option value="">Selecteer eerst een klant</option>
+            </select>
+          </label>
+        </div>
+        <hr>
+        <div class="form-group">
+          <label class="incident-meta-label">Startdatum</label>
+          <label>
+            <input type="date" id="startdate_picker" value="<?= htmlspecialchars(normalize_asset_date($form_values['startdate']) ?: '') ?>">
+            <input type="text" id="startdate" name="startdate" value="<?= htmlspecialchars($form_values['startdate']) ?>" placeholder="DD-MM-YYYY of YYYY-MM-DD">
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="incident-meta-label">Einddatum</label>
+          <label>
+            <input type="date" id="enddate_picker" value="<?= htmlspecialchars(normalize_asset_date($form_values['enddate']) ?: '') ?>">
+            <input type="text" id="enddate" name="enddate" value="<?= htmlspecialchars($form_values['enddate']) ?>" placeholder="DD-MM-YYYY of YYYY-MM-DD">
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="incident-meta-label">Prijs</label>
+          <label><input type="text" name="price" value="<?= htmlspecialchars($form_values['price']) ?>"></label>
+        </div>
       </div>
-
-      <div class="form-group">
-        <label>Startdatum:
-          <input type="date" id="startdate_picker" value="<?= htmlspecialchars(normalize_asset_date($form_values['startdate']) ?: '') ?>">
-          <input type="text" id="startdate" name="startdate" value="<?= htmlspecialchars($form_values['startdate']) ?>" placeholder="DD-MM-YYYY of YYYY-MM-DD">
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>Einddatum:
-          <input type="date" id="enddate_picker" value="<?= htmlspecialchars(normalize_asset_date($form_values['enddate']) ?: '') ?>">
-          <input type="text" id="enddate" name="enddate" value="<?= htmlspecialchars($form_values['enddate']) ?>" placeholder="DD-MM-YYYY of YYYY-MM-DD">
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>Prijs:
-          <input type="text" name="price" value="<?= htmlspecialchars($form_values['price']) ?>">
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>Status:
-          <select name="status" required>
-            <option value="">Selecteer een status</option>
-            <?php foreach ( $statuses as $status ): ?>
-            <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['status'] === (string)$status['id'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($status['name']) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>Klant:
-          <select id="customer" name="customer" required>
-            <option value="">Selecteer een klant</option>
-            <?php foreach ( $customers as $customer ): ?>
-            <option value="<?= htmlspecialchars((string)$customer['id']) ?>" <?= (string)$form_values['customer'] === (string)$customer['id'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars(trim(($customer['din'] ?? '') . ' - ' . $customer['name'], ' -')) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-        </label>
-      </div>
-
-      <div class="form-group">
-        <label>Persoon:
-          <select id="owner" name="owner" required>
-            <option value="">Selecteer eerst een klant</option>
-          </select>
-        </label>
-      </div>
-
-      <hr>
-      <h3>Vrije velden</h3>
-
-      <?php while ( $field = mysqli_fetch_assoc( $result_fields ) ): ?>
-      <?php
-        $column = $field[ 'field' ];
-        $label = !empty( $field[ 'name' ] ) ? $field[ 'name' ] : $field[ 'field' ];
-        if ( empty( $field['name'] ) ) {
-          continue;
-        }
-      ?>
-      <div class="form-group">
-        <label>
-          <?= htmlspecialchars( $label ) ?>:
-          <input type="text" name="<?= $column ?>" value="<?= htmlspecialchars($_POST[$column] ?? '') ?>">
-        </label>
-      </div>
-      <?php endwhile; ?>
-
-      <div class="form-actions">
-        <button class="btn-primary" type="submit">Opslaan</button>
-      </div>
-
-    </form>
-
+    </div>
   </div>
-</div>
+  <div class="incident-column">
+    <div class="incident-card record-main-card">
+      <div class="form-grid">
+        <input type="text" name="objectid" class="incident-title-input" value="<?= htmlspecialchars($form_values['objectid']) ?>" placeholder="Object ID" required>
+        <h3>Vrije velden</h3>
+        <?php while ( $field = mysqli_fetch_assoc( $result_fields ) ): ?>
+        <?php
+          $column = $field[ 'field' ];
+          $label = !empty( $field[ 'name' ] ) ? $field[ 'name' ] : $field[ 'field' ];
+          if ( empty( $field['name'] ) ) {
+            continue;
+          }
+        ?>
+        <div class="form-group">
+          <label><?= htmlspecialchars( $label ) ?>:
+            <input type="text" name="<?= $column ?>" value="<?= htmlspecialchars($_POST[$column] ?? '') ?>">
+          </label>
+        </div>
+        <?php endwhile; ?>
+        <div class="form-actions">
+          <button class="btn-primary" type="submit">Opslaan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
 
 </div>
 

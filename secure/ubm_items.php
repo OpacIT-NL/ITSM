@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
@@ -9,8 +10,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -122,8 +122,8 @@ $result = mysqli_query( $con, $sql );
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
   <?php if ( $view === 'stories' && $parent_id === 0 ): ?>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card record-form-card">
       <form method="get">
         <input type="hidden" name="view" value="stories">
         <input type="hidden" name="ownership" value="<?= htmlspecialchars($ownership) ?>">

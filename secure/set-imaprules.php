@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/imap_helpers.php' );
 
@@ -8,8 +9,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -179,8 +179,8 @@ $rules = mysqli_query( $con, "
     <p class="ssp-error"><?= htmlspecialchars($error) ?></p>
   <?php endforeach; ?>
 
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide record-form-card">
       <h2><?= $form_values['id'] !== '' ? 'IMAP-regel bewerken' : 'Nieuwe IMAP-regel' ?></h2>
       <p class="info-note">IMAP-configuratie wordt gelezen uit <code>../config/imap.ini</code>. Gebruik hier de mapnaam zoals de server die kent, bijvoorbeeld <code>INBOX.Incidenten</code>.</p>
       <form method="post" class="form-grid">

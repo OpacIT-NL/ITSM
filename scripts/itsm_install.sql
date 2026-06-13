@@ -31,6 +31,49 @@ CREATE TABLE `itsm_am_assets` (
   `customfield10` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_am_assetconnections` (
+  `id` int(11) NOT NULL,
+  `configurationid` int(11) NOT NULL,
+  `sourceassetid` int(11) NOT NULL,
+  `targetassetid` int(11) NOT NULL,
+  `connectiontypeid` int(11) NOT NULL,
+  `notes` varchar(255) DEFAULT NULL,
+  `createdby` int(11) DEFAULT NULL,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_am_configurationassets` (
+  `id` int(11) NOT NULL,
+  `configurationid` int(11) NOT NULL,
+  `assetid` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_am_configurations` (
+  `id` int(11) NOT NULL,
+  `customerid` int(11) NOT NULL,
+  `templateid` int(11) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` longtext DEFAULT NULL,
+  `active` int(1) NOT NULL DEFAULT 1,
+  `createdby` int(11) DEFAULT NULL,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp(),
+  `updatedat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_am_configurationtemplates` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` longtext DEFAULT NULL,
+  `active` int(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_am_connectiontypes` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `reverse_name` varchar(100) DEFAULT NULL,
+  `active` int(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_am_fields` (
   `id` int(11) NOT NULL,
   `type` int(11) NOT NULL,
@@ -237,6 +280,19 @@ CREATE TABLE `itsm_core_settings` (
   `id` int(11) NOT NULL,
   `settingkey` varchar(100) NOT NULL,
   `settingvalue` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+CREATE TABLE `itsm_api_tokens` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `token_prefix` varchar(32) NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `operatorid` int(11) NOT NULL,
+  `createdby` int(11) DEFAULT NULL,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp(),
+  `lastusedat` datetime DEFAULT NULL,
+  `expiresat` datetime DEFAULT NULL,
+  `active` int(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_core_status` (
@@ -537,6 +593,32 @@ ALTER TABLE `itsm_am_assets`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `objectid` (`objectid`);
 
+ALTER TABLE `itsm_am_assetconnections`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `asset_connection_unique` (`configurationid`,`sourceassetid`,`targetassetid`,`connectiontypeid`),
+  ADD KEY `sourceassetid` (`sourceassetid`),
+  ADD KEY `targetassetid` (`targetassetid`),
+  ADD KEY `connectiontypeid` (`connectiontypeid`),
+  ADD KEY `createdby` (`createdby`);
+
+ALTER TABLE `itsm_am_configurationassets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `configuration_asset_unique` (`configurationid`,`assetid`),
+  ADD KEY `assetid` (`assetid`);
+
+ALTER TABLE `itsm_am_configurations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `customerid` (`customerid`),
+  ADD KEY `templateid` (`templateid`),
+  ADD KEY `createdby` (`createdby`);
+
+ALTER TABLE `itsm_am_configurationtemplates`
+  ADD PRIMARY KEY (`id`);
+
+ALTER TABLE `itsm_am_connectiontypes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
 ALTER TABLE `itsm_am_fields`
   ADD PRIMARY KEY (`id`);
 
@@ -640,6 +722,13 @@ ALTER TABLE `itsm_core_prioritymatrix`
 ALTER TABLE `itsm_core_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `settingkey` (`settingkey`);
+
+ALTER TABLE `itsm_api_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `token_prefix` (`token_prefix`),
+  ADD KEY `operatorid` (`operatorid`),
+  ADD KEY `createdby` (`createdby`),
+  ADD KEY `active` (`active`);
 
 ALTER TABLE `itsm_core_status`
   ADD PRIMARY KEY (`id`);
@@ -786,11 +875,42 @@ ALTER TABLE `itsm_ubm_itemcomments`
 ALTER TABLE `itsm_am_assets`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_am_assetconnections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_am_configurationassets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_am_configurations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_am_configurationtemplates`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_am_connectiontypes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_am_fields`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_am_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_am_assetconnections`
+  ADD CONSTRAINT `itsm_am_assetconnections_ibfk_1` FOREIGN KEY (`configurationid`) REFERENCES `itsm_am_configurations` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_am_assetconnections_ibfk_2` FOREIGN KEY (`sourceassetid`) REFERENCES `itsm_am_assets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_am_assetconnections_ibfk_3` FOREIGN KEY (`targetassetid`) REFERENCES `itsm_am_assets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_am_assetconnections_ibfk_4` FOREIGN KEY (`connectiontypeid`) REFERENCES `itsm_am_connectiontypes` (`id`),
+  ADD CONSTRAINT `itsm_am_assetconnections_ibfk_5` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_am_configurationassets`
+  ADD CONSTRAINT `itsm_am_configurationassets_ibfk_1` FOREIGN KEY (`configurationid`) REFERENCES `itsm_am_configurations` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_am_configurationassets_ibfk_2` FOREIGN KEY (`assetid`) REFERENCES `itsm_am_assets` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `itsm_am_configurations`
+  ADD CONSTRAINT `itsm_am_configurations_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),
+  ADD CONSTRAINT `itsm_am_configurations_ibfk_2` FOREIGN KEY (`templateid`) REFERENCES `itsm_am_configurationtemplates` (`id`),
+  ADD CONSTRAINT `itsm_am_configurations_ibfk_3` FOREIGN KEY (`createdby`) REFERENCES `itsm_ob_operators` (`id`);
 
 ALTER TABLE `itsm_cm_changeactivities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
@@ -835,6 +955,9 @@ ALTER TABLE `itsm_core_prioritymatrix`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_api_tokens`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_status`

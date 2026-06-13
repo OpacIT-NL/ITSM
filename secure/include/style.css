@@ -625,6 +625,90 @@ p {
 .operator-group-option span {
   overflow-wrap: anywhere;
 }
+.asset-connection-row-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) auto auto auto;
+  gap: 10px;
+  align-items: center;
+}
+.asset-connection-row-form input[type="text"] {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--topdesk-border-strong);
+  border-radius: 8px;
+}
+.asset-template-row-form {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.4fr) auto auto auto;
+  gap: 10px;
+  align-items: center;
+}
+.asset-template-row-form input,
+.asset-template-row-form textarea {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--topdesk-border-strong);
+  border-radius: 8px;
+  font-family: inherit;
+}
+.checkbox-inline {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.asset-config-panel {
+  margin-top: 24px;
+}
+.asset-config-overview-card {
+  margin-top: 16px;
+  max-width: none;
+}
+.asset-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.asset-config-list {
+  display: grid;
+  gap: 10px;
+}
+.asset-config-list-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  background: var(--topdesk-panel-soft);
+}
+.asset-config-list-row form {
+  flex: 0 0 auto;
+}
+.asset-config-tree {
+  margin: 10px 0 0 18px;
+  padding-left: 14px;
+}
+.asset-config-tree li {
+  margin: 8px 0;
+}
+.asset-config-tree-root {
+  margin-left: 0;
+}
+.asset-config-current {
+  font-weight: 700;
+}
+.asset-config-connection {
+  display: inline-block;
+  background: #edf4ff;
+  border: 1px solid #d8e4f0;
+  border-radius: 999px;
+  color: #25415f;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+}
 .manual-mail-rule-form {
   margin: 18px 0;
 }
@@ -924,6 +1008,48 @@ p {
 }
 .incident-main-card {
   min-width: 0;
+}
+.ticket-support-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+.record-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.9fr) minmax(620px, 1.7fr);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+.record-layout .form-card {
+  max-width: none;
+}
+.record-main-card {
+  min-width: 0;
+}
+.record-form-wrapper {
+  justify-content: flex-start;
+}
+.record-form-card {
+  max-width: 920px;
+}
+.record-form-card .form-grid > .form-group > label {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.45fr) minmax(260px, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+.record-form-card .form-grid > .form-group > label > input,
+.record-form-card .form-grid > .form-group > label > select,
+.record-form-card .form-grid > .form-group > label > textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+.api-token-layout {
+  grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);
+}
+.api-token-layout .record-form-card {
+  max-width: none;
 }
 .change-radio-group {
   display: flex;
@@ -1451,6 +1577,12 @@ p {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
   .incident-layout {
+    grid-template-columns: 1fr;
+  }
+  .record-layout {
+    grid-template-columns: 1fr;
+  }
+  .record-form-card .form-grid > .form-group > label {
     grid-template-columns: 1fr;
   }
   .incident-left-card .form-group {

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
@@ -7,8 +8,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( "Location: login.php?expired=1" );
   exit;
 }
@@ -142,8 +142,8 @@ $subcategories_json = json_encode( $subcategories, JSON_HEX_TAG | JSON_HEX_APOS 
   <?php foreach ( $errors as $error ): ?>
   <p class="error"><?= htmlspecialchars($error) ?></p>
   <?php endforeach; ?>
-  <div class="form-wrapper">
-    <form method="post" class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <form method="post" class="form-card record-form-card">
       <div class="form-grid">
         <div class="form-group">
           <label>Naam</label>

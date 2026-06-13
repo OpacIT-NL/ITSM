@@ -1,6 +1,7 @@
 <?php
 
 date_default_timezone_set( 'Europe/Amsterdam' );
+require_once( __DIR__ . '/include/session_helpers.php' );
 require_once( __DIR__ . '/lang/lang_helpers.php' );
 
 function db_connect() {
@@ -111,8 +112,34 @@ function itsm_render_local_datetime_script() {
 <?php
 }
 
+function itsm_refresh_authenticated_session_timeout() {
+  if ( session_status() !== PHP_SESSION_ACTIVE ) {
+    return;
+  }
+
+  if ( basename( $_SERVER['SCRIPT_NAME'] ?? '' ) === 'authenticate.php' ) {
+    return;
+  }
+
+  if ( empty( $_SESSION['operatorloggedin'] ) && empty( $_SESSION['ssploggedin'] ) ) {
+    return;
+  }
+
+  $timeout_seconds = 12 * 60 * 60;
+
+  if ( isset( $_SESSION['expires_at'] ) && time() > (int)$_SESSION['expires_at'] ) {
+    itsm_destroy_session();
+    header( 'Location: login.php?expired=1' );
+    exit;
+  }
+
+  $_SESSION['expires_at'] = time() + $timeout_seconds;
+}
+
 // Connect to the database
 $con = db_connect();
+
+itsm_refresh_authenticated_session_timeout();
 
 itsm_boot_language_system( $con instanceof mysqli ? $con : null );
 

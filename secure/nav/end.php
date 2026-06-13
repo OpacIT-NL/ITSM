@@ -19,6 +19,7 @@
   const activeTabKeyStorage = 'itsm_secure_active_tab_key_v1';
   const draftPrefix = 'itsm_secure_tab_draft_v1:';
   const scrollPrefix = 'itsm_secure_tab_scroll_v1:';
+  const viewPrefix = 'itsm_secure_tab_view_v1:';
   const presenceTokenPrefix = 'itsm_secure_presence_token_v1:';
   const pendingPresenceSubmitPrefix = 'itsm_secure_pending_presence_submit_v1:';
   const closedDraftPrefix = 'itsm_secure_closed_draft_v1:';
@@ -89,7 +90,7 @@
     if ([
       'incidents.php', 'changes.php', 'change_activities.php', 'problems.php', 'events.php', 'ubm_items.php', 'ubm_tree.php', 'assets.php', 'kb_items.php', 'news.php',
       'persons.php', 'persongroups.php', 'operators.php', 'operatorgroups.php', 'suppliers.php', 'buildings.php', 'customers.php',
-      'set-general.php', 'set-update.php', 'set-am.php', 'set-am-types.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php'
+      'set-am-types.php', 'set-am-connections.php', 'set-am-config-templates.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php'
     ].includes(page)) {
       return 'result';
     }
@@ -98,7 +99,7 @@
       'new_person.php', 'new_persongroup.php', 'new_operator.php', 'new_operatorgroup.php', 'new_supplier.php', 'new_building.php', 'new_customer.php',
       'new_opgrouplink.php', 'new_persongrouplink.php',
       'new_status.php', 'edit_status.php', 'new_cat.php', 'edit_cat.php', 'new_subcat.php', 'edit_subcat.php',
-      'new_template.php', 'edit_template.php', 'edit_template_activity.php', 'new_assettype.php', 'edit_assettype.php', 'edit_amfield.php',
+      'new_template.php', 'edit_template.php', 'edit_template_activity.php', 'edit_change_activity.php', 'new_assettype.php', 'edit_assettype.php', 'edit_amfield.php',
       'new_news.php', 'edit_news.php'
     ].includes(page)) {
       return 'new-task';
@@ -246,6 +247,7 @@
     identifierVariants(identifier).forEach((variant) => {
       sessionStorage.removeItem(draftPrefix + variant);
       sessionStorage.removeItem(scrollPrefix + variant);
+      sessionStorage.removeItem(viewPrefix + variant);
       sessionStorage.removeItem(presenceTokenPrefix + variant);
       sessionStorage.removeItem(pendingPresenceSubmitPrefix + variant);
       sessionStorage.setItem(closedDraftPrefix + variant, String(Date.now()));
@@ -514,6 +516,48 @@
     });
   }
 
+  function activateTicketView(viewName) {
+    if (!viewName) {
+      return false;
+    }
+    const targetTab = Array.from(document.querySelectorAll('[data-ticket-view-tab]')).find((tab) => tab.dataset.ticketViewTab === viewName);
+    const targetPanel = Array.from(document.querySelectorAll('[data-ticket-view-panel]')).find((panel) => panel.dataset.ticketViewPanel === viewName);
+    if (!targetTab || !targetPanel) {
+      return false;
+    }
+
+    document.querySelectorAll('[data-ticket-view-tab]').forEach((button) => {
+      const active = button.dataset.ticketViewTab === viewName;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-ticket-view-panel]').forEach((panel) => {
+      panel.classList.toggle('is-active', panel.dataset.ticketViewPanel === viewName);
+    });
+    return true;
+  }
+
+  function setupTicketViewMemory() {
+    const tabs = document.querySelectorAll('[data-ticket-view-tab]');
+    if (!tabs.length || !shouldCreateTabForCurrentPage()) {
+      return;
+    }
+
+    const viewKey = viewPrefix + currentTabKey();
+    const storedView = sessionStorage.getItem(viewKey);
+    if (storedView) {
+      window.setTimeout(() => activateTicketView(storedView), 0);
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        if (tab.dataset.ticketViewTab) {
+          sessionStorage.setItem(viewKey, tab.dataset.ticketViewTab);
+        }
+      });
+    });
+  }
+
   function currentPresenceTarget() {
     const page = currentPathName();
     if (page === 'callercard.php') {
@@ -733,6 +777,7 @@
   renderTabs();
   setupDraftSaving();
   setupScrollMemory();
+  setupTicketViewMemory();
   setupFormPresence();
 
   const logoutLink = document.querySelector('.topbar a[href*="logout.php"]');
@@ -741,7 +786,7 @@
       sessionStorage.removeItem(storageKey);
       sessionStorage.removeItem(activeTabKeyStorage);
       Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith(draftPrefix) || key.startsWith(scrollPrefix) || key.startsWith(presenceTokenPrefix) || key.startsWith(closedDraftPrefix)) {
+        if (key.startsWith(draftPrefix) || key.startsWith(scrollPrefix) || key.startsWith(viewPrefix) || key.startsWith(presenceTokenPrefix) || key.startsWith(closedDraftPrefix)) {
           sessionStorage.removeItem(key);
         }
       });

@@ -1,4 +1,5 @@
 <?php
+require_once( __DIR__ . '/../../include/session_helpers.php' );
 
 function ssp_require_login( $con ) {
   session_start();
@@ -9,8 +10,7 @@ function ssp_require_login( $con ) {
   }
 
   if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-    session_unset();
-    session_destroy();
+    itsm_destroy_session();
     header( 'Location: login.php?expired=1' );
     exit;
   }
@@ -30,8 +30,7 @@ function ssp_require_login( $con ) {
   mysqli_stmt_close( $stmt );
 
   if ( !$person || (int)$person['allowssp'] !== 1 ) {
-    session_unset();
-    session_destroy();
+    itsm_destroy_session();
     header( 'Location: login.php' );
     exit;
   }

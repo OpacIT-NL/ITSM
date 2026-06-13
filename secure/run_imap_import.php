@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/imap_helpers.php' );
 
@@ -8,8 +9,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -37,8 +37,8 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <?php $module_back_url = 'set-imaprules.php'; require(__DIR__ . '/include/module_links.php'); ?>
   <center><h1>IMAP import uitvoeren</h1></center>
 
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide record-form-card">
       <p>Deze import leest ongelezen e-mails uit alle actieve IMAP-regels en maakt daar incidenten of wijzigingsaanvragen van.</p>
       <p class="info-note">Per map worden maximaal 25 berichten per run verwerkt. Verwerkte berichten worden gemarkeerd als gelezen en geregistreerd, zodat ze niet dubbel worden geimporteerd.</p>
       <form method="post" class="form-actions">

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
@@ -13,8 +14,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -195,8 +195,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </center>
 
   <?php if ( !empty( $errors ) ): ?>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide">
       <?php foreach ( $errors as $error ): ?>
       <p class="error"><?= htmlspecialchars($error) ?></p>
       <?php endforeach; ?>
@@ -212,60 +212,67 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </div>
 
   <div class="ticket-view-panel is-active" data-ticket-view-panel="task">
-  <div class="form-wrapper">
-    <form method="post" enctype="multipart/form-data" class="form-card">
-      <div class="form-grid">
-        <p>Wijziging: <a href="edit_change.php?id=<?= htmlspecialchars((string)$activity['change_id']) ?>"><?= htmlspecialchars(change_format_display_number($activity)) ?> - <?= htmlspecialchars($activity['change_title']) ?></a></p>
-
-        <div class="form-group">
-          <label>Titel</label>
-          <input type="text" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+    <form method="post" enctype="multipart/form-data" class="incident-layout">
+      <div class="incident-column">
+        <div class="incident-card incident-left-card">
+          <div class="form-grid">
+            <h2 class="incident-section-title">Algemeen</h2>
+            <hr>
+            <div class="form-group">
+              <label class="incident-meta-label">Wijziging</label>
+              <label><a href="edit_change.php?id=<?= htmlspecialchars((string)$activity['change_id']) ?>"><?= htmlspecialchars(change_format_display_number($activity)) ?> - <?= htmlspecialchars($activity['change_title']) ?></a></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Behandelaarsgroep</label>
+              <label>
+                <input type="hidden" name="operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$form_values['operatorgroupid']) ?>">
+                <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
+                <datalist id="groups_list"></datalist>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Behandelaar</label>
+              <label class="assign-to-me-row">
+                <input type="hidden" name="operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
+                <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
+                <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
+                <datalist id="activity_operators_list"></datalist>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Status</label>
+              <label>
+                <select name="statusid" required>
+                  <option value="">Selecteer een status</option>
+                  <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                  <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($status['name']) ?>
+                  </option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+            </div>
+          </div>
         </div>
-
-        <div class="form-group">
-          <label>Omschrijving</label>
-        <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
-        </div>
-
-        <?php attachment_render_upload_field(); ?>
-
-        <div class="form-group">
-          <label>Behandelaarsgroep</label>
-          <input type="hidden" name="operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$form_values['operatorgroupid']) ?>">
-          <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
-          <datalist id="groups_list"></datalist>
-        </div>
-
-        <div class="form-group">
-          <label>Behandelaar</label>
-          <label class="assign-to-me-row">
-            <input type="hidden" name="operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
-            <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
-            <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
-            <datalist id="activity_operators_list"></datalist>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label>Status</label>
-          <select name="statusid" required>
-            <option value="">Selecteer een status</option>
-            <?php foreach ( $reference_data['statuses'] as $status ): ?>
-            <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($status['name']) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Opslaan</button>
+      </div>
+      <div class="incident-column">
+        <div class="incident-card incident-main-card">
+          <div class="form-grid">
+            <input type="text" name="title" class="incident-title-input" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+            <div class="form-group">
+              <label class="incident-meta-label">Omschrijving</label>
+              <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
+            </div>
+            <?php attachment_render_upload_field(); ?>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Opslaan</button>
+            </div>
+          </div>
         </div>
       </div>
     </form>
-  </div>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="ticket-support-grid">
+    <div class="form-card form-card-wide">
       <?php if ( !empty( $attachments_html ) ): ?>
       <h3>Bijlagen</h3>
       <?= $attachments_html ?>
@@ -274,8 +281,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="links">
-    <div class="form-wrapper">
-      <div class="form-card">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide">
         <form method="post">
           <?= task_render_links_section( task_load_links( $con, 'changeactivity', $activity_id, 'secure' ) ) ?>
         </form>
@@ -283,8 +290,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
     </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="log">
-    <div class="form-wrapper">
-      <div class="form-card">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide">
         <?= $task_logs_html ?>
       </div>
     </div>
