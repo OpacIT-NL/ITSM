@@ -5,6 +5,7 @@
     <h1><?= htmlspecialchars(t('Instellingen')) ?></h1>
   </center>
   <div class="modules-menu"> <a href="./set-general.php"> <?= htmlspecialchars(t('Algemene instellingen')) ?> </a>
+    <a href="./set-update.php"> <?= htmlspecialchars(t('Update ITSM')) ?> </a>
     <center>
       <h3><?= htmlspecialchars(t('Module instellingen')) ?></h3>
     </center>

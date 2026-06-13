@@ -89,7 +89,7 @@
     if ([
       'incidents.php', 'changes.php', 'change_activities.php', 'problems.php', 'events.php', 'ubm_items.php', 'ubm_tree.php', 'assets.php', 'kb_items.php', 'news.php',
       'persons.php', 'persongroups.php', 'operators.php', 'operatorgroups.php', 'suppliers.php', 'buildings.php', 'customers.php',
-      'set-general.php', 'set-am.php', 'set-am-types.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php'
+      'set-general.php', 'set-update.php', 'set-am.php', 'set-am-types.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php'
     ].includes(page)) {
       return 'result';
     }
