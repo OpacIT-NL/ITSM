@@ -1281,7 +1281,12 @@ body.has-table-preview-panel .content {
   gap: 8px;
 }
 .change-radio-group input[type="radio"] {
-  width: auto;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
 }
 .incident-left-card .form-group {
   display: grid;
@@ -1329,7 +1334,15 @@ body.has-table-preview-panel .content {
 .incident-left-card .incident-grid-two .form-group {
   grid-template-columns: minmax(76px, 1fr) minmax(112px, 1fr);
 }
-.incident-left-card input[type="checkbox"] {
+.incident-left-card input[type="checkbox"],
+.incident-left-card input[type="radio"],
+.record-form-card .form-grid > .form-group > label > input[type="checkbox"],
+.record-form-card .form-grid > .form-group > label > input[type="radio"],
+.checkbox-label input[type="checkbox"],
+.checkbox-label input[type="radio"],
+.checkbox-inline input[type="checkbox"],
+.checkbox-inline input[type="radio"] {
+  flex: 0 0 auto;
   margin: 0;
   width: 14px;
   height: 14px;
