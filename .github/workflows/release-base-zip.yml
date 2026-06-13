@@ -1,0 +1,47 @@
+name: Build release base.zip
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  build-base-zip:
+    name: Build and upload base.zip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build base.zip
+        run: |
+          mkdir -p dist/package
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.vscode' \
+            --exclude='.DS_Store' \
+            --exclude='base.zip' \
+            --exclude='dist' \
+            ./ dist/package/
+          cd dist/package
+          zip -r ../base.zip .
+          cd ../..
+          unzip -l dist/base.zip
+
+      - name: Validate base.zip layout
+        run: |
+          mkdir -p dist/verify
+          unzip -q dist/base.zip -d dist/verify
+          test -f dist/verify/version.php
+          test -d dist/verify/secure
+          test ! -d dist/verify/ITSM
+
+      - name: Upload base.zip to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/base.zip --clobber

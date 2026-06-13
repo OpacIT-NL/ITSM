@@ -266,12 +266,6 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </div>
   <div class="form-wrapper">
     <div class="form-card">
-      <h3>Omschrijving voorbeeld</h3>
-      <p><?= task_linkify_text($form_values['description'], 'secure') ?></p>
-    </div>
-  </div>
-  <div class="form-wrapper">
-    <div class="form-card">
       <?php if ( !empty( $attachments_html ) ): ?>
       <h3>Bijlagen</h3>
       <?= $attachments_html ?>

@@ -37,12 +37,12 @@ $result = $stmt2->get_result();
 <div class="module-section">
   <h1>Asset Management</h1>
   <div class="module-grid">
-    <?
+    <?php
     while ( $row = $result->fetch_assoc() ) {
       $typeUrl = urlencode( $row[ 'type' ] );
       $typeText = htmlspecialchars( $row[ 'type' ] );
 
-      echo "<a href='assets.php?filtertype=$typeUrl'>$typeText</a>";
+      echo '<a href="assets.php?filtertype=' . htmlspecialchars( $typeUrl ) . '">' . $typeText . '</a>';
     }
     ?>
   </div>

@@ -594,6 +594,37 @@ p {
   min-width: 0;
   width: 100%;
 }
+.operator-form-card {
+  max-width: 760px;
+}
+.operator-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.operator-group-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  background: #f8fbfe;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.operator-group-option:hover {
+  border-color: var(--topdesk-border-strong);
+  background: #edf4ff;
+}
+.operator-group-option input {
+  flex: 0 0 auto;
+}
+.operator-group-option span {
+  overflow-wrap: anywhere;
+}
 .manual-mail-rule-form {
   margin: 18px 0;
 }
@@ -616,6 +647,61 @@ p {
 .success {
   color: #1f7a3a;
   font-weight: 700;
+}
+.update-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.update-status-card {
+  background: var(--topdesk-panel-soft);
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.update-status-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #16324d;
+}
+.update-version-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.update-version-list span {
+  background: #edf4ff;
+  border: 1px solid #d8e4f0;
+  border-radius: 999px;
+  color: #25415f;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+.update-changelog {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+.update-changelog-entry {
+  background: var(--topdesk-panel);
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--topdesk-shadow-soft);
+}
+.update-changelog-entry h2,
+.update-changelog-entry h3 {
+  margin-top: 0;
+}
+.update-log {
+  background: #f6f9fc;
+  border: 1px solid var(--topdesk-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  white-space: pre-wrap;
 }
 .form-card p {
   margin-top: 0;

@@ -73,7 +73,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         <div class="form-group"> 
           <!-- Basic fields --> 
           Klant:
-          <?
+          <?php
 
           echo '<select name="customer"><option>--selecteer een klant--</option>';
 

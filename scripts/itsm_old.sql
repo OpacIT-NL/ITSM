@@ -233,6 +233,12 @@ CREATE TABLE `itsm_core_prioritymatrix` (
   `priorityid` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_settings` (
+  `id` int(11) NOT NULL,
+  `settingkey` varchar(100) NOT NULL,
+  `settingvalue` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_core_status` (
   `id` int(11) NOT NULL,
   `type` varchar(255) NOT NULL,
@@ -379,7 +385,8 @@ CREATE TABLE `itsm_ob_customers` (
   `postalcode` varchar(255) DEFAULT NULL,
   `city` varchar(255) DEFAULT NULL,
   `primaryemail` varchar(255) DEFAULT NULL,
-  `primaryphone` varchar(255) DEFAULT NULL
+  `primaryphone` varchar(255) DEFAULT NULL,
+  `defaultlanguage` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_ob_operatorgroups` (
@@ -413,7 +420,8 @@ CREATE TABLE `itsm_ob_operators` (
   `events` int(1) NOT NULL,
   `ubm` int(1) NOT NULL,
   `reporting` int(1) NOT NULL,
-  `isadmin` int(1) NOT NULL
+  `isadmin` int(1) NOT NULL,
+  `preferredlanguage` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_ob_opgrouplinks` (
@@ -441,7 +449,8 @@ CREATE TABLE `itsm_ob_persons` (
   `email` varchar(255) NOT NULL,
   `phone` varchar(15) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `allowssp` int(1) NOT NULL
+  `allowssp` int(1) NOT NULL,
+  `preferredlanguage` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 CREATE TABLE `itsm_ob_suppliers` (
@@ -618,6 +627,10 @@ ALTER TABLE `itsm_core_prioritymatrix`
   ADD UNIQUE KEY `impact_urgency` (`impactid`,`urgencyid`),
   ADD KEY `urgencyid` (`urgencyid`),
   ADD KEY `priorityid` (`priorityid`);
+
+ALTER TABLE `itsm_core_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `settingkey` (`settingkey`);
 
 ALTER TABLE `itsm_core_status`
   ADD PRIMARY KEY (`id`);
@@ -805,6 +818,9 @@ ALTER TABLE `itsm_core_priorities`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_prioritymatrix`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `itsm_core_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `itsm_core_status`

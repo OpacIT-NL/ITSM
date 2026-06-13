@@ -50,6 +50,26 @@ $presence_error = form_presence_flash_error();
 if ( $presence_error !== '' ) {
   $errors[] = $presence_error;
 }
+if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_id'] ) ) {
+  $delete_comment_id = (int)$_POST['delete_comment_id'];
+  $deleted_comment_text = '';
+  $deleted_comment_stmt = mysqli_prepare( $con, "SELECT commenttext FROM itsm_ubm_itemcomments WHERE id = ? AND ubmitemid = ?" );
+  mysqli_stmt_bind_param( $deleted_comment_stmt, "ii", $delete_comment_id, $item_id );
+  mysqli_stmt_execute( $deleted_comment_stmt );
+  mysqli_stmt_bind_result( $deleted_comment_stmt, $deleted_comment_text );
+  mysqli_stmt_fetch( $deleted_comment_stmt );
+  mysqli_stmt_close( $deleted_comment_stmt );
+
+  $delete_stmt = mysqli_prepare( $con, "DELETE FROM itsm_ubm_itemcomments WHERE id = ? AND ubmitemid = ?" );
+  mysqli_stmt_bind_param( $delete_stmt, "ii", $delete_comment_id, $item_id );
+  if ( mysqli_stmt_execute( $delete_stmt ) ) {
+    task_log_add( $con, 'ubm', $item_id, 'updated', 'Commentaar verwijderd: "' . task_log_text_snippet( $deleted_comment_text ) . '".', (int)$operator_context['id'], task_log_text_snippet( $deleted_comment_text ), null );
+  }
+  mysqli_stmt_close( $delete_stmt );
+
+  header( 'Location: edit_ubm_item.php?id=' . $item_id );
+  exit;
+}
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
   task_delete_link( $con, (int)$_POST['delete_link_id'] );
   header( 'Location: edit_ubm_item.php?id=' . $item_id );
@@ -72,7 +92,23 @@ if ( isset( $_POST['add_task_link'] ) ) {
     }
   }
 }
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
+$edit_comment = null;
+if ( isset( $_GET['edit_comment'] ) && is_numeric( $_GET['edit_comment'] ) ) {
+  $edit_comment_id = (int)$_GET['edit_comment'];
+  $comment_stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ubm_itemcomments WHERE id = ? AND ubmitemid = ?" );
+  mysqli_stmt_bind_param( $comment_stmt, "ii", $edit_comment_id, $item_id );
+  mysqli_stmt_execute( $comment_stmt );
+  $comment_result = mysqli_stmt_get_result( $comment_stmt );
+  $edit_comment = mysqli_fetch_assoc( $comment_result );
+  mysqli_stmt_close( $comment_stmt );
+}
+$comment_values = [
+  'commentid' => $edit_comment ? (string)$edit_comment['id'] : '',
+  'commenttext' => $edit_comment['commenttext'] ?? '',
+  'internalonly' => 0
+];
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) && !isset( $_POST['delete_comment_id'] ) ) {
   form_presence_redirect_if_stale( $con, 'ubm', $item_id, $_POST['presence_token'] ?? '', 'edit_ubm_item.php?id=' . $item_id );
   $old_item = $item;
   $old_status_id = (int)$item['statusid'];
@@ -83,6 +119,11 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
   $item['operatorgroupid'] = $_POST['operatorgroupid'] ?? '';
   $item['operatorid'] = $_POST['operatorid'] ?? '';
   $item['statusid'] = $_POST['statusid'] ?? '';
+  $comment_values = [
+    'commentid' => $_POST['commentid'] ?? '',
+    'commenttext' => trim( $_POST['commenttext'] ?? '' ),
+    'internalonly' => 0
+  ];
 
   $validation = ubm_validate_form(
     [
@@ -119,7 +160,6 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         " );
     mysqli_stmt_bind_param( $update_stmt, "ssiiiiii", $item['title'], $item['description'], $category_id, $subcategory_id, $group_id, $operator_id, $status_id, $item_id );
     if ( mysqli_stmt_execute( $update_stmt ) ) {
-      attachment_save_upload( $con, 'ubm', $item_id, (int)$operator_context['id'], 0 );
       form_presence_mark_saved( $con, 'ubm', $item_id, (int)$operator_context['id'] );
       task_log_add( $con, 'ubm', $item_id, 'updated', 'UBM-item opgeslagen.', (int)$operator_context['id'] );
       task_log_field_changes(
@@ -153,6 +193,38 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         (int)$operator_context['id']
       );
       task_log_status_change( $con, 'ubm', $item_id, $old_status_id, $status_id, (int)$operator_context['id'] );
+      if ( $comment_values['commenttext'] !== '' || attachment_uploaded_file_available() ) {
+        $attachment_comment_id = null;
+        if ( !empty( $comment_values['commentid'] ) && is_numeric( $comment_values['commentid'] ) ) {
+          $comment_id = (int)$comment_values['commentid'];
+          $old_comment_text = '';
+          $old_comment_stmt = mysqli_prepare( $con, "SELECT commenttext FROM itsm_ubm_itemcomments WHERE id = ? AND ubmitemid = ?" );
+          mysqli_stmt_bind_param( $old_comment_stmt, "ii", $comment_id, $item_id );
+          mysqli_stmt_execute( $old_comment_stmt );
+          mysqli_stmt_bind_result( $old_comment_stmt, $old_comment_text );
+          mysqli_stmt_fetch( $old_comment_stmt );
+          mysqli_stmt_close( $old_comment_stmt );
+
+          $attachment_comment_id = $comment_id;
+          $comment_stmt = mysqli_prepare( $con, "UPDATE itsm_ubm_itemcomments SET commenttext = ?, internalonly = ? WHERE id = ? AND ubmitemid = ?" );
+          mysqli_stmt_bind_param( $comment_stmt, "siii", $comment_values['commenttext'], $comment_values['internalonly'], $comment_id, $item_id );
+        } else {
+          $comment_stmt = mysqli_prepare( $con, "INSERT INTO itsm_ubm_itemcomments (ubmitemid, operatorid, commenttext, internalonly) VALUES (?,?,?,?)" );
+          $operator_id_for_comment = (int)$operator_context['id'];
+          $comment_text = $comment_values['commenttext'] !== '' ? $comment_values['commenttext'] : 'Bijlage toegevoegd.';
+          mysqli_stmt_bind_param( $comment_stmt, "iisi", $item_id, $operator_id_for_comment, $comment_text, $comment_values['internalonly'] );
+        }
+
+        mysqli_stmt_execute( $comment_stmt );
+        if ( empty( $attachment_comment_id ) ) {
+          $attachment_comment_id = mysqli_insert_id( $con );
+          task_log_add( $con, 'ubm', $item_id, 'updated', 'Commentaar toegevoegd: "' . task_log_text_snippet( $comment_text ) . '".', (int)$operator_context['id'], null, task_log_text_snippet( $comment_text ) );
+        } else {
+          task_log_add( $con, 'ubm', $item_id, 'updated', 'Commentaar bijgewerkt van "' . task_log_text_snippet( $old_comment_text ?? '' ) . '" naar "' . task_log_text_snippet( $comment_values['commenttext'] ) . '".', (int)$operator_context['id'], task_log_text_snippet( $old_comment_text ?? '' ), task_log_text_snippet( $comment_values['commenttext'] ) );
+        }
+        mysqli_stmt_close( $comment_stmt );
+        attachment_save_upload( $con, 'ubm', $item_id, (int)$operator_context['id'], $comment_values['internalonly'], 'ubmcomment', $attachment_comment_id );
+      }
       header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
@@ -176,6 +248,18 @@ while ( $row = mysqli_fetch_assoc( $children_result ) ) {
 $allowed_children = ubm_allowed_child_types( $item['itemtype'] );
 $links_html = task_render_links_section( task_load_links( $con, 'ubm', $item_id, 'secure' ) );
 $attachments = attachment_load_for_task( $con, 'ubm', $item_id );
+$comments_result = mysqli_query( $con, "
+    SELECT c.*, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    FROM itsm_ubm_itemcomments c
+    LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+    WHERE c.ubmitemid = " . $item_id . "
+    ORDER BY c.createdat DESC, c.id DESC
+" );
+$comments = [];
+while ( $row = mysqli_fetch_assoc( $comments_result ) ) {
+  $comments[] = $row;
+}
+$attachments_by_comment = attachment_group_by_comment( $attachments );
 $attachments_html = attachment_render_as_comments( $attachments );
 $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
 ?>
@@ -190,121 +274,176 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
   <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
   <div class="ticket-view-tabs caller-card-tabs" role="tablist">
-    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true">Taak</button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false">Links</button>
-    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false">Audit log</button>
+    <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true"><?= htmlspecialchars(t('Taak')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="children" role="tab" aria-selected="false"><?= htmlspecialchars(t('Onderliggende taken')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="links" role="tab" aria-selected="false"><?= htmlspecialchars(t('Links')) ?></button>
+    <button type="button" class="caller-card-tab" data-ticket-view-tab="log" role="tab" aria-selected="false"><?= htmlspecialchars(t('Audit log')) ?></button>
   </div>
-  <div class="ticket-view-panel is-active" data-ticket-view-panel="task">
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
-      <form method="post" enctype="multipart/form-data">
-        <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
-        <?php endif; ?>
+  <form method="post" enctype="multipart/form-data" class="incident-layout ticket-view-panel is-active" data-ticket-view-panel="task">
+    <div class="incident-column">
+      <div class="incident-card incident-left-card">
         <div class="form-grid">
+          <h2 class="incident-section-title"><?= htmlspecialchars(t('Algemeen')) ?></h2>
+          <hr>
           <div class="form-group">
-            <label>Titel</label>
-            <input type="text" name="title" value="<?= htmlspecialchars($item['title']) ?>" required>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Laag')) ?></label>
+            <label><input type="text" class="incident-readonly" value="<?= htmlspecialchars(ubm_type_label($item['itemtype'])) ?>" readonly></label>
+          </div>
+          <?php if ( $parent_item ): ?>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Bovenliggend')) ?></label>
+            <label><a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></label>
+          </div>
+          <?php endif; ?>
+          <hr>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Categorie')) ?></label>
+            <label>
+              <select name="categoryid" id="category_id">
+                <option value=""><?= htmlspecialchars(t('Selecteer een categorie')) ?></option>
+                <?php foreach ( $reference_data['categories'] as $category ): ?>
+                <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$item['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
           <div class="form-group">
-            <label>Omschrijving</label>
-            <textarea name="description"><?= htmlspecialchars($item['description']) ?></textarea>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Subcategorie')) ?></label>
+            <label><select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select></label>
           </div>
-          <?php attachment_render_upload_field(); ?>
+          <hr>
           <div class="form-group">
-            <label>Categorie</label>
-            <select name="categoryid" id="category_id">
-              <option value="">Selecteer een categorie</option>
-              <?php foreach ( $reference_data['categories'] as $category ): ?>
-              <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$item['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Team')) ?></label>
+            <label>
+              <select name="operatorgroupid" id="operatorgroup_id">
+                <option value=""><?= htmlspecialchars(t('Selecteer een team')) ?></option>
+                <?php foreach ( $reference_data['groups'] as $group ): ?>
+                <option value="<?= htmlspecialchars((string)$group['id']) ?>" <?= (string)$item['operatorgroupid'] === (string)$group['id'] ? 'selected' : '' ?>><?= htmlspecialchars($group['groupname']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
           <div class="form-group">
-            <label>Team</label>
-            <select name="operatorgroupid" id="operatorgroup_id">
-              <option value="">Selecteer een team</option>
-              <?php foreach ( $reference_data['groups'] as $group ): ?>
-              <option value="<?= htmlspecialchars((string)$group['id']) ?>" <?= (string)$item['operatorgroupid'] === (string)$group['id'] ? 'selected' : '' ?>><?= htmlspecialchars($group['groupname']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Behandelaar</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Behandelaar')) ?></label>
             <label class="assign-to-me-row">
               <select name="operatorid" id="operator_id"><option value=""><?= htmlspecialchars(t('Selecteer een behandelaar')) ?></option></select>
               <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             </label>
           </div>
           <div class="form-group">
-            <label>Status</label>
-            <select name="statusid" required>
-              <option value="">Selecteer een status</option>
-              <?php foreach ( $reference_data['statuses'] as $status ): ?>
-              <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$item['statusid'] === (string)$status['id'] ? 'selected' : '' ?>><?= htmlspecialchars($status['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-actions">
-            <?php if ( !empty( $allowed_children ) ): ?>
-            <a href="new_ubm_item.php?parentid=<?= htmlspecialchars((string)$item_id) ?>&type=<?= htmlspecialchars($allowed_children[0]) ?>">Nieuw child-item</a>
-            <a href="ubm_items.php?parent=<?= htmlspecialchars((string)$item_id) ?>">Child-items bekijken</a>
-            <?php endif; ?>
-            <a href="new_change.php?source_type=ubm&source_id=<?= htmlspecialchars((string)$item_id) ?>">Wijziging aanmaken</a>
-            <button type="submit" class="btn-primary">Opslaan</button>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Status')) ?></label>
+            <label>
+              <select name="statusid" required>
+                <option value=""><?= htmlspecialchars(t('Selecteer een status')) ?></option>
+                <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$item['statusid'] === (string)$status['id'] ? 'selected' : '' ?>><?= htmlspecialchars($status['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
-  <?php if ( !empty( $attachments_html ) ): ?>
-  <br>
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
-      <h3>Bijlagen</h3>
-      <?= $attachments_html ?>
+    <div class="incident-column">
+      <div class="incident-card incident-main-card">
+        <div class="form-grid">
+          <div class="form-actions">
+            <?php if ( !empty( $allowed_children ) ): ?>
+            <a href="new_ubm_item.php?parentid=<?= htmlspecialchars((string)$item_id) ?>&type=<?= htmlspecialchars($allowed_children[0]) ?>" class="btn-primary"><?= htmlspecialchars(t('Nieuwe onderliggende taak')) ?></a>
+            <?php endif; ?>
+            <a href="new_change.php?source_type=ubm&source_id=<?= htmlspecialchars((string)$item_id) ?>" class="btn-primary"><?= htmlspecialchars(t('Wijziging aanmaken')) ?></a>
+            <button type="submit" class="btn-primary"><?= htmlspecialchars(t('Opslaan')) ?></button>
+          </div>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Titel')) ?></label>
+            <label><input type="text" name="title" class="incident-title-input" value="<?= htmlspecialchars($item['title']) ?>" required></label>
+          </div>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Omschrijving')) ?></label>
+            <label><textarea name="description"><?= htmlspecialchars($item['description']) ?></textarea></label>
+          </div>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Commentaar')) ?></label>
+            <label>
+              <input type="hidden" name="commentid" value="<?= htmlspecialchars((string)$comment_values['commentid']) ?>">
+              <textarea name="commenttext"><?= htmlspecialchars($comment_values['commenttext']) ?></textarea>
+            </label>
+          </div>
+          <?php attachment_render_upload_field(); ?>
+          <hr>
+          <h3><?= htmlspecialchars(t('Commentaarhistorie')) ?></h3>
+          <div class="incident-history">
+            <?php if ( empty( $comments ) ): ?>
+            <p><?= htmlspecialchars(t('Nog geen commentaar.')) ?></p>
+            <?php else: ?>
+            <?php foreach ( $comments as $comment ): ?>
+            <div class="incident-comment">
+              <div class="incident-comment-meta">
+                <span><?= htmlspecialchars($comment['operator_name'] ?? '') ?></span>
+                <span><?= htmlspecialchars($comment['createdat']) ?></span>
+              </div>
+              <p><?= task_linkify_text($comment['commenttext'], 'secure') ?></p>
+              <?php if ( !empty( $attachments_by_comment[(string)$comment['id']] ) ): ?>
+              <?= attachment_render_links( $attachments_by_comment[(string)$comment['id']] ) ?>
+              <?php endif; ?>
+              <div class="form-actions">
+                <a href="edit_ubm_item.php?id=<?= htmlspecialchars((string)$item_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>"><?= htmlspecialchars(t('Commentaar bewerken')) ?></a>
+                <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('<?= htmlspecialchars(t('Weet je zeker dat je dit commentaar wil verwijderen?'), ENT_QUOTES) ?>');"><?= htmlspecialchars(t('Commentaar verwijderen')) ?></button>
+              </div>
+            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+          <?php if ( !empty( $attachments_html ) ): ?>
+          <h3><?= htmlspecialchars(t('Bijlagen')) ?></h3>
+          <?= $attachments_html ?>
+          <?php endif; ?>
+        </div>
+      </div>
     </div>
-  </div>
-  <?php endif; ?>
-  <?php if ( !empty( $allowed_children ) || !empty( $children ) ): ?>
-  <br>
-  <div class="results incident-results">
-    <table border="0" class="results incident-results-table" style="width: 100%;">
-      <thead>
-        <tr>
-          <th style="text-align: start;">Laag</th>
-          <th style="text-align: start;">Nummer</th>
-          <th style="text-align: start;">Titel</th>
-          <th style="text-align: start;">Categorie</th>
-          <th style="text-align: start;">Subcategorie</th>
-          <th style="text-align: start;">Status</th>
-          <th style="text-align: start;">Actie</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if ( empty( $children ) ): ?>
-        <tr><td colspan="7">Nog geen child-items.</td></tr>
-        <?php else: ?>
-        <?php foreach ( $children as $child ): ?>
-        <tr>
-          <td><?= htmlspecialchars(ubm_type_label($child['itemtype'])) ?></td>
-          <td><?= htmlspecialchars(ubm_format_display_number($child)) ?></td>
-          <td><?= htmlspecialchars($child['title']) ?></td>
-          <td><?= htmlspecialchars($child['category_name'] ?? '') ?></td>
-          <td><?= htmlspecialchars($child['subcategory_name'] ?? '') ?></td>
-          <td><?= htmlspecialchars($child['status_name'] ?? '') ?></td>
-          <td class="tblaction"><a class="btn" href="edit_ubm_item.php?id=<?= htmlspecialchars((string)$child['id']) ?>">Open item</a></td>
-        </tr>
-        <?php endforeach; ?>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-  <?php endif; ?>
+  </form>
+  <div class="ticket-view-panel" data-ticket-view-panel="children">
+    <div class="form-wrapper">
+      <div class="form-card form-card-wide">
+        <div class="form-actions">
+          <?php if ( !empty( $allowed_children ) ): ?>
+          <a href="new_ubm_item.php?parentid=<?= htmlspecialchars((string)$item_id) ?>&type=<?= htmlspecialchars($allowed_children[0]) ?>" class="btn-primary"><?= htmlspecialchars(t('Nieuwe onderliggende taak')) ?></a>
+          <?php endif; ?>
+        </div>
+        <div class="results incident-results">
+          <table border="0" class="results incident-results-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Laag')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Nummer')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Titel')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Categorie')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Subcategorie')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Status')) ?></th>
+                <th style="text-align: start;"><?= htmlspecialchars(t('Actie')) ?></th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if ( empty( $children ) ): ?>
+              <tr><td colspan="7"><?= htmlspecialchars(t('Nog geen onderliggende taken.')) ?></td></tr>
+              <?php else: ?>
+              <?php foreach ( $children as $child ): ?>
+              <tr>
+                <td><?= htmlspecialchars(ubm_type_label($child['itemtype'])) ?></td>
+                <td><?= htmlspecialchars(ubm_format_display_number($child)) ?></td>
+                <td><?= htmlspecialchars($child['title']) ?></td>
+                <td><?= htmlspecialchars($child['category_name'] ?? '') ?></td>
+                <td><?= htmlspecialchars($child['subcategory_name'] ?? '') ?></td>
+                <td><?= htmlspecialchars($child['status_name'] ?? '') ?></td>
+                <td class="tblaction"><a class="btn" href="edit_ubm_item.php?id=<?= htmlspecialchars((string)$child['id']) ?>"><?= htmlspecialchars(t('Open item')) ?></a></td>
+              </tr>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="links">
     <div class="form-wrapper">
