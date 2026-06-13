@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
@@ -9,8 +10,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -29,8 +29,8 @@ $initiatives = $children_by_parent[0] ?? [];
     <h1>UBM Overzicht per Initiative</h1>
   </center>
 
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide record-form-card">
       <p class="info-note">Dit overzicht toont de volledige UBM-structuur per initiative: epic, feature, story en subtask.</p>
       <div class="form-actions">
         <a class="btn-primary" href="new_ubm_item.php?type=initiative">Nieuwe Initiative</a>
@@ -40,8 +40,8 @@ $initiatives = $children_by_parent[0] ?? [];
 
   <div class="ubm-tree-overview">
     <?php if ( empty( $initiatives ) ): ?>
-    <div class="form-wrapper">
-      <div class="form-card form-card-wide">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide record-form-card">
         <p>Nog geen initiatives.</p>
       </div>
     </div>

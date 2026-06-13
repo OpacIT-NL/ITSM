@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
 
@@ -8,8 +9,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -134,8 +134,8 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
   </center>
 
   <?php if ( !empty( $errors ) ): ?>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card record-form-card">
       <?php foreach ( $errors as $error ): ?>
       <p class="error"><?= htmlspecialchars($error) ?></p>
       <?php endforeach; ?>
@@ -144,8 +144,8 @@ $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_H
   <br>
   <?php endif; ?>
 
-  <div class="form-wrapper">
-    <form method="post" class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <form method="post" class="form-card record-form-card">
       <div class="form-grid">
         <p>Sjabloon: <a href="edit_template.php?id=<?= htmlspecialchars((string)$activity['template_id']) ?>"><?= htmlspecialchars($activity['template_name']) ?></a></p>
 

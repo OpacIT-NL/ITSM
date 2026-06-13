@@ -348,80 +348,71 @@ $activity_tab_active = $show_activity_tab && (
   </form>
   <?php if ( $show_activity_tab ): ?>
   <div class="ticket-view-panel<?= $activity_tab_active ? ' is-active' : '' ?>" data-ticket-view-panel="activities">
-    <div class="form-wrapper">
+    <div class="form-wrapper change-activity-form-wrapper">
       <div class="form-card form-card-wide">
-        <div class="incident-history">
+        <div class="form-actions" style="margin-bottom: 18px;">
+          <a href="new_change_activity.php?changeid=<?= htmlspecialchars((string)$change_id) ?>" class="btn-primary">
+            <?= htmlspecialchars(t('Nieuwe wijzigingsactiviteit')) ?>
+          </a>
+        </div>
+        <div class="change-activity-workbench">
           <?php if ( empty( $activities ) ): ?>
           <p><?= htmlspecialchars(t('Nog geen wijzigingsactiviteiten.')) ?></p>
           <?php else: ?>
-          <?php foreach ( $activities as $activity ): ?>
-          <div class="incident-comment">
-            <div class="incident-comment-meta">
-              <span><?= htmlspecialchars(change_format_activity_number($activity)) ?> - <?= htmlspecialchars($activity['title']) ?></span>
-              <span><?= htmlspecialchars($activity['status_name']) ?></span>
-            </div>
-            <p><?= task_linkify_text($activity['description'], 'secure') ?></p>
-            <p><?= htmlspecialchars(t('Groep')) ?>: <?= htmlspecialchars($activity['groupname']) ?> | <?= htmlspecialchars(t('Behandelaar')) ?>: <?= htmlspecialchars($activity['operator_name']) ?></p>
-            <a href="edit_change_activity.php?id=<?= htmlspecialchars((string)$activity['id']) ?>"><?= htmlspecialchars(t('Open wijzigingsactiviteit')) ?></a>
+          <div class="change-activity-table-wrap">
+            <table class="results change-activity-table">
+              <thead>
+                <tr>
+                  <th><?= htmlspecialchars(t('WA')) ?></th>
+                  <th><?= htmlspecialchars(t('Titel')) ?></th>
+                  <th><?= htmlspecialchars(t('Status')) ?></th>
+                  <th><?= htmlspecialchars(t('Behandelaarsgroep')) ?></th>
+                  <th><?= htmlspecialchars(t('Behandelaar')) ?></th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php foreach ( $activities as $activity ): ?>
+                <?php
+                  $activity_comment_lines = [];
+                  foreach ( $activity['comments'] ?? [] as $activity_comment ) {
+                    $activity_comment_lines[] = trim(($activity_comment['operator_name'] ?? 'Onbekend') . ' - ' . ($activity_comment['createdat'] ?? '') . "\n" . ($activity_comment['commenttext'] ?? ''));
+                  }
+                ?>
+                <tr class="change-activity-row"
+                    tabindex="0"
+                    data-url="edit_change_activity.php?id=<?= htmlspecialchars((string)$activity['id']) ?>"
+                    data-title="<?= htmlspecialchars((string)$activity['title'], ENT_QUOTES) ?>"
+                    data-number="<?= htmlspecialchars(change_format_activity_number($activity), ENT_QUOTES) ?>"
+                    data-description="<?= htmlspecialchars((string)$activity['description'], ENT_QUOTES) ?>"
+                    data-comments="<?= htmlspecialchars(json_encode($activity_comment_lines, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES) ?>">
+                  <td><?= htmlspecialchars(change_format_activity_number($activity)) ?></td>
+                  <td><?= htmlspecialchars($activity['title']) ?></td>
+                  <td><?= htmlspecialchars($activity['status_name']) ?></td>
+                  <td><?= htmlspecialchars($activity['groupname']) ?></td>
+                  <td><?= htmlspecialchars($activity['operator_name']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
           </div>
-          <?php endforeach; ?>
+          <div class="change-activity-detail" id="change_activity_detail">
+            <div class="change-activity-detail-empty"><?= htmlspecialchars(t('Selecteer een wijzigingsactiviteit. Dubbelklik om te openen.')) ?></div>
+            <div class="change-activity-detail-content" hidden>
+              <h3 id="change_activity_detail_title"></h3>
+              <div class="change-activity-detail-columns">
+                <div class="change-activity-detail-block">
+                  <strong><?= htmlspecialchars(t('Omschrijving')) ?></strong>
+                  <pre id="change_activity_detail_description"></pre>
+                </div>
+                <div class="change-activity-detail-block">
+                  <strong><?= htmlspecialchars(t('Commentaar')) ?></strong>
+                  <pre id="change_activity_detail_comments"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
           <?php endif; ?>
         </div>
-
-        <div class="form-actions" style="margin-top: 18px;">
-          <button type="button" id="toggle_new_activity" class="btn-primary">
-            <?= htmlspecialchars(t('Nieuwe wijzigingsactiviteit')) ?>
-          </button>
-        </div>
-
-        <form method="post" enctype="multipart/form-data">
-          <div id="new_activity_panel" class="incident-card" style="margin-top: 10px; display: none;">
-            <div class="form-grid">
-              <h3><?= htmlspecialchars(t('Nieuwe wijzigingsactiviteit')) ?></h3>
-              <div class="form-group">
-                <label class="incident-meta-label"><?= htmlspecialchars(t('Titel')) ?></label>
-                <label><input type="text" name="activity_title" value="<?= htmlspecialchars($activity_values['title']) ?>"></label>
-              </div>
-              <div class="form-group">
-                <label class="incident-meta-label"><?= htmlspecialchars(t('Omschrijving')) ?></label>
-                <label><textarea name="activity_description"><?= htmlspecialchars($activity_values['description']) ?></textarea></label>
-              </div>
-              <div class="form-group">
-                <label class="incident-meta-label"><?= htmlspecialchars(t('Behandelaarsgroep')) ?></label>
-                <label>
-                  <input type="hidden" name="activity_operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$activity_values['operatorgroupid']) ?>">
-                  <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
-                </label>
-              </div>
-              <div class="form-group">
-                <label class="incident-meta-label"><?= htmlspecialchars(t('Behandelaar')) ?></label>
-                <label class="assign-to-me-row">
-                  <input type="hidden" name="activity_operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$activity_values['operatorid']) ?>">
-                  <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
-                  <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
-                  <datalist id="activity_operators_list"></datalist>
-                </label>
-              </div>
-              <div class="form-group">
-                <label class="incident-meta-label"><?= htmlspecialchars(t('Status')) ?></label>
-                <label>
-                  <select name="activity_statusid">
-                    <option value=""><?= htmlspecialchars(t('Selecteer een status')) ?></option>
-                    <?php foreach ( $reference_data['statuses'] as $status ): ?>
-                    <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$activity_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-                      <?= htmlspecialchars($status['name']) ?>
-                    </option>
-                    <?php endforeach; ?>
-                  </select>
-                </label>
-              </div>
-              <?php attachment_render_upload_field( 'activity_attachment' ); ?>
-              <div class="form-actions">
-                <button type="submit" name="change_action" value="add_activity" class="btn-primary"><?= htmlspecialchars(t('Activiteit toevoegen')) ?></button>
-              </div>
-            </div>
-          </div>
-        </form>
       </div>
     </div>
   </div>
@@ -478,6 +469,52 @@ const changeFormI18n = {
   operator: <?= json_encode(t('Behandelaar')) ?>,
   selectTemplate: <?= json_encode(t('Selecteer sjabloon')) ?>
 };
+
+function setupChangeActivityTable() {
+  const rows = Array.from(document.querySelectorAll('.change-activity-row'));
+  const empty = document.querySelector('.change-activity-detail-empty');
+  const content = document.querySelector('.change-activity-detail-content');
+  const title = document.getElementById('change_activity_detail_title');
+  const description = document.getElementById('change_activity_detail_description');
+  const comments = document.getElementById('change_activity_detail_comments');
+  if (!rows.length || !empty || !content || !title || !description || !comments) {
+    return;
+  }
+
+  const selectRow = (row) => {
+    rows.forEach((item) => item.classList.toggle('is-selected', item === row));
+    title.textContent = `${row.dataset.number || ''} - ${row.dataset.title || ''}`.trim();
+    description.textContent = row.dataset.description || '';
+    let parsedComments = [];
+    try {
+      parsedComments = JSON.parse(row.dataset.comments || '[]');
+    } catch (error) {
+      parsedComments = [];
+    }
+    comments.textContent = parsedComments.length ? parsedComments.join('\n\n') : 'Nog geen commentaar.';
+    empty.hidden = true;
+    content.hidden = false;
+  };
+
+  rows.forEach((row) => {
+    row.addEventListener('click', () => selectRow(row));
+    row.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectRow(row);
+      }
+    });
+    row.addEventListener('dblclick', () => {
+      if (row.dataset.url) {
+        window.location.href = row.dataset.url;
+      }
+    });
+  });
+
+  selectRow(rows[0]);
+}
+
+setupChangeActivityTable();
 
 document.querySelectorAll('[data-ticket-view-tab]').forEach((tab) => {
   tab.addEventListener('click', () => {
@@ -912,20 +949,6 @@ function refreshPriority() {
 document.getElementById('impact_id')?.addEventListener('change', refreshPriority);
 document.getElementById('urgency_id')?.addEventListener('change', refreshPriority);
 refreshPriority();
-
-const toggleNewActivityButton = document.getElementById('toggle_new_activity');
-const newActivityPanel = document.getElementById('new_activity_panel');
-if (toggleNewActivityButton && newActivityPanel) {
-  const shouldOpenByDefault = <?= !empty($activity_values['title']) || !empty($activity_values['description']) || !empty($activity_values['operatorgroupid']) || !empty($activity_values['operatorid']) || !empty($activity_values['statusid']) ? 'true' : 'false' ?>;
-  if (shouldOpenByDefault) {
-    newActivityPanel.style.display = 'block';
-  }
-
-  toggleNewActivityButton.addEventListener('click', () => {
-    const isOpen = newActivityPanel.style.display !== 'none';
-    newActivityPanel.style.display = isOpen ? 'none' : 'block';
-  });
-}
 
 const applyTemplateButton = document.getElementById('apply_template_button');
 if (applyTemplateButton) {

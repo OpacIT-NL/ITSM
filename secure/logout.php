@@ -1,6 +1,7 @@
 <?php
 session_start();
-session_destroy();
+require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_destroy_session();
 ?>
 <!doctype html>
 <html>
@@ -14,7 +15,10 @@ try {
   const prefixes = [
     'itsm_secure_tab_draft_v1:',
     'itsm_secure_tab_scroll_v1:',
-    'itsm_secure_presence_token_v1:'
+    'itsm_secure_tab_view_v1:',
+    'itsm_secure_presence_token_v1:',
+    'itsm_secure_pending_presence_submit_v1:',
+    'itsm_secure_closed_draft_v1:'
   ];
   sessionStorage.removeItem('itsm_secure_tabs_v1');
   sessionStorage.removeItem('itsm_secure_active_tab_key_v1');

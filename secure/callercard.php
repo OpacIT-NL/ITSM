@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
@@ -9,8 +10,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -286,7 +286,7 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
 
     <div class="caller-card-tabpanel<?= $active_tab === 'assets' ? ' is-active' : '' ?>" data-tab-panel="assets">
       <div class="results">
-        <table class="incident-results-table caller-card-mini-table">
+        <table class="incident-results-table caller-card-mini-table asset-results-table" data-table-preview="off">
           <thead>
             <tr>
               <th>Object ID</th>

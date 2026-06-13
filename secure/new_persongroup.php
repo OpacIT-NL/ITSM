@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -7,8 +8,7 @@ if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
 }
 // Absolute expiration check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( "Location: login.php?expired=1" );
   exit;
 }
@@ -58,8 +58,8 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   <center>
     <h1>Nieuwe persoonsgroep</h1>
   </center>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card record-form-card">
       <form method="post" class="form-grid">
         
         <!-- Basic fields -->

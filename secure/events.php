@@ -1,16 +1,17 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/event_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -61,7 +62,10 @@ $sql = "
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY e.updatedat DESC, e.id DESC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $result = mysqli_query( $con, $sql );
 ?>
@@ -81,23 +85,22 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Object</th>
           <th style="text-align: start;">Omschrijving</th>
           <th style="text-align: start;">Incident</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_event.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="">
           <td><?= htmlspecialchars(event_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars($row['category_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['subcategory_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['objectid'] ?? '') ?></td>
           <td><?= htmlspecialchars(( function_exists( 'mb_strimwidth' ) ? mb_strimwidth( (string)$row['description'], 0, 120, '...' ) : substr( (string)$row['description'], 0, 120 ) )) ?></td>
           <td><?= htmlspecialchars($row['incidentnumber'] ?? '') ?></td>
-          <td class="tblaction"><a class="btn" href="edit_event.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open event</a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

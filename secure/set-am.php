@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 
@@ -9,8 +10,7 @@ if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
 }
 // Absolute expiration check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( "Location: login.php?expired=1" );
   exit;
 }
@@ -33,7 +33,7 @@ if ( $operators == 0 ) {
 <?php require_once(__DIR__ . '/nav/settings.php'); ?>
 <div class="module-section">
   <h1>Asset Management Instellingen</h1>
-  <div class="module-grid"> <a href="set-am-types.php"> Asset Types </a>  </div>
+  <div class="module-grid"> <a href="set-am-types.php"> Asset Types </a> <a href="set-am-connections.php"> Asset Connections </a> <a href="set-am-config-templates.php"> Configuration Templates </a> </div>
 </div>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

@@ -1,16 +1,17 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -99,7 +100,8 @@ $sql = "
       s.name AS status_name,
       g.groupname,
       CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
-      p.title AS parent_title
+      p.title AS parent_title,
+      uc_preview.preview_comments
     FROM itsm_ubm_items u
     LEFT JOIN itsm_core_category c ON u.categoryid = c.id
     LEFT JOIN itsm_core_subcategory sub ON u.subcategoryid = sub.id
@@ -107,11 +109,19 @@ $sql = "
     LEFT JOIN itsm_ob_operatorgroups g ON u.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON u.operatorid = o.id
     LEFT JOIN itsm_ubm_items p ON u.parentid = p.id
+    LEFT JOIN (
+      SELECT ubmitemid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_ubm_itemcomments
+      GROUP BY ubmitemid
+    ) uc_preview ON uc_preview.ubmitemid = u.id
 ";
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY u.title ASC, u.id ASC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $result = mysqli_query( $con, $sql );
 ?>
@@ -122,8 +132,8 @@ $result = mysqli_query( $con, $sql );
     <h1><?= htmlspecialchars($page_title) ?></h1>
   </center>
   <?php if ( $view === 'stories' && $parent_id === 0 ): ?>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card record-form-card">
       <form method="get">
         <input type="hidden" name="view" value="stories">
         <input type="hidden" name="ownership" value="<?= htmlspecialchars($ownership) ?>">
@@ -152,12 +162,11 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Team</th>
           <th style="text-align: start;">Behandelaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_ubm_item.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars(ubm_type_label($row['itemtype'])) ?></td>
           <td><?= htmlspecialchars(ubm_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars($row['title']) ?></td>
@@ -167,16 +176,11 @@ $result = mysqli_query( $con, $sql );
           <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['groupname'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['operator_name'] ?? '') ?></td>
-          <td class="tblaction">
-            <a class="btn" href="edit_ubm_item.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open item</a>
-            <?php if ( $row['itemtype'] !== 'subtask' ): ?>
-            <a class="btn" href="ubm_items.php?parent=<?= htmlspecialchars((string)$row['id']) ?>">Child-items</a>
-            <?php endif; ?>
-          </td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

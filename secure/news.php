@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/news_helpers.php' );
@@ -9,8 +10,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -28,7 +28,7 @@ $module_back_url = 'news-menu.php';
     <a href="new_news.php"><?= htmlspecialchars(t('Nieuw bericht')) ?></a>
   </div>
   <div class="results">
-    <table border="0" class="results incident-results-table" style="width: 100%;">
+    <table border="0" class="results incident-results-table" data-preview-comments="off" data-preview-description-label="<?= htmlspecialchars(t('Bericht'), ENT_QUOTES) ?>" style="width: 100%;">
       <thead>
         <tr>
           <th style="text-align: start;"><?= htmlspecialchars(t('Type')) ?></th>
@@ -45,7 +45,7 @@ $module_back_url = 'news-menu.php';
         <tr><td colspan="7"><?= htmlspecialchars(t('Nog geen nieuwsberichten.')) ?></td></tr>
         <?php else: ?>
         <?php foreach ( $items as $item ): ?>
-        <tr>
+        <tr data-table-open-url="edit_news.php?id=<?= (int)$item['id'] ?>" data-preview-description="<?= htmlspecialchars((string)($item['message'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="">
           <td><?= htmlspecialchars(news_type_label($item['newstype'])) ?></td>
           <td><?= htmlspecialchars($item['title']) ?></td>
           <td><?= htmlspecialchars((int)$item['showssp'] === 1 ? t('Ja') : t('Nee')) ?></td>

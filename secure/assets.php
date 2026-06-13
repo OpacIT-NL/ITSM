@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -7,8 +8,7 @@ if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
 }
 
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( "Location: login.php?expired=1" );
   exit;
 }
@@ -95,24 +95,20 @@ $result = mysqli_stmt_get_result( $stmt );
   <p>Kies eerst een asset type in het menu om een nieuw asset aan te maken.</p>
 <?php endif; ?>
 <div class="results">
-  <table border="0" class="results" style="width: 100%;">
+  <table border="0" class="results asset-results-table" style="width: 100%;">
     <thead>
       <tr>
         <th style="text-align: start;">ID</th>
         <th style="text-align: start;">Type</th>
         <th style="text-align: start;">Object ID</th>
-        <th style="text-align: start;">Actie</th>
       </tr>
     </thead>
     <tbody>
       <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-      <tr>
+      <tr data-table-open-url="edit_asset.php?id=<?= htmlspecialchars((string)$row['id']) ?>">
         <td><?= htmlspecialchars($row['id']) ?></td>
         <td><?= htmlspecialchars($row['typename'] ?? '') ?></td>
         <td><?= htmlspecialchars($row['objectid']) ?></td>
-        <td class="tblaction">
-          <a class="btn" href="edit_asset.php?id=<?= $row['id'] ?>"> Bewerken </a>
-        </td>
       </tr>
       <?php endwhile; ?>
     </tbody>

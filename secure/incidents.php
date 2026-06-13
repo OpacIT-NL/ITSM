@@ -1,16 +1,17 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -80,7 +81,8 @@ $sql = "
       a.objectid AS asset_objectid,
       s.name AS status_name,
       g.groupname,
-      CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      ic_preview.preview_comments
     FROM itsm_im_incidents i
     LEFT JOIN itsm_ob_customers c ON i.customerid = c.id
     LEFT JOIN itsm_ob_persons p ON i.personid = p.id
@@ -90,11 +92,19 @@ $sql = "
     LEFT JOIN itsm_core_status s ON i.statusid = s.id
     LEFT JOIN itsm_ob_operatorgroups g ON i.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON i.operatorid = o.id
+    LEFT JOIN (
+      SELECT incidentid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_im_incidentcomments
+      GROUP BY incidentid
+    ) ic_preview ON ic_preview.incidentid = i.id
 ";
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY i.updatedat DESC, i.id DESC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $stmt = mysqli_prepare( $con, $sql );
 mysqli_stmt_execute( $stmt );
@@ -118,12 +128,11 @@ $result = mysqli_stmt_get_result( $stmt );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Behandelaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_incident.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars(incident_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars($row['customer_name']) ?></td>
           <td><?= htmlspecialchars(trim(($row['person_lastname'] ?? '') . ', ' . ($row['person_firstname'] ?? ''), ', ')) ?></td>
@@ -132,19 +141,11 @@ $result = mysqli_stmt_get_result( $stmt );
           <td><?= htmlspecialchars($row['status_name']) ?></td>
           <td><?= htmlspecialchars($row['groupname']) ?></td>
           <td><?= htmlspecialchars($row['operator_name']) ?></td>
-          <td class="tblaction">
-            <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>"> Open Incident </a>
-            <?php if ( $major_target > 0 && $row['incidenttype'] !== 'major' && (int)$row['id'] !== $major_target ): ?>
-            <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>&set_major=<?= $major_target ?>"> Koppel aan major </a>
-            <?php endif; ?>
-            <?php if ( $problem_target > 0 ): ?>
-            <a class="btn" href="edit_incident.php?id=<?= $row['id'] ?>&set_problem=<?= $problem_target ?>"> Koppel aan problem </a>
-            <?php endif; ?>
-          </td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

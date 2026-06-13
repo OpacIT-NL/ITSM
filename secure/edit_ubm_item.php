@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
@@ -13,8 +14,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -271,7 +271,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
     <h1><?= htmlspecialchars(ubm_format_display_number($item)) ?> - <?= htmlspecialchars($item['title']) ?></h1>
   </center>
   <?php if ( !empty( $errors ) ): ?>
-  <div class="form-wrapper"><div class="form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
+  <div class="form-wrapper record-form-wrapper"><div class="form-card record-form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
   <div class="ticket-view-tabs caller-card-tabs" role="tablist">
     <button type="button" class="caller-card-tab is-active" data-ticket-view-tab="task" role="tab" aria-selected="true"><?= htmlspecialchars(t('Taak')) ?></button>
@@ -403,8 +403,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
     </div>
   </form>
   <div class="ticket-view-panel" data-ticket-view-panel="children">
-    <div class="form-wrapper">
-      <div class="form-card form-card-wide">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide record-form-card">
         <div class="form-actions">
           <?php if ( !empty( $allowed_children ) ): ?>
           <a href="new_ubm_item.php?parentid=<?= htmlspecialchars((string)$item_id) ?>&type=<?= htmlspecialchars($allowed_children[0]) ?>" class="btn-primary"><?= htmlspecialchars(t('Nieuwe onderliggende taak')) ?></a>
@@ -446,8 +446,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
     </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="links">
-    <div class="form-wrapper">
-      <div class="form-card form-card-wide">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide record-form-card">
         <form method="post">
           <?= $links_html ?>
         </form>
@@ -455,8 +455,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
     </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="log">
-    <div class="form-wrapper">
-      <div class="form-card form-card-wide">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide record-form-card">
         <?= $task_logs_html ?>
       </div>
     </div>

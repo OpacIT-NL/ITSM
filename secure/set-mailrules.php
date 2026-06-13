@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/mail_helpers.php' );
 
@@ -8,8 +9,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -215,8 +215,8 @@ if ( is_dir( $template_dir ) ) {
     <p class="ssp-error"><?= htmlspecialchars($error) ?></p>
   <?php endforeach; ?>
 
-  <div class="form-wrapper">
-    <div class="form-card form-card-wide">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide record-form-card">
       <h2><?= htmlspecialchars( $form_values['id'] !== '' ? t( 'mailrules.edit' ) : t( 'mailrules.new' ) ) ?></h2>
       <p class="info-note"><?= t( 'mailrules.config_help', [
         'smtp_path' => '<code>../config/smtp.ini</code>',
@@ -309,14 +309,14 @@ if ( is_dir( $template_dir ) ) {
     </div>
   </div>
 
-  <div class="form-card form-card-wide">
+  <div class="form-card form-card-wide record-form-card">
     <h2><?= htmlspecialchars( t( 'Beschikbare variabelen' ) ) ?></h2>
     <p class="info-note"><?= t( 'mailrules.variables_help' ) ?></p>
     <p><?= htmlspecialchars( implode( ', ', $variables ) ) ?></p>
   </div>
 
   <div class="results">
-    <table>
+    <table class="results">
       <thead>
         <tr>
           <th><?= htmlspecialchars( t( 'Taaksoort' ) ) ?></th>

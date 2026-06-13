@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/priority_helpers.php' );
 
@@ -8,8 +9,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -96,7 +96,7 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
 
   <div class="page-layout">
     <div class="page-sidebar">
-      <div class="form-card">
+      <div class="form-card record-form-card">
         <h2><?= htmlspecialchars(t('Impact toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_impact">
@@ -106,7 +106,7 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
         </form>
       </div>
       <br>
-      <div class="form-card">
+      <div class="form-card record-form-card">
         <h2><?= htmlspecialchars(t('Urgency toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_urgency">
@@ -116,7 +116,7 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
         </form>
       </div>
       <br>
-      <div class="form-card">
+      <div class="form-card record-form-card">
         <h2><?= htmlspecialchars(t('Priority toevoegen')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="add_priority">
@@ -175,7 +175,7 @@ $all_priorities = mysqli_query( $con, "SELECT id, name, sortorder, active FROM i
         </table>
       </div>
       <br>
-      <div class="form-card form-card-wide">
+      <div class="form-card form-card-wide record-form-card">
         <h2><?= htmlspecialchars(t('Priority matrix')) ?></h2>
         <form method="post" class="form-grid">
           <input type="hidden" name="action" value="save_matrix">

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
@@ -13,8 +14,7 @@ if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   exit;
 }
 if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
-  session_unset();
-  session_destroy();
+  itsm_destroy_session();
   header( 'Location: login.php?expired=1' );
   exit;
 }
@@ -34,9 +34,40 @@ $stmt = mysqli_prepare( $con, "
       c.changenumber,
       c.requesttype,
       c.approvalstate,
-      c.title AS change_title
+      c.changetype,
+      c.title AS change_title,
+      c.description AS change_description,
+      c.personemail,
+      c.personphone,
+      c.createdat AS change_createdat,
+      c.updatedat AS change_updatedat,
+      cat.name AS category_name,
+      sub.name AS subcategory_name,
+      asset.objectid AS asset_objectid,
+      at.type AS asset_type,
+      cust.name AS customer_name,
+      cust.din AS customer_din,
+      CONCAT(p.lastname, ', ', p.firstname) AS person_name,
+      cg.groupname AS change_group_name,
+      CONCAT(co.lastname, ', ', co.firstname) AS change_operator_name,
+      s.name AS change_status_name,
+      imp.name AS impact_name,
+      urg.name AS urgency_name,
+      prio.name AS priority_name
     FROM itsm_cm_changeactivities a
     INNER JOIN itsm_cm_changes c ON a.changeid = c.id
+    LEFT JOIN itsm_core_category cat ON c.categoryid = cat.id
+    LEFT JOIN itsm_core_subcategory sub ON c.subcategoryid = sub.id
+    LEFT JOIN itsm_am_assets asset ON c.assetid = asset.id
+    LEFT JOIN itsm_am_types at ON asset.type = at.id
+    LEFT JOIN itsm_ob_customers cust ON c.customerid = cust.id
+    LEFT JOIN itsm_ob_persons p ON c.personid = p.id
+    LEFT JOIN itsm_ob_operatorgroups cg ON c.operatorgroupid = cg.id
+    LEFT JOIN itsm_ob_operators co ON c.operatorid = co.id
+    LEFT JOIN itsm_core_status s ON c.statusid = s.id
+    LEFT JOIN itsm_core_impacts imp ON c.impactid = imp.id
+    LEFT JOIN itsm_core_urgencies urg ON c.urgencyid = urg.id
+    LEFT JOIN itsm_core_priorities prio ON c.priorityid = prio.id
     WHERE a.id = ?
 " );
 mysqli_stmt_bind_param( $stmt, "i", $activity_id );
@@ -51,9 +82,30 @@ if ( !$activity ) {
 
 $reference_data = change_load_reference_data( $con );
 $errors = [];
+$edit_comment = null;
 $presence_error = form_presence_flash_error();
 if ( $presence_error !== '' ) {
   $errors[] = $presence_error;
+}
+
+if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_id'] ) ) {
+  $delete_comment_id = (int)$_POST['delete_comment_id'];
+  $deleted_comment_text = '';
+  $deleted_comment_stmt = mysqli_prepare( $con, "SELECT commenttext FROM itsm_cm_changeactivitycomments WHERE id = ? AND changeactivityid = ?" );
+  mysqli_stmt_bind_param( $deleted_comment_stmt, "ii", $delete_comment_id, $activity_id );
+  mysqli_stmt_execute( $deleted_comment_stmt );
+  mysqli_stmt_bind_result( $deleted_comment_stmt, $deleted_comment_text );
+  mysqli_stmt_fetch( $deleted_comment_stmt );
+  mysqli_stmt_close( $deleted_comment_stmt );
+
+  $delete_stmt = mysqli_prepare( $con, "DELETE FROM itsm_cm_changeactivitycomments WHERE id = ? AND changeactivityid = ?" );
+  mysqli_stmt_bind_param( $delete_stmt, "ii", $delete_comment_id, $activity_id );
+  mysqli_stmt_execute( $delete_stmt );
+  mysqli_stmt_close( $delete_stmt );
+
+  task_log_add( $con, 'changeactivity', $activity_id, 'updated', 'Commentaar verwijderd: "' . task_log_text_snippet( $deleted_comment_text ) . '".', (int)$operator_context['id'], task_log_text_snippet( $deleted_comment_text ), null );
+  header( 'Location: edit_change_activity.php?id=' . $activity_id );
+  exit;
 }
 
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
@@ -81,15 +133,28 @@ if ( isset( $_POST['add_task_link'] ) ) {
   }
 }
 
+if ( isset( $_GET['edit_comment'] ) && is_numeric( $_GET['edit_comment'] ) ) {
+  $edit_comment_id = (int)$_GET['edit_comment'];
+  $comment_stmt = mysqli_prepare( $con, "SELECT * FROM itsm_cm_changeactivitycomments WHERE id = ? AND changeactivityid = ?" );
+  mysqli_stmt_bind_param( $comment_stmt, "ii", $edit_comment_id, $activity_id );
+  mysqli_stmt_execute( $comment_stmt );
+  $comment_result = mysqli_stmt_get_result( $comment_stmt );
+  $edit_comment = mysqli_fetch_assoc( $comment_result );
+  mysqli_stmt_close( $comment_stmt );
+}
+
 $form_values = [
   'title' => $activity['title'],
   'description' => $activity['description'],
   'operatorgroupid' => (string)$activity['operatorgroupid'],
   'operatorid' => (string)$activity['operatorid'],
-  'statusid' => (string)$activity['statusid']
+  'statusid' => (string)$activity['statusid'],
+  'commentid' => $edit_comment ? (string)$edit_comment['id'] : '',
+  'commenttext' => $edit_comment['commenttext'] ?? '',
+  'internalonly' => isset( $edit_comment['internalonly'] ) ? (int)$edit_comment['internalonly'] : 1
 ];
 
-if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) ) {
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) && !isset( $_POST['delete_comment_id'] ) ) {
   form_presence_redirect_if_stale( $con, 'changeactivity', $activity_id, $_POST['presence_token'] ?? '', 'edit_change_activity.php?id=' . $activity_id );
   $old_activity = $activity;
   $old_status_id = (int)$activity['statusid'];
@@ -98,7 +163,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
     'description' => trim( $_POST['description'] ?? '' ),
     'operatorgroupid' => $_POST['operatorgroupid'] ?? '',
     'operatorid' => $_POST['operatorid'] ?? '',
-    'statusid' => $_POST['statusid'] ?? ''
+    'statusid' => $_POST['statusid'] ?? '',
+    'commentid' => $_POST['commentid'] ?? '',
+    'commenttext' => trim( $_POST['commenttext'] ?? '' ),
+    'internalonly' => isset( $_POST['internalonly'] ) ? 1 : 0
   ];
 
   $validation = change_validate_activity_form(
@@ -173,9 +241,63 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         (int)$operator_context['id']
       );
       task_log_status_change( $con, 'changeactivity', $activity_id, $old_status_id, $status_id, (int)$operator_context['id'] );
+      if ( !empty( $form_values['commentid'] ) || $form_values['commenttext'] !== '' || attachment_uploaded_file_available() ) {
+        $attachment_comment_id = null;
+        if ( !empty( $form_values['commentid'] ) && is_numeric( $form_values['commentid'] ) ) {
+          $comment_id = (int)$form_values['commentid'];
+          $old_comment_text = '';
+          $old_comment_stmt = mysqli_prepare( $con, "SELECT commenttext FROM itsm_cm_changeactivitycomments WHERE id = ? AND changeactivityid = ?" );
+          mysqli_stmt_bind_param( $old_comment_stmt, "ii", $comment_id, $activity_id );
+          mysqli_stmt_execute( $old_comment_stmt );
+          mysqli_stmt_bind_result( $old_comment_stmt, $old_comment_text );
+          mysqli_stmt_fetch( $old_comment_stmt );
+          mysqli_stmt_close( $old_comment_stmt );
+          $attachment_comment_id = $comment_id;
+
+          $comment_stmt = mysqli_prepare( $con, "
+              UPDATE itsm_cm_changeactivitycomments
+              SET commenttext = ?, internalonly = ?
+              WHERE id = ? AND changeactivityid = ?
+          " );
+          mysqli_stmt_bind_param( $comment_stmt, "siii", $form_values['commenttext'], $form_values['internalonly'], $comment_id, $activity_id );
+        } else {
+          $comment_stmt = mysqli_prepare( $con, "
+              INSERT INTO itsm_cm_changeactivitycomments (changeactivityid, operatorid, commenttext, internalonly)
+              VALUES (?, ?, ?, ?)
+          " );
+          $comment_operator_id = (int)$operator_context['id'];
+          $comment_text = $form_values['commenttext'] !== '' ? $form_values['commenttext'] : 'Bijlage toegevoegd.';
+          mysqli_stmt_bind_param( $comment_stmt, "iisi", $activity_id, $comment_operator_id, $comment_text, $form_values['internalonly'] );
+        }
+
+        mysqli_stmt_execute( $comment_stmt );
+        if ( empty( $attachment_comment_id ) ) {
+          $attachment_comment_id = mysqli_insert_id( $con );
+          task_log_add( $con, 'changeactivity', $activity_id, 'updated', 'Commentaar toegevoegd: "' . task_log_text_snippet( $comment_text ) . '".', (int)$operator_context['id'], null, task_log_text_snippet( $comment_text ) );
+        } else {
+          task_log_add( $con, 'changeactivity', $activity_id, 'updated', 'Commentaar bijgewerkt van "' . task_log_text_snippet( $old_comment_text ?? '' ) . '" naar "' . task_log_text_snippet( $form_values['commenttext'] ) . '".', (int)$operator_context['id'], task_log_text_snippet( $old_comment_text ?? '' ), task_log_text_snippet( $form_values['commenttext'] ) );
+        }
+        mysqli_stmt_close( $comment_stmt );
+        attachment_save_upload( $con, 'changeactivity', $activity_id, (int)$operator_context['id'], $form_values['internalonly'], 'changeactivitycomment', $attachment_comment_id );
+      }
       header( 'Location: edit_change_activity.php?id=' . $activity_id );
       exit;
     }
+  }
+}
+
+$comments = [];
+$comments_result = mysqli_query( $con, "
+    SELECT c.*, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+    FROM itsm_cm_changeactivitycomments c
+    LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+    WHERE c.changeactivityid = " . $activity_id . "
+    ORDER BY c.createdat DESC, c.id DESC
+" );
+if ( $comments_result ) {
+  while ( $row = mysqli_fetch_assoc( $comments_result ) ) {
+    $row['operator_name'] = $row['operator_name'] ?: 'Onbekend';
+    $comments[] = $row;
   }
 }
 
@@ -183,6 +305,7 @@ $groups_json = json_encode( $reference_data['groups'], JSON_HEX_TAG | JSON_HEX_A
 $operators_json = json_encode( $reference_data['operators'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $op_links_json = json_encode( $reference_data['op_links'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );
 $attachments = attachment_load_for_task( $con, 'changeactivity', $activity_id );
+$attachments_by_comment = attachment_group_by_comment( $attachments );
 $attachments_html = attachment_render_as_comments( $attachments );
 $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $activity_id ) );
 ?>
@@ -195,8 +318,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </center>
 
   <?php if ( !empty( $errors ) ): ?>
-  <div class="form-wrapper">
-    <div class="form-card">
+  <div class="form-wrapper record-form-wrapper">
+    <div class="form-card form-card-wide">
       <?php foreach ( $errors as $error ): ?>
       <p class="error"><?= htmlspecialchars($error) ?></p>
       <?php endforeach; ?>
@@ -212,70 +335,154 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
   </div>
 
   <div class="ticket-view-panel is-active" data-ticket-view-panel="task">
-  <div class="form-wrapper">
-    <form method="post" enctype="multipart/form-data" class="form-card">
-      <div class="form-grid">
-        <p>Wijziging: <a href="edit_change.php?id=<?= htmlspecialchars((string)$activity['change_id']) ?>"><?= htmlspecialchars(change_format_display_number($activity)) ?> - <?= htmlspecialchars($activity['change_title']) ?></a></p>
-
-        <div class="form-group">
-          <label>Titel</label>
-          <input type="text" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+    <form method="post" enctype="multipart/form-data" class="incident-layout">
+      <div class="incident-column">
+        <div class="incident-card incident-left-card">
+          <div class="form-grid">
+            <h2 class="incident-section-title">Wijziging</h2>
+            <hr>
+            <div class="form-group">
+              <label class="incident-meta-label">Nummer</label>
+              <label><a href="edit_change.php?id=<?= htmlspecialchars((string)$activity['change_id']) ?>"><?= htmlspecialchars(change_format_display_number($activity)) ?></a></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Titel</label>
+              <label><?= htmlspecialchars($activity['change_title']) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Type</label>
+              <label><?= htmlspecialchars(change_approval_state_label($activity)) ?> / <?= htmlspecialchars(change_type_label($activity['changetype'] ?? '')) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Klant</label>
+              <label><?= htmlspecialchars(trim(($activity['customer_din'] ?? '') . ' - ' . ($activity['customer_name'] ?? ''), ' -')) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Aanmelder</label>
+              <label><?= htmlspecialchars($activity['person_name'] ?: trim(($activity['personemail'] ?? '') . ' ' . ($activity['personphone'] ?? ''))) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Object ID</label>
+              <label><?= htmlspecialchars(trim(($activity['asset_objectid'] ?? '') . ( !empty($activity['asset_type']) ? ' (' . $activity['asset_type'] . ')' : '' ))) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Categorie</label>
+              <label><?= htmlspecialchars(trim(($activity['category_name'] ?? '') . ' / ' . ($activity['subcategory_name'] ?? ''), ' /')) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Prioriteit</label>
+              <label><?= htmlspecialchars(trim(($activity['impact_name'] ?? '') . ' / ' . ($activity['urgency_name'] ?? '') . ' / ' . ($activity['priority_name'] ?? ''), ' /')) ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Wijzigingsstatus</label>
+              <label><?= htmlspecialchars($activity['change_status_name'] ?? '') ?></label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Wijzigingsteam</label>
+              <label><?= htmlspecialchars(trim(($activity['change_group_name'] ?? '') . ' / ' . ($activity['change_operator_name'] ?? ''), ' /')) ?></label>
+            </div>
+            <hr>
+            <h2 class="incident-section-title">Algemeen</h2>
+            <hr>
+            <div class="form-group">
+              <label class="incident-meta-label">Behandelaarsgroep</label>
+              <label>
+                <input type="hidden" name="operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$form_values['operatorgroupid']) ?>">
+                <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
+                <datalist id="groups_list"></datalist>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Behandelaar</label>
+              <label class="assign-to-me-row">
+                <input type="hidden" name="operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
+                <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
+                <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
+                <datalist id="activity_operators_list"></datalist>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Status</label>
+              <label>
+                <select name="statusid" required>
+                  <option value="">Selecteer een status</option>
+                  <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                  <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($status['name']) ?>
+                  </option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+            </div>
+          </div>
         </div>
-
-        <div class="form-group">
-          <label>Omschrijving</label>
-        <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
-        </div>
-
-        <?php attachment_render_upload_field(); ?>
-
-        <div class="form-group">
-          <label>Behandelaarsgroep</label>
-          <input type="hidden" name="operatorgroupid" id="activity_operatorgroup_id" value="<?= htmlspecialchars((string)$form_values['operatorgroupid']) ?>">
-          <input type="text" id="activity_operatorgroup_lookup" list="groups_list" autocomplete="off">
-          <datalist id="groups_list"></datalist>
-        </div>
-
-        <div class="form-group">
-          <label>Behandelaar</label>
-          <label class="assign-to-me-row">
-            <input type="hidden" name="operatorid" id="activity_operator_id" value="<?= htmlspecialchars((string)$form_values['operatorid']) ?>">
-            <input type="text" id="activity_operator_lookup" list="activity_operators_list" autocomplete="off">
-            <button type="button" id="activity_assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
-            <datalist id="activity_operators_list"></datalist>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label>Status</label>
-          <select name="statusid" required>
-            <option value="">Selecteer een status</option>
-            <?php foreach ( $reference_data['statuses'] as $status ): ?>
-            <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>>
-              <?= htmlspecialchars($status['name']) ?>
-            </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Opslaan</button>
+      </div>
+      <div class="incident-column">
+        <div class="incident-card incident-main-card">
+          <div class="form-grid">
+            <input type="text" name="title" class="incident-title-input" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+            <div class="form-group">
+              <label class="incident-meta-label">Omschrijving</label>
+              <textarea name="description" required><?= htmlspecialchars($form_values['description']) ?></textarea>
+            </div>
+            <div class="form-group">
+              <label class="incident-meta-label">Commentaar</label>
+              <label>
+                <input type="hidden" name="commentid" value="<?= htmlspecialchars((string)$form_values['commentid']) ?>">
+                <textarea name="commenttext"><?= htmlspecialchars($form_values['commenttext']) ?></textarea>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" name="internalonly" <?= !empty($form_values['internalonly']) ? 'checked' : '' ?>>
+                Niet voor klant
+              </label>
+            </div>
+            <?php attachment_render_upload_field(); ?>
+            <hr>
+            <h3>Commentaarhistorie</h3>
+            <div class="incident-history">
+              <?php if ( empty( $comments ) ): ?>
+              <p>Nog geen commentaar.</p>
+              <?php else: ?>
+              <?php foreach ( $comments as $comment ): ?>
+              <div class="incident-comment">
+                <div class="incident-comment-meta">
+                  <span><?= htmlspecialchars($comment['operator_name']) ?></span>
+                  <span><?= htmlspecialchars($comment['createdat']) ?></span>
+                </div>
+                <span class="incident-badge"><?= (int)$comment['internalonly'] === 1 ? 'Niet voor klant' : 'Klant zichtbaar' ?></span>
+                <p><?= task_linkify_text($comment['commenttext'], 'secure') ?></p>
+                <?php if ( !empty( $attachments_by_comment[(string)$comment['id']] ) ): ?>
+                <?= attachment_render_links( $attachments_by_comment[(string)$comment['id']] ) ?>
+                <?php endif; ?>
+                <div class="form-actions">
+                  <a href="edit_change_activity.php?id=<?= htmlspecialchars((string)$activity_id) ?>&edit_comment=<?= htmlspecialchars((string)$comment['id']) ?>">Commentaar bewerken</a>
+                  <button type="submit" name="delete_comment_id" value="<?= htmlspecialchars((string)$comment['id']) ?>" class="btn-danger" formnovalidate onclick="return confirm('Weet je zeker dat je dit commentaar wil verwijderen?');">Commentaar verwijderen</button>
+                </div>
+              </div>
+              <?php endforeach; ?>
+              <?php endif; ?>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Opslaan</button>
+            </div>
+          </div>
         </div>
       </div>
     </form>
-  </div>
-  <div class="form-wrapper">
-    <div class="form-card">
-      <?php if ( !empty( $attachments_html ) ): ?>
+    <?php if ( !empty( $attachments_html ) ): ?>
+  <div class="ticket-support-grid">
+    <div class="form-card form-card-wide">
       <h3>Bijlagen</h3>
       <?= $attachments_html ?>
-      <?php endif; ?>
     </div>
   </div>
+    <?php endif; ?>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="links">
-    <div class="form-wrapper">
-      <div class="form-card">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide">
         <form method="post">
           <?= task_render_links_section( task_load_links( $con, 'changeactivity', $activity_id, 'secure' ) ) ?>
         </form>
@@ -283,8 +490,8 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
     </div>
   </div>
   <div class="ticket-view-panel" data-ticket-view-panel="log">
-    <div class="form-wrapper">
-      <div class="form-card">
+    <div class="form-wrapper record-form-wrapper">
+      <div class="form-card form-card-wide">
         <?= $task_logs_html ?>
       </div>
     </div>
