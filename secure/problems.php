@@ -4,6 +4,7 @@ require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/problem_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -61,7 +62,8 @@ $sql = "
       cat.name AS category_name,
       s.name AS status_name,
       g.groupname,
-      CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      pc_preview.preview_comments
     FROM itsm_pm_problems p
     LEFT JOIN itsm_ob_customers c ON p.customerid = c.id
     LEFT JOIN itsm_ob_persons pr ON p.personid = pr.id
@@ -69,11 +71,19 @@ $sql = "
     LEFT JOIN itsm_core_status s ON p.statusid = s.id
     LEFT JOIN itsm_ob_operatorgroups g ON p.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON p.operatorid = o.id
+    LEFT JOIN (
+      SELECT problemid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_pm_problemcomments
+      GROUP BY problemid
+    ) pc_preview ON pc_preview.problemid = p.id
 ";
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY p.updatedat DESC, p.id DESC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $result = mysqli_query( $con, $sql );
 ?>
@@ -95,12 +105,11 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Behandelaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_problem.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars(problem_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars($row['customer_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['person_name'] ?? '') ?></td>
@@ -109,11 +118,11 @@ $result = mysqli_query( $con, $sql );
           <td><?= htmlspecialchars($row['status_name'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['groupname'] ?? '') ?></td>
           <td><?= htmlspecialchars($row['operator_name'] ?? '') ?></td>
-          <td class="tblaction"><a class="btn" href="edit_problem.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open probleem</a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

@@ -276,7 +276,7 @@ $rules = mysqli_query( $con, "
   </div>
 
   <div class="results">
-    <table>
+    <table class="results">
       <thead>
         <tr>
           <th>Map</th>

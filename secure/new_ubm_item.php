@@ -115,76 +115,97 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <?php if ( !empty( $errors ) ): ?>
   <div class="form-wrapper record-form-wrapper"><div class="form-card record-form-card"><?php foreach ( $errors as $error ): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endforeach; ?></div></div><br>
   <?php endif; ?>
-  <div class="form-wrapper record-form-wrapper">
-    <div class="form-card form-card-wide record-form-card">
-      <form method="post" enctype="multipart/form-data">
-        <input type="hidden" name="parentid" value="<?= htmlspecialchars($form_values['parentid']) ?>">
-        <?php if ( $parent_item ): ?>
-        <p class="info-note">Bovenliggend item: <a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></p>
-        <?php endif; ?>
+  <form method="post" enctype="multipart/form-data" class="incident-layout">
+    <input type="hidden" name="parentid" value="<?= htmlspecialchars($form_values['parentid']) ?>">
+    <div class="incident-column">
+      <div class="incident-card incident-left-card">
         <div class="form-grid">
+          <h2 class="incident-section-title"><?= htmlspecialchars(t('Algemeen')) ?></h2>
+          <hr>
           <div class="form-group">
-            <label>Laag</label>
-            <select name="itemtype" required>
-              <?php foreach ( $allowed_types as $type ): ?>
-              <option value="<?= htmlspecialchars($type) ?>" <?= $form_values['itemtype'] === $type ? 'selected' : '' ?>><?= htmlspecialchars(ubm_type_label($type)) ?></option>
-              <?php endforeach; ?>
-            </select>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Laag')) ?></label>
+            <label>
+              <select name="itemtype" required>
+                <?php foreach ( $allowed_types as $type ): ?>
+                <option value="<?= htmlspecialchars($type) ?>" <?= $form_values['itemtype'] === $type ? 'selected' : '' ?>><?= htmlspecialchars(ubm_type_label($type)) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
+          </div>
+          <?php if ( $parent_item ): ?>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Bovenliggend')) ?></label>
+            <label><a class="task-inline-link" href="edit_ubm_item.php?id=<?= (int)$parent_item['id'] ?>"><?= htmlspecialchars(ubm_format_display_number($parent_item)) ?> - <?= htmlspecialchars($parent_item['title']) ?></a></label>
+          </div>
+          <?php endif; ?>
+          <hr>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Categorie')) ?></label>
+            <label>
+              <select name="categoryid" id="category_id">
+                <option value=""><?= htmlspecialchars(t('Selecteer een categorie')) ?></option>
+                <?php foreach ( $reference_data['categories'] as $category ): ?>
+                <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$form_values['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
           <div class="form-group">
-            <label>Titel</label>
-            <input type="text" name="title" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Subcategorie')) ?></label>
+            <label><select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select></label>
+          </div>
+          <hr>
+          <div class="form-group">
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Team')) ?></label>
+            <label>
+              <select name="operatorgroupid" id="operatorgroup_id">
+                <option value=""><?= htmlspecialchars(t('Selecteer een team')) ?></option>
+                <?php foreach ( $reference_data['groups'] as $group ): ?>
+                <option value="<?= htmlspecialchars((string)$group['id']) ?>" <?= (string)$form_values['operatorgroupid'] === (string)$group['id'] ? 'selected' : '' ?>><?= htmlspecialchars($group['groupname']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
           <div class="form-group">
-            <label>Omschrijving</label>
-            <textarea name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
-          </div>
-          <?php attachment_render_upload_field(); ?>
-          <div class="form-group">
-            <label>Categorie</label>
-            <select name="categoryid" id="category_id">
-              <option value="">Selecteer een categorie</option>
-              <?php foreach ( $reference_data['categories'] as $category ): ?>
-              <option value="<?= htmlspecialchars((string)$category['id']) ?>" <?= (string)$form_values['categoryid'] === (string)$category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Subcategorie</label>
-            <select name="subcategoryid" id="subcategory_id"><option value=""><?= htmlspecialchars(t('Selecteer een subcategorie')) ?></option></select>
-          </div>
-          <div class="form-group">
-            <label>Team</label>
-            <select name="operatorgroupid" id="operatorgroup_id">
-              <option value="">Selecteer een team</option>
-              <?php foreach ( $reference_data['groups'] as $group ): ?>
-              <option value="<?= htmlspecialchars((string)$group['id']) ?>" <?= (string)$form_values['operatorgroupid'] === (string)$group['id'] ? 'selected' : '' ?>><?= htmlspecialchars($group['groupname']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Behandelaar</label>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Behandelaar')) ?></label>
             <label class="assign-to-me-row">
               <select name="operatorid" id="operator_id"><option value=""><?= htmlspecialchars(t('Selecteer een behandelaar')) ?></option></select>
               <button type="button" id="assign_to_me_button" class="assign-to-me-button" title="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>" aria-label="<?= htmlspecialchars(t('Aan mij toewijzen')) ?>"><i class="fa-solid fa-user"></i></button>
             </label>
           </div>
           <div class="form-group">
-            <label>Status</label>
-            <select name="statusid" required>
-              <option value="">Selecteer een status</option>
-              <?php foreach ( $reference_data['statuses'] as $status ): ?>
-              <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>><?= htmlspecialchars($status['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">UBM-item opslaan</button>
+            <label class="incident-meta-label"><?= htmlspecialchars(t('Status')) ?></label>
+            <label>
+              <select name="statusid" required>
+                <option value=""><?= htmlspecialchars(t('Selecteer een status')) ?></option>
+                <?php foreach ( $reference_data['statuses'] as $status ): ?>
+                <option value="<?= htmlspecialchars((string)$status['id']) ?>" <?= (string)$form_values['statusid'] === (string)$status['id'] ? 'selected' : '' ?>><?= htmlspecialchars($status['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </label>
           </div>
         </div>
-      </form>
+      </div>
     </div>
-  </div>
+    <div class="incident-column">
+      <div class="incident-card incident-main-card">
+        <div class="form-grid">
+          <div class="form-actions">
+            <button type="submit" class="btn-primary"><?= htmlspecialchars(t('UBM-item opslaan')) ?></button>
+          </div>
+          <div class="form-group">
+            <label><?= htmlspecialchars(t('Titel')) ?></label>
+            <input type="text" name="title" class="incident-title-input" value="<?= htmlspecialchars($form_values['title']) ?>" required>
+          </div>
+          <div class="form-group">
+            <label><?= htmlspecialchars(t('Omschrijving')) ?></label>
+            <textarea name="description"><?= htmlspecialchars($form_values['description']) ?></textarea>
+          </div>
+          <?php attachment_render_upload_field(); ?>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
 <script>
 const ubmSubcategories = <?= json_encode($reference_data['subcategories'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;

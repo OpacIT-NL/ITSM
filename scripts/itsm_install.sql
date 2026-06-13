@@ -130,6 +130,15 @@ CREATE TABLE `itsm_cm_changecomments` (
   `createdat` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_cm_changeactivitycomments` (
+  `id` int(11) NOT NULL,
+  `changeactivityid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `commenttext` longtext NOT NULL,
+  `internalonly` int(1) NOT NULL DEFAULT 1,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 CREATE TABLE `itsm_cm_changes` (
   `id` int(11) NOT NULL,
   `changenumber` varchar(10) NOT NULL,
@@ -640,6 +649,11 @@ ALTER TABLE `itsm_cm_changecomments`
   ADD KEY `operatorid` (`operatorid`),
   ADD KEY `personid` (`personid`);
 
+ALTER TABLE `itsm_cm_changeactivitycomments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `changeactivityid` (`changeactivityid`),
+  ADD KEY `operatorid` (`operatorid`);
+
 ALTER TABLE `itsm_cm_changes`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `changenumber` (`changenumber`),
@@ -918,6 +932,9 @@ ALTER TABLE `itsm_cm_changeactivities`
 ALTER TABLE `itsm_cm_changecomments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
+ALTER TABLE `itsm_cm_changeactivitycomments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 ALTER TABLE `itsm_cm_changes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
@@ -1047,6 +1064,10 @@ ALTER TABLE `itsm_cm_changecomments`
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_1` FOREIGN KEY (`changeid`) REFERENCES `itsm_cm_changes` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`),
   ADD CONSTRAINT `itsm_cm_changecomments_ibfk_3` FOREIGN KEY (`personid`) REFERENCES `itsm_ob_persons` (`id`);
+
+ALTER TABLE `itsm_cm_changeactivitycomments`
+  ADD CONSTRAINT `itsm_cm_changeactivitycomments_ibfk_1` FOREIGN KEY (`changeactivityid`) REFERENCES `itsm_cm_changeactivities` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `itsm_cm_changeactivitycomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
 
 ALTER TABLE `itsm_cm_changes`
   ADD CONSTRAINT `itsm_cm_changes_ibfk_1` FOREIGN KEY (`customerid`) REFERENCES `itsm_ob_customers` (`id`),

@@ -316,7 +316,7 @@ if ( is_dir( $template_dir ) ) {
   </div>
 
   <div class="results">
-    <table>
+    <table class="results">
       <thead>
         <tr>
           <th><?= htmlspecialchars( t( 'Taaksoort' ) ) ?></th>

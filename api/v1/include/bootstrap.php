@@ -106,6 +106,7 @@ function api_resource_maps() {
     'changes' => [ 'table' => 'itsm_cm_changes', 'permission' => [ 'reqforchange', 'simplechange', 'extchange' ] ],
     'change_comments' => [ 'table' => 'itsm_cm_changecomments', 'permission' => [ 'reqforchange', 'simplechange', 'extchange' ] ],
     'change_activities' => [ 'table' => 'itsm_cm_changeactivities', 'permission' => [ 'reqforchange', 'simplechange', 'extchange' ] ],
+    'change_activity_comments' => [ 'table' => 'itsm_cm_changeactivitycomments', 'permission' => [ 'reqforchange', 'simplechange', 'extchange' ] ],
     'problems' => [ 'table' => 'itsm_pm_problems', 'permission' => 'problems' ],
     'problem_comments' => [ 'table' => 'itsm_pm_problemcomments', 'permission' => 'problems' ],
     'events' => [ 'table' => 'itsm_em_events', 'permission' => 'events' ],

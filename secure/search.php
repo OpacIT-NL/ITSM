@@ -2,6 +2,7 @@
 session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
 require_once( __DIR__ . '/../my.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -16,6 +17,8 @@ if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
 $search_value = '';
 $error = '';
 $results = [];
+$pagination = itsm_pagination_state( 100 );
+$total_items = 0;
 
 function search_normalize_task_number( $value ) {
   $normalized = strtoupper( preg_replace( '/\s+/', '', trim( $value ) ) );
@@ -49,6 +52,8 @@ function search_run_task_lookup( $con, $query ) {
       s.name AS status_name,
       g.groupname AS group_name,
       CONCAT(o.lastname, ', ', o.firstname) AS owner_name,
+      i.description AS preview_description,
+      ic.preview_comments AS preview_comments,
       'Incident' AS tasklabel,
       CONCAT('edit_incident.php?id=', i.id) AS target_url
     FROM itsm_im_incidents i
@@ -58,7 +63,11 @@ function search_run_task_lookup( $con, $query ) {
     LEFT JOIN itsm_core_status s ON i.statusid = s.id
     LEFT JOIN itsm_ob_operatorgroups g ON i.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON i.operatorid = o.id
-    LEFT JOIN itsm_im_incidentcomments ic ON ic.incidentid = i.id
+    LEFT JOIN (
+      SELECT incidentid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_im_incidentcomments
+      GROUP BY incidentid
+    ) ic ON ic.incidentid = i.id
     WHERE
       i.incidentnumber LIKE ? OR
       i.title LIKE ? OR
@@ -71,7 +80,7 @@ function search_run_task_lookup( $con, $query ) {
       g.groupname LIKE ? OR
       o.firstname LIKE ? OR
       o.lastname LIKE ? OR
-      ic.commenttext LIKE ?
+      ic.preview_comments LIKE ?
 
     UNION
 
@@ -89,6 +98,8 @@ function search_run_task_lookup( $con, $query ) {
         WHEN c.requesttype = 'extended' THEN CONCAT(coord.lastname, ', ', coord.firstname)
         ELSE CONCAT(op.lastname, ', ', op.firstname)
       END AS owner_name,
+      c.description AS preview_description,
+      cc.preview_comments AS preview_comments,
       'Wijziging' AS tasklabel,
       CONCAT('edit_change.php?id=', c.id) AS target_url
     FROM itsm_cm_changes c
@@ -99,7 +110,11 @@ function search_run_task_lookup( $con, $query ) {
     LEFT JOIN itsm_ob_operatorgroups grp ON c.operatorgroupid = grp.id
     LEFT JOIN itsm_ob_operators op ON c.operatorid = op.id
     LEFT JOIN itsm_ob_operators coord ON c.coordinatorid = coord.id
-    LEFT JOIN itsm_cm_changecomments cc ON cc.changeid = c.id
+    LEFT JOIN (
+      SELECT changeid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_cm_changecomments
+      GROUP BY changeid
+    ) cc ON cc.changeid = c.id
     WHERE
       c.changenumber LIKE ? OR
       c.title LIKE ? OR
@@ -114,7 +129,7 @@ function search_run_task_lookup( $con, $query ) {
       op.lastname LIKE ? OR
       coord.firstname LIKE ? OR
       coord.lastname LIKE ? OR
-      cc.commenttext LIKE ?
+      cc.preview_comments LIKE ?
 
     UNION
 
@@ -129,6 +144,8 @@ function search_run_task_lookup( $con, $query ) {
       st2.name AS status_name,
       grp2.groupname AS group_name,
       CONCAT(op2.lastname, ', ', op2.firstname) AS owner_name,
+      a.description AS preview_description,
+      cc2.preview_comments AS preview_comments,
       'Wijzigingsactiviteit' AS tasklabel,
       CONCAT('edit_change_activity.php?id=', a.id) AS target_url
     FROM itsm_cm_changeactivities a
@@ -139,7 +156,11 @@ function search_run_task_lookup( $con, $query ) {
     LEFT JOIN itsm_core_status st2 ON a.statusid = st2.id
     LEFT JOIN itsm_ob_operatorgroups grp2 ON a.operatorgroupid = grp2.id
     LEFT JOIN itsm_ob_operators op2 ON a.operatorid = op2.id
-    LEFT JOIN itsm_cm_changecomments cc2 ON cc2.changeid = c2.id
+    LEFT JOIN (
+      SELECT changeid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_cm_changecomments
+      GROUP BY changeid
+    ) cc2 ON cc2.changeid = c2.id
     WHERE
       a.activitynumber LIKE ? OR
       a.title LIKE ? OR
@@ -155,7 +176,7 @@ function search_run_task_lookup( $con, $query ) {
       grp2.groupname LIKE ? OR
       op2.firstname LIKE ? OR
       op2.lastname LIKE ? OR
-      cc2.commenttext LIKE ?
+      cc2.preview_comments LIKE ?
 
     UNION
 
@@ -170,6 +191,8 @@ function search_run_task_lookup( $con, $query ) {
       st3.name AS status_name,
       grp3.groupname AS group_name,
       CONCAT(op3.lastname, ', ', op3.firstname) AS owner_name,
+      u.description AS preview_description,
+      '' AS preview_comments,
       CONCAT('UBM ', CASE
         WHEN u.itemtype = 'initiative' THEN 'Initiative'
         WHEN u.itemtype = 'epic' THEN 'Epic'
@@ -323,8 +346,10 @@ if ( isset( $_GET['tasknumber'] ) ) {
       }
     }
 
-    $results = search_run_task_lookup( $con, $search_value );
-    if ( empty( $results ) ) {
+    $all_results = search_run_task_lookup( $con, $search_value );
+    $total_items = count( $all_results );
+    $results = array_slice( $all_results, $pagination['offset'], $pagination['per_page'] );
+    if ( empty( $results ) && $total_items === 0 ) {
       $error = 'Geen taken gevonden voor deze zoekterm.';
     }
   }
@@ -371,12 +396,11 @@ if ( isset( $_GET['tasknumber'] ) ) {
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Behandelaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ( $results as $row ): ?>
-        <tr>
+        <tr data-table-open-url="<?= htmlspecialchars($row['target_url']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['preview_description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars($row['tasklabel']) ?></td>
           <td><?= htmlspecialchars($row['tasknumber']) ?></td>
           <td><?= htmlspecialchars($row['customer_name']) ?></td>
@@ -386,12 +410,12 @@ if ( isset( $_GET['tasknumber'] ) ) {
           <td><?= htmlspecialchars($row['status_name']) ?></td>
           <td><?= htmlspecialchars($row['group_name']) ?></td>
           <td><?= htmlspecialchars($row['owner_name']) ?></td>
-          <td class="tblaction"><a class="btn" href="<?= htmlspecialchars($row['target_url']) ?>">Open taak</a></td>
         </tr>
         <?php endforeach; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
   <?php endif; ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

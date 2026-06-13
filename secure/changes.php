@@ -4,6 +4,7 @@ require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -110,7 +111,8 @@ $sql = "
       s.name AS status_name,
       grp.groupname,
       CONCAT(op.lastname, ', ', op.firstname) AS operator_name,
-      CONCAT(coord.lastname, ', ', coord.firstname) AS coordinator_name
+      CONCAT(coord.lastname, ', ', coord.firstname) AS coordinator_name,
+      cc_preview.preview_comments
     FROM itsm_cm_changes c
     LEFT JOIN itsm_ob_customers cust ON c.customerid = cust.id
     LEFT JOIN itsm_ob_persons per ON c.personid = per.id
@@ -119,11 +121,19 @@ $sql = "
     LEFT JOIN itsm_ob_operatorgroups grp ON c.operatorgroupid = grp.id
     LEFT JOIN itsm_ob_operators op ON c.operatorid = op.id
     LEFT JOIN itsm_ob_operators coord ON c.coordinatorid = coord.id
+    LEFT JOIN (
+      SELECT changeid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_cm_changecomments
+      GROUP BY changeid
+    ) cc_preview ON cc_preview.changeid = c.id
 ";
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY c.updatedat DESC, c.id DESC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $page_title = $view_labels[$section][$view];
 if ( $section === 'changes' && $mode !== '' ) {
@@ -151,12 +161,11 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Eigenaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_change.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars(change_format_display_number($row)) ?></td>
           <td><?= htmlspecialchars(change_approval_state_label($row)) ?></td>
           <td><?= htmlspecialchars($row['customer_name']) ?></td>
@@ -166,11 +175,11 @@ $result = mysqli_query( $con, $sql );
           <td><?= htmlspecialchars($row['approvalstate'] === 'approved' ? ($row['status_name'] ?? '') : '-') ?></td>
           <td><?= htmlspecialchars($row['groupname']) ?></td>
           <td><?= htmlspecialchars($row['requesttype'] === 'extended' ? ($row['coordinator_name'] ?? '') : ($row['operator_name'] ?? '')) ?></td>
-          <td class="tblaction"><a class="btn" href="edit_change.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open wijziging</a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

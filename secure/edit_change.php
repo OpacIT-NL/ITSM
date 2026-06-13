@@ -565,7 +565,33 @@ if ( $change['requesttype'] === 'extended' ) {
       ORDER BY a.activitynumber ASC, a.id ASC
   " );
   while ( $row = mysqli_fetch_assoc( $activities_result ) ) {
+    $row['comments'] = [];
     $activities[] = $row;
+  }
+  if ( !empty( $activities ) ) {
+    $activity_ids = array_map( function ( $activity ) {
+      return (int)$activity['id'];
+    }, $activities );
+    $comments_result = mysqli_query( $con, "
+        SELECT c.changeactivityid, c.commenttext, c.createdat, CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+        FROM itsm_cm_changeactivitycomments c
+        LEFT JOIN itsm_ob_operators o ON c.operatorid = o.id
+        WHERE c.changeactivityid IN (" . implode( ',', $activity_ids ) . ")
+        ORDER BY c.createdat ASC, c.id ASC
+    " );
+    $activity_comments = [];
+    if ( $comments_result ) {
+      while ( $comment = mysqli_fetch_assoc( $comments_result ) ) {
+        $activity_comments[(int)$comment['changeactivityid']][] = [
+          'operator_name' => $comment['operator_name'] ?: 'Onbekend',
+          'createdat' => $comment['createdat'],
+          'commenttext' => $comment['commenttext']
+        ];
+      }
+    }
+    foreach ( $activities as $index => $activity ) {
+      $activities[$index]['comments'] = $activity_comments[(int)$activity['id']] ?? [];
+    }
   }
 }
 

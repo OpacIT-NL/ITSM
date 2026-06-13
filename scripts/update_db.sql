@@ -94,6 +94,20 @@ CREATE TABLE IF NOT EXISTS `itsm_api_tokens` (
   KEY `active` (`active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `itsm_cm_changeactivitycomments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `changeactivityid` int(11) NOT NULL,
+  `operatorid` int(11) DEFAULT NULL,
+  `commenttext` longtext NOT NULL,
+  `internalonly` int(1) NOT NULL DEFAULT 1,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `changeactivityid` (`changeactivityid`),
+  KEY `operatorid` (`operatorid`),
+  CONSTRAINT `itsm_cm_changeactivitycomments_ibfk_1` FOREIGN KEY (`changeactivityid`) REFERENCES `itsm_cm_changeactivities` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `itsm_cm_changeactivitycomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

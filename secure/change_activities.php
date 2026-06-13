@@ -4,6 +4,7 @@ require_once( __DIR__ . '/../include/session_helpers.php' );
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
+require_once( __DIR__ . '/include/pagination_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -49,17 +50,26 @@ $sql = "
       c.title AS change_title,
       s.name AS status_name,
       g.groupname,
-      CONCAT(o.lastname, ', ', o.firstname) AS operator_name
+      CONCAT(o.lastname, ', ', o.firstname) AS operator_name,
+      ac_preview.preview_comments
     FROM itsm_cm_changeactivities a
     INNER JOIN itsm_cm_changes c ON a.changeid = c.id
     LEFT JOIN itsm_core_status s ON a.statusid = s.id
     LEFT JOIN itsm_ob_operatorgroups g ON a.operatorgroupid = g.id
     LEFT JOIN itsm_ob_operators o ON a.operatorid = o.id
+    LEFT JOIN (
+      SELECT changeactivityid, GROUP_CONCAT(commenttext ORDER BY createdat DESC SEPARATOR '\n\n') AS preview_comments
+      FROM itsm_cm_changeactivitycomments
+      GROUP BY changeactivityid
+    ) ac_preview ON ac_preview.changeactivityid = a.id
 ";
 if ( !empty( $where ) ) {
   $sql .= ' WHERE ' . implode( ' AND ', $where );
 }
+$pagination = itsm_pagination_state( 100 );
+$total_items = itsm_pagination_count( $con, $sql );
 $sql .= ' ORDER BY a.updatedat DESC, a.id DESC';
+$sql = itsm_pagination_limit_sql( $sql, $pagination );
 
 $result = mysqli_query( $con, $sql );
 ?>
@@ -79,23 +89,22 @@ $result = mysqli_query( $con, $sql );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Behandelaar</th>
-          <th style="text-align: start;">Actie</th>
         </tr>
       </thead>
       <tbody>
         <?php while ( $row = mysqli_fetch_assoc( $result ) ): ?>
-        <tr>
+        <tr data-table-open-url="edit_change_activity.php?id=<?= htmlspecialchars((string)$row['id']) ?>" data-preview-description="<?= htmlspecialchars((string)($row['description'] ?? ''), ENT_QUOTES) ?>" data-preview-comments="<?= htmlspecialchars((string)($row['preview_comments'] ?? ''), ENT_QUOTES) ?>">
           <td><?= htmlspecialchars(change_format_activity_number($row)) ?></td>
           <td><?= htmlspecialchars(change_format_display_number($row)) ?> <?= htmlspecialchars($row['change_title']) ?></td>
           <td><?= htmlspecialchars($row['title']) ?></td>
           <td><?= htmlspecialchars($row['status_name']) ?></td>
           <td><?= htmlspecialchars($row['groupname']) ?></td>
           <td><?= htmlspecialchars($row['operator_name']) ?></td>
-          <td class="tblaction"><a class="btn" href="edit_change_activity.php?id=<?= htmlspecialchars((string)$row['id']) ?>">Open activiteit</a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>
     </table>
   </div>
+  <?php itsm_render_pagination( $total_items, $pagination ); ?>
 </div>
 <?php require_once(__DIR__ . '/nav/end.php'); ?>

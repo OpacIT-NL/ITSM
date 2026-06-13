@@ -286,7 +286,7 @@ $persons_json = json_encode( $reference_data['persons'], JSON_HEX_TAG | JSON_HEX
 
     <div class="caller-card-tabpanel<?= $active_tab === 'assets' ? ' is-active' : '' ?>" data-tab-panel="assets">
       <div class="results">
-        <table class="incident-results-table caller-card-mini-table">
+        <table class="incident-results-table caller-card-mini-table asset-results-table" data-table-preview="off">
           <thead>
             <tr>
               <th>Object ID</th>

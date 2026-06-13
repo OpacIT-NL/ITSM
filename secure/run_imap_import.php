@@ -49,7 +49,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
   <?php if ( !empty( $summary ) ): ?>
     <div class="results">
-      <table>
+      <table class="results">
         <thead>
           <tr>
             <th>Map</th>
