@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -48,7 +48,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         header( 'Location: set-am-connections.php?saved=1' );
         exit;
       }
-      $error = 'Opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+      $error = itsm_error_reference( 'asset_connection_insert_failed', mysqli_stmt_error( $stmt ) );
       mysqli_stmt_close( $stmt );
     }
   }
@@ -68,7 +68,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         header( 'Location: set-am-connections.php?saved=1' );
         exit;
       }
-      $error = 'Opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+      $error = itsm_error_reference( 'asset_connection_update_failed', mysqli_stmt_error( $stmt ) );
       mysqli_stmt_close( $stmt );
     }
   }
@@ -103,7 +103,7 @@ $result = mysqli_query( $con, "
 " );
 
 if ( !$result ) {
-  die( "Query failed: " . mysqli_error( $con ) );
+  itsm_fail( 'asset_connection_query_failed', mysqli_error( $con ) );
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>

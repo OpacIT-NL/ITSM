@@ -134,6 +134,8 @@ $logged_in_operator_id_json = json_encode( (string)( $operator_context['id'] ?? 
             <label><div><input type="checkbox" id="status_ready_display" <?= !empty($form_values['statusready']) ? 'checked' : '' ?> disabled></div></label>
           </div>
 
+          <?php if (isset($problem_id)): $time_task_type='problem'; $time_task_id=$problem_id; require(__DIR__.'/time_entry_widget.php'); endif; ?>
+
           <div class="form-group">
             <label class="incident-meta-label">Afgemeld</label>
             <label><div><input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled></div></label>

@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -14,11 +14,12 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 }
 $logged_in_user = $_SESSION[ 'name' ];
 require_once( __DIR__ . '/../my.php' );
-if ( !isset( $_GET[ 'id' ] ) || !is_numeric( $_GET[ 'id' ] ) ) {
+if ( $_SERVER['REQUEST_METHOD'] !== 'POST' || !isset( $_POST['id'] ) || !is_numeric( $_POST['id'] ) ) {
+  http_response_code( 405 );
   header( "Location: operatorgroups.php" );
   exit();
 }
-$id = ( int )$_GET[ 'id' ];
+$id = (int)$_POST['id'];
 
 // Authorization check
 $sql2 = "SELECT groups FROM itsm_ob_operators WHERE username = ?";
@@ -36,7 +37,7 @@ $stmt = mysqli_prepare( $con, "DELETE FROM itsm_ob_opgrouplinks WHERE id = ?" );
 mysqli_stmt_bind_param( $stmt, "i", $id );
 
 if ( !mysqli_stmt_execute( $stmt ) ) {
-  die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
+  itsm_fail( 'operator_group_link_delete_failed', mysqli_stmt_error( $stmt ) );
 }
 
 echo "<script>history.back();</script>";

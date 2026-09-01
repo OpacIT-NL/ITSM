@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
 
@@ -112,7 +112,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     );
 
     if ( !mysqli_stmt_execute( $update_stmt ) ) {
-      $errors[] = 'Sjabloonactiviteit bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+      $errors[] = itsm_error_reference( 'template_activity_update_failed', mysqli_stmt_error( $update_stmt ) );
     } else {
       mysqli_stmt_close( $update_stmt );
       header( 'Location: edit_template_activity.php?id=' . $activity_id );

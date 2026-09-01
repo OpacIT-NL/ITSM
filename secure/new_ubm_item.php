@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
@@ -101,7 +101,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
-    $errors[] = 'UBM-item opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+    $errors[] = itsm_error_reference( 'ubm_item_insert_failed', mysqli_stmt_error( $stmt ) );
   }
 }
 ?>

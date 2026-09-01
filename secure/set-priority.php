@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/priority_helpers.php' );
 
@@ -48,7 +48,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       if ( mysqli_stmt_execute( $insert_stmt ) ) {
         $success = 'Optie opgeslagen.';
       } else {
-        $errors[] = 'Opslaan mislukt: ' . mysqli_stmt_error( $insert_stmt );
+        $errors[] = itsm_error_reference( 'priority_insert_failed', mysqli_stmt_error( $insert_stmt ) );
       }
       mysqli_stmt_close( $insert_stmt );
     }
@@ -68,7 +68,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       if ( mysqli_stmt_execute( $matrix_stmt ) ) {
         $success = 'Matrixregel opgeslagen.';
       } else {
-        $errors[] = 'Matrixregel opslaan mislukt: ' . mysqli_stmt_error( $matrix_stmt );
+        $errors[] = itsm_error_reference( 'priority_matrix_insert_failed', mysqli_stmt_error( $matrix_stmt ) );
       }
       mysqli_stmt_close( $matrix_stmt );
     }

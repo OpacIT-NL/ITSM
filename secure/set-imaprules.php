@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/imap_helpers.php' );
 
@@ -124,7 +124,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete_rule'] ) ) 
     }
 
     if ( !mysqli_stmt_execute( $save_stmt ) ) {
-      $errors[] = 'IMAP-regel opslaan mislukt: ' . mysqli_stmt_error( $save_stmt );
+      $errors[] = itsm_error_reference( 'imap_rule_save_failed', mysqli_stmt_error( $save_stmt ) );
     } else {
       header( 'Location: set-imaprules.php' );
       exit;

@@ -7,15 +7,21 @@ $sent = isset( $_GET['sent'] );
 
 if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   $email = trim( (string)( $_POST['email'] ?? '' ) );
-  if ( filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
+  $rate_limited = itsm_auth_rate_limited( $con, 'password_reset', $email, 3, 20, 60 * 60 );
+  itsm_auth_record_attempt( $con, 'password_reset', $email );
+  if ( !$rate_limited && filter_var( $email, FILTER_VALIDATE_EMAIL ) ) {
     $person = ssp_reset_find_person_by_email( $con, $email );
     if ( $person ) {
       try {
         $token_data = ssp_reset_create_token( $con, (int)$person['id'], 60 );
         if ( $token_data ) {
-          ssp_reset_send_mail( $person, $token_data );
+          if ( !ssp_reset_send_mail( $person, $token_data ) ) {
+            throw new RuntimeException( 'Password reset email delivery failed.' );
+          }
         }
-      } catch ( Exception $exception ) {
+      } catch ( Throwable $exception ) {
+        $trace_id = itsm_trace_id();
+        itsm_log_trace( $trace_id, 'password_reset_request_failed', $exception->getMessage(), $exception );
         // Keep the response generic so account existence is never exposed.
       }
     }

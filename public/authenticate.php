@@ -1,17 +1,21 @@
 <?php
-session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 session_regenerate_id( true );
 
 require_once( __DIR__ . '/../my.php' );
-if ( $con->connect_error ) {
-  exit( 'Failed to connect to MySQL: ' . $con->connect_error );
-}
 if ( !isset( $_POST[ 'username' ], $_POST[ 'password' ] ) ) {
   header( 'Location: login.php?incorrect=1' );
   exit();
 }
 $username = (string)$_POST[ 'username' ];
 $password_input = (string)$_POST[ 'password' ];
+$rate_scope = 'public_login';
+if ( itsm_auth_rate_limited( $con, $rate_scope, $username, 5, 30, 15 * 60 ) ) {
+  usleep( random_int( 250000, 600000 ) );
+  header( 'Location: login.php?incorrect=1' );
+  exit();
+}
 
 if ( $stmt = $con->prepare( '
   SELECT p.id, p.firstname, p.lastname, p.email, p.password, p.preferredlanguage, c.defaultlanguage
@@ -26,7 +30,8 @@ if ( $stmt = $con->prepare( '
     $stmt->bind_result( $id, $firstname, $lastname, $email, $password, $preferredlanguage, $defaultlanguage );
     $stmt->fetch();
     if ( password_verify( $password_input, $password ) ) {
-      session_regenerate_id();
+      itsm_auth_clear_attempts( $con, $rate_scope, $username );
+      session_regenerate_id( true );
       $_SESSION[ 'ssploggedin' ] = TRUE;
       $_SESSION[ 'name' ] = trim( $firstname . ' ' . $lastname );
       $_SESSION[ 'email' ] = $email;
@@ -39,17 +44,19 @@ if ( $stmt = $con->prepare( '
       } else {
         unset( $_SESSION['preferred_language'] );
       }
+      itsm_refresh_session_security_fingerprint( $con );
       header( 'Location: index.php' );
       exit();
-    } else {
-      header( 'Location: login.php?incorrect=1' );
-      exit();
     }
-  } else {
-    header( 'Location: login.php?incorrect=1' );
-    exit();
   }
 
   $stmt->close();
+} else {
+  itsm_fail( 'public_login_prepare_failed', mysqli_error( $con ) );
 }
+
+itsm_auth_record_attempt( $con, $rate_scope, $username );
+usleep( random_int( 250000, 600000 ) );
+header( 'Location: login.php?incorrect=1' );
+exit();
 ?>

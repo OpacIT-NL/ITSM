@@ -136,7 +136,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Wijzigingsaanvraag opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+    $errors[] = itsm_error_reference( 'infra_shop_change_insert_failed', mysqli_stmt_error( $stmt ) );
     mysqli_stmt_close( $stmt );
   }
 }

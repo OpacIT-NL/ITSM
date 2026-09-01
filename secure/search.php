@@ -1,8 +1,9 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/pagination_helpers.php' );
+require_once( __DIR__ . '/include/operator_security_helpers.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
   header( 'Location: login.php' );
@@ -19,6 +20,12 @@ $error = '';
 $results = [];
 $pagination = itsm_pagination_state( 100 );
 $total_items = 0;
+$security_operator = itsm_current_operator_security_context( $con );
+if ( !$security_operator ) {
+  itsm_destroy_session();
+  header( 'Location: login.php' );
+  exit;
+}
 
 function search_normalize_task_number( $value ) {
   $normalized = strtoupper( preg_replace( '/\s+/', '', trim( $value ) ) );
@@ -38,8 +45,11 @@ function search_normalize_task_number( $value ) {
   return '';
 }
 
-function search_run_task_lookup( $con, $query ) {
+function search_run_task_lookup( $con, $query, $operator ) {
   $like = '%' . $query . '%';
+  $incident_allowed = itsm_operator_can_access_task_type( $operator, 'incident' ) ? 1 : 0;
+  $change_allowed = itsm_operator_can_access_task_type( $operator, 'change' ) ? 1 : 0;
+  $ubm_allowed = itsm_operator_can_access_task_type( $operator, 'ubm' ) ? 1 : 0;
   $sql = "
     SELECT
       'incident' AS taskkind,
@@ -68,7 +78,7 @@ function search_run_task_lookup( $con, $query ) {
       FROM itsm_im_incidentcomments
       GROUP BY incidentid
     ) ic ON ic.incidentid = i.id
-    WHERE
+    WHERE $incident_allowed = 1 AND (
       i.incidentnumber LIKE ? OR
       i.title LIKE ? OR
       i.description LIKE ? OR
@@ -81,6 +91,7 @@ function search_run_task_lookup( $con, $query ) {
       o.firstname LIKE ? OR
       o.lastname LIKE ? OR
       ic.preview_comments LIKE ?
+    )
 
     UNION
 
@@ -115,7 +126,7 @@ function search_run_task_lookup( $con, $query ) {
       FROM itsm_cm_changecomments
       GROUP BY changeid
     ) cc ON cc.changeid = c.id
-    WHERE
+    WHERE $change_allowed = 1 AND (
       c.changenumber LIKE ? OR
       c.title LIKE ? OR
       c.description LIKE ? OR
@@ -130,6 +141,7 @@ function search_run_task_lookup( $con, $query ) {
       coord.firstname LIKE ? OR
       coord.lastname LIKE ? OR
       cc.preview_comments LIKE ?
+    )
 
     UNION
 
@@ -161,7 +173,7 @@ function search_run_task_lookup( $con, $query ) {
       FROM itsm_cm_changecomments
       GROUP BY changeid
     ) cc2 ON cc2.changeid = c2.id
-    WHERE
+    WHERE $change_allowed = 1 AND (
       a.activitynumber LIKE ? OR
       a.title LIKE ? OR
       a.description LIKE ? OR
@@ -177,6 +189,7 @@ function search_run_task_lookup( $con, $query ) {
       op2.firstname LIKE ? OR
       op2.lastname LIKE ? OR
       cc2.preview_comments LIKE ?
+    )
 
     UNION
 
@@ -206,7 +219,7 @@ function search_run_task_lookup( $con, $query ) {
     LEFT JOIN itsm_core_status st3 ON u.statusid = st3.id
     LEFT JOIN itsm_ob_operatorgroups grp3 ON u.operatorgroupid = grp3.id
     LEFT JOIN itsm_ob_operators op3 ON u.operatorid = op3.id
-    WHERE
+    WHERE $ubm_allowed = 1 AND (
       u.ubmnumber LIKE ? OR
       u.title LIKE ? OR
       u.description LIKE ? OR
@@ -215,6 +228,7 @@ function search_run_task_lookup( $con, $query ) {
       grp3.groupname LIKE ? OR
       op3.firstname LIKE ? OR
       op3.lastname LIKE ?
+    )
 
     ORDER BY tasknumber ASC, tasktitle ASC
   ";
@@ -280,7 +294,9 @@ function search_run_task_lookup( $con, $query ) {
   $result = mysqli_stmt_get_result( $stmt );
   $rows = [];
   while ( $row = mysqli_fetch_assoc( $result ) ) {
-    $rows[] = $row;
+    if ( itsm_operator_can_access_task_type( $operator, $row['taskkind'] ?? '' ) ) {
+      $rows[] = $row;
+    }
   }
   mysqli_stmt_close( $stmt );
 
@@ -295,7 +311,7 @@ if ( isset( $_GET['tasknumber'] ) ) {
     $error = 'Voer een zoekterm of taaknummer in.';
   } else {
     if ( $normalized_number !== '' ) {
-      if ( strncmp( $normalized_number, 'WA', 2 ) === 0 ) {
+      if ( strncmp( $normalized_number, 'WA', 2 ) === 0 && itsm_operator_can_access_task_type( $security_operator, 'changeactivity' ) ) {
         $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_cm_changeactivities WHERE activitynumber = ? LIMIT 1" );
         mysqli_stmt_bind_param( $stmt, "s", $normalized_number );
         mysqli_stmt_execute( $stmt );
@@ -307,7 +323,7 @@ if ( isset( $_GET['tasknumber'] ) ) {
           header( 'Location: edit_change_activity.php?id=' . (int)$row['id'] . '&from_search=' . urlencode( $search_value ) );
           exit;
         }
-      } elseif ( $normalized_number[0] === 'W' ) {
+      } elseif ( $normalized_number[0] === 'W' && itsm_operator_can_access_task_type( $security_operator, 'change' ) ) {
         $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_cm_changes WHERE changenumber = ? LIMIT 1" );
         mysqli_stmt_bind_param( $stmt, "s", $normalized_number );
         mysqli_stmt_execute( $stmt );
@@ -319,7 +335,7 @@ if ( isset( $_GET['tasknumber'] ) ) {
           header( 'Location: edit_change.php?id=' . (int)$row['id'] . '&from_search=' . urlencode( $search_value ) );
           exit;
         }
-      } elseif ( $normalized_number[0] === 'I' ) {
+      } elseif ( $normalized_number[0] === 'I' && itsm_operator_can_access_task_type( $security_operator, 'incident' ) ) {
         $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_im_incidents WHERE incidentnumber = ? LIMIT 1" );
         mysqli_stmt_bind_param( $stmt, "s", $normalized_number );
         mysqli_stmt_execute( $stmt );
@@ -331,7 +347,10 @@ if ( isset( $_GET['tasknumber'] ) ) {
           header( 'Location: edit_incident.php?id=' . (int)$row['id'] . '&from_search=' . urlencode( $search_value ) );
           exit;
         }
-      } elseif ( preg_match( '/^(INI|EPI|FEA|STR|SUB)\d{4}\s\d{4}$/', $normalized_number ) ) {
+      } elseif (
+        preg_match( '/^(INI|EPI|FEA|STR|SUB)\d{4}\s\d{4}$/', $normalized_number )
+        && itsm_operator_can_access_task_type( $security_operator, 'ubm' )
+      ) {
         $stmt = mysqli_prepare( $con, "SELECT id FROM itsm_ubm_items WHERE ubmnumber = ? LIMIT 1" );
         mysqli_stmt_bind_param( $stmt, "s", $normalized_number );
         mysqli_stmt_execute( $stmt );
@@ -346,7 +365,7 @@ if ( isset( $_GET['tasknumber'] ) ) {
       }
     }
 
-    $all_results = search_run_task_lookup( $con, $search_value );
+    $all_results = search_run_task_lookup( $con, $search_value, $security_operator );
     $total_items = count( $all_results );
     $results = array_slice( $all_results, $pagination['offset'], $pagination['per_page'] );
     if ( empty( $results ) && $total_items === 0 ) {

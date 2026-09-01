@@ -99,7 +99,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Incident opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+    $errors[] = itsm_error_reference( 'public_incident_insert_failed', mysqli_stmt_error( $stmt ) );
     mysqli_stmt_close( $stmt );
   }
 }

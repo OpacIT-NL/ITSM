@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/../version.php' );
@@ -316,7 +316,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['run_update'] ) ) {
       $current_version = $latest_version;
       $pending_versions = [];
     } catch ( Throwable $exception ) {
-      $error = 'Update failed: ' . $exception->getMessage();
+      $error = itsm_error_reference( 'application_update_failed', $exception->getMessage(), $exception );
     } finally {
       itsm_update_remove_tree( $tmp_dir );
     }

@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
 
 if ( !isset( $_SESSION['operatorloggedin'] ) ) {
@@ -60,7 +60,7 @@ if ( isset( $_POST['delete'] ) ) {
   $delete_stmt = mysqli_prepare( $con, "DELETE FROM $table WHERE id = ?" );
   mysqli_stmt_bind_param( $delete_stmt, "i", $id );
   if ( !mysqli_stmt_execute( $delete_stmt ) ) {
-    $errors[] = 'Verwijderen mislukt: ' . mysqli_stmt_error( $delete_stmt );
+    $errors[] = itsm_error_reference( 'priority_delete_failed', mysqli_stmt_error( $delete_stmt ) );
   }
   mysqli_stmt_close( $delete_stmt );
 
@@ -87,7 +87,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['delete'] ) ) {
       header( 'Location: set-priority.php' );
       exit;
     }
-    $errors[] = 'Opslaan mislukt: ' . mysqli_stmt_error( $update_stmt );
+    $errors[] = itsm_error_reference( 'priority_update_failed', mysqli_stmt_error( $update_stmt ) );
     mysqli_stmt_close( $update_stmt );
   }
 

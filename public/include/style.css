@@ -104,6 +104,10 @@ a {
   flex-wrap: wrap;
 }
 
+.ssp-logout-form {
+  margin: 0;
+}
+
 .ssp-topbar h1,
 .ssp-hero h2,
 .ssp-panel h3,

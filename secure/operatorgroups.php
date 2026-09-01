@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -34,7 +34,7 @@ if ( $groups == 0 ) {
 }
 
 if ( !$result ) {
-  die( "Query failed: " . mysqli_error( $con ) );
+  itsm_fail( 'operator_group_query_failed', mysqli_error( $con ) );
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>

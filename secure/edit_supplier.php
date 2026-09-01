@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -40,7 +40,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
   mysqli_stmt_bind_param( $stmt, "i", $id );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
+    itsm_fail( 'supplier_delete_failed', mysqli_stmt_error( $stmt ) );
   }
 
   header( 'Location: suppliers.php' );

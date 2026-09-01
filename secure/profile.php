@@ -1,13 +1,13 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -15,7 +15,21 @@ if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) 
 }
 $logged_in_user = $_SESSION[ 'name' ];
 $message = '';
+$form_error = '';
 $languages = itsm_available_languages();
+$stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ob_operators WHERE id = ? AND username = ? LIMIT 1" );
+$session_operator_id = (int)$_SESSION['id'];
+mysqli_stmt_bind_param( $stmt, "is", $session_operator_id, $logged_in_user );
+mysqli_stmt_execute( $stmt );
+$result = mysqli_stmt_get_result( $stmt );
+$operator = mysqli_fetch_assoc( $result );
+mysqli_stmt_close( $stmt );
+if ( !$operator ) {
+  itsm_destroy_session();
+  header( 'Location: login.php' );
+  exit;
+}
+
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   $form_action = (string)( $_POST['profile_action'] ?? '' );
 
@@ -30,30 +44,41 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     mysqli_stmt_execute( $language_stmt );
     mysqli_stmt_close( $language_stmt );
     $_SESSION['preferred_language'] = $preferred_language;
+    header( 'Location: profile.php?saved=1' );
+    exit;
   }
 
-  if ( $form_action === 'password' && !empty( $_POST[ 'password' ] ) ) {
-    $hashed = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
+  if ( $form_action === 'password' ) {
+    $current_password = (string)( $_POST['current_password'] ?? '' );
+    $new_password = (string)( $_POST['password'] ?? '' );
+    $password_confirm = (string)( $_POST['password_confirm'] ?? '' );
+    if ( !password_verify( $current_password, (string)$operator['password'] ) ) {
+      $form_error = 'Het huidige wachtwoord is niet correct.';
+    } elseif ( $new_password !== $password_confirm ) {
+      $form_error = 'De nieuwe wachtwoorden komen niet overeen.';
+    } else {
+      $form_error = itsm_password_policy_error( $new_password );
+    }
 
-    $stmt = mysqli_prepare( $con, "
+    if ( $form_error === '' ) {
+      $hashed = password_hash( $new_password, PASSWORD_DEFAULT );
+      $stmt = mysqli_prepare( $con, "
         UPDATE itsm_ob_operators 
         SET password = ? 
-        WHERE username = ?
-    " );
+        WHERE id = ?
+      " );
 
-    mysqli_stmt_bind_param( $stmt, "ss", $hashed, $logged_in_user );
-    mysqli_stmt_execute( $stmt );
+      mysqli_stmt_bind_param( $stmt, "si", $hashed, $session_operator_id );
+      if ( !mysqli_stmt_execute( $stmt ) ) {
+        itsm_fail( 'profile_password_update_failed', mysqli_stmt_error( $stmt ) );
+      }
+      mysqli_stmt_close( $stmt );
+      session_regenerate_id( true );
+      itsm_refresh_session_security_fingerprint( $con );
+      header( 'Location: profile.php?saved=1' );
+      exit;
+    }
   }
-  header( 'Location: profile.php?saved=1' );
-  exit;
-}
-$stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ob_operators WHERE username=?" );
-mysqli_stmt_bind_param( $stmt, "s", $logged_in_user );
-mysqli_stmt_execute( $stmt );
-$result = mysqli_stmt_get_result( $stmt );
-$operator = mysqli_fetch_assoc( $result );
-if ( !$operator ) {
-  die( "Operator not found" );
 }
 $selected_language = $operator['preferredlanguage'] ?? itsm_current_language();
 if ( isset( $_GET['saved'] ) ) {
@@ -75,6 +100,9 @@ if ( isset( $_GET['saved'] ) ) {
 
   <?php if ( $message !== '' ): ?>
   <div class="profile-success"><?= htmlspecialchars($message) ?></div>
+  <?php endif; ?>
+  <?php if ( $form_error !== '' ): ?>
+  <div class="error"><?= htmlspecialchars($form_error) ?></div>
   <?php endif; ?>
 
   <section class="profile-grid">
@@ -112,8 +140,16 @@ if ( isset( $_GET['saved'] ) ) {
       <form method="post" class="profile-password-form">
         <input type="hidden" name="profile_action" value="password">
         <div class="form-group">
+          <label>Huidig wachtwoord</label>
+          <input type="password" name="current_password" autocomplete="current-password" required>
+        </div>
+        <div class="form-group">
           <label><?= htmlspecialchars(t('profile.new_password')) ?></label>
-          <input type="password" name="password" autocomplete="new-password" placeholder="<?= htmlspecialchars(t('profile.new_password')) ?>">
+          <input type="password" name="password" autocomplete="new-password" minlength="12" maxlength="128" required placeholder="<?= htmlspecialchars(t('profile.new_password')) ?>">
+        </div>
+        <div class="form-group">
+          <label>Herhaal nieuw wachtwoord</label>
+          <input type="password" name="password_confirm" autocomplete="new-password" minlength="12" maxlength="128" required>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-primary"><?= htmlspecialchars(t('profile.save_password')) ?></button>

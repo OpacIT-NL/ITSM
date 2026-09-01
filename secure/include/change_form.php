@@ -251,6 +251,7 @@ $activity_tab_active = $show_activity_tab && (
             <label><div><input type="checkbox" id="status_closed_display" <?= !empty($form_values['statusclosed']) ? 'checked' : '' ?> disabled></div></label>
           </div>
           <?php endif; ?>
+          <?php if (isset($change_id)): $time_task_type='change'; $time_task_id=$change_id; require(__DIR__.'/time_entry_widget.php'); endif; ?>
         </div>
       </div>
     </div>

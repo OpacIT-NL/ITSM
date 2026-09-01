@@ -1,4 +1,5 @@
 <?php
+require_once( __DIR__ . '/operator_security_helpers.php' );
 
 function task_supported_types() {
   return [
@@ -66,6 +67,12 @@ function task_find_by_number( $con, $number, $context = 'secure' ) {
   $types = task_supported_types();
   if ( !$type || !isset( $types[$type] ) ) {
     return null;
+  }
+  if ( $context === 'secure' && !empty( $_SESSION['operatorloggedin'] ) ) {
+    $operator = itsm_current_operator_security_context( $con );
+    if ( !itsm_operator_can_access_task_type( $operator, $type ) ) {
+      return null;
+    }
   }
 
   $config = $types[$type];
@@ -231,11 +238,23 @@ function task_create_link( $con, $left_type, $left_id, $relation, $right_type, $
   return $id;
 }
 
-function task_delete_link( $con, $link_id ) {
-  $stmt = mysqli_prepare( $con, "DELETE FROM itsm_core_tasklinks WHERE id = ?" );
-  mysqli_stmt_bind_param( $stmt, "i", $link_id );
-  mysqli_stmt_execute( $stmt );
+function task_delete_link( $con, $link_id, $task_type, $task_id ) {
+  $stmt = mysqli_prepare( $con, "
+    DELETE FROM itsm_core_tasklinks
+    WHERE id = ?
+      AND (
+        (lefttype = ? AND leftid = ?)
+        OR
+        (righttype = ? AND rightid = ?)
+      )
+  " );
+  mysqli_stmt_bind_param( $stmt, "isisi", $link_id, $task_type, $task_id, $task_type, $task_id );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_fail( 'task_link_delete_failed', mysqli_stmt_error( $stmt ) );
+  }
+  $deleted = mysqli_stmt_affected_rows( $stmt ) > 0;
   mysqli_stmt_close( $stmt );
+  return $deleted;
 }
 
 function task_get_display_by_type_id( $con, $type, $id, $context = 'secure' ) {

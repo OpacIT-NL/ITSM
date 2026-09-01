@@ -370,6 +370,46 @@ CREATE TABLE `itsm_core_urgencies` (
   `active` int(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
+CREATE TABLE `itsm_core_auth_attempts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `scope` varchar(32) NOT NULL,
+  `identifierhash` char(64) NOT NULL,
+  `iphash` char(64) NOT NULL,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `auth_attempt_lookup` (`scope`,`identifierhash`,`createdat`),
+  KEY `auth_attempt_ip_lookup` (`scope`,`iphash`,`createdat`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `itsm_core_timecodes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(32) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `active` int(1) NOT NULL DEFAULT 1,
+  `sortorder` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `itsm_core_timeentries` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tasktype` varchar(32) NOT NULL,
+  `taskid` int(11) NOT NULL,
+  `timecodeid` int(11) NOT NULL,
+  `operatorid` int(11) NOT NULL,
+  `minutes` int(11) NOT NULL,
+  `workdate` date NOT NULL,
+  `notes` varchar(500) DEFAULT NULL,
+  `createdat` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `task` (`tasktype`,`taskid`),
+  KEY `timecodeid` (`timecodeid`),
+  KEY `operatorid` (`operatorid`),
+  KEY `workdate` (`workdate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `itsm_core_timecodes` (`code`,`name`,`active`,`sortorder`) VALUES ('WORK','Werkzaamheden',1,10);
+
 CREATE TABLE `itsm_em_events` (
   `id` int(11) NOT NULL,
   `eventnumber` varchar(20) NOT NULL,
@@ -1202,6 +1242,10 @@ ALTER TABLE `itsm_ubm_items`
 ALTER TABLE `itsm_ubm_itemcomments`
   ADD CONSTRAINT `itsm_ubm_itemcomments_ibfk_1` FOREIGN KEY (`ubmitemid`) REFERENCES `itsm_ubm_items` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `itsm_ubm_itemcomments_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
+
+ALTER TABLE `itsm_core_timeentries`
+  ADD CONSTRAINT `itsm_core_timeentries_ibfk_1` FOREIGN KEY (`timecodeid`) REFERENCES `itsm_core_timecodes` (`id`),
+  ADD CONSTRAINT `itsm_core_timeentries_ibfk_2` FOREIGN KEY (`operatorid`) REFERENCES `itsm_ob_operators` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

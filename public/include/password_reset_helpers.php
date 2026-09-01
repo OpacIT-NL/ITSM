@@ -3,20 +3,7 @@
 require_once( __DIR__ . '/../../secure/include/mail_helpers.php' );
 
 function ssp_reset_base_url() {
-  $scheme = !empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
-  $host = $_SERVER['HTTP_HOST'] ?? '';
-  $script_dir = rtrim( str_replace( '\\', '/', dirname( $_SERVER['SCRIPT_NAME'] ?? '/public' ) ), '/' );
-  if ( substr( $script_dir, -7 ) === '/secure' ) {
-    $script_dir = substr( $script_dir, 0, -7 ) . '/public';
-  } elseif ( $script_dir === '/secure' ) {
-    $script_dir = '/public';
-  }
-
-  if ( $host === '' ) {
-    return $script_dir !== '' ? $script_dir : '.';
-  }
-
-  return $scheme . '://' . $host . ( $script_dir !== '' ? $script_dir : '' );
+  return mail_application_base_url( 'public' );
 }
 
 function ssp_reset_find_person_by_email( $con, $email ) {
@@ -28,11 +15,16 @@ function ssp_reset_find_person_by_email( $con, $email ) {
     LIMIT 1
   " );
   if ( !$stmt ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_person_lookup_prepare_failed', mysqli_error( $con ) );
     return null;
   }
 
   mysqli_stmt_bind_param( $stmt, 's', $email );
-  mysqli_stmt_execute( $stmt );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_person_lookup_failed', mysqli_stmt_error( $stmt ) );
+    mysqli_stmt_close( $stmt );
+    return null;
+  }
   $result = mysqli_stmt_get_result( $stmt );
   if ( $row = mysqli_fetch_assoc( $result ) ) {
     $person = $row;
@@ -49,11 +41,15 @@ function ssp_reset_invalidate_open_tokens( $con, $person_id ) {
     WHERE personid = ? AND usedat IS NULL
   " );
   if ( !$stmt ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_invalidation_prepare_failed', mysqli_error( $con ) );
     return false;
   }
 
   mysqli_stmt_bind_param( $stmt, 'i', $person_id );
   $ok = mysqli_stmt_execute( $stmt );
+  if ( !$ok ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_invalidation_failed', mysqli_stmt_error( $stmt ) );
+  }
   mysqli_stmt_close( $stmt );
 
   return $ok;
@@ -65,19 +61,25 @@ function ssp_reset_create_token( $con, $person_id, $valid_minutes = 60 ) {
   $valid_minutes = max( 5, (int)$valid_minutes );
   $expires_at = date( 'Y-m-d H:i:s', time() + ( $valid_minutes * 60 ) );
 
-  ssp_reset_invalidate_open_tokens( $con, (int)$person_id );
+  if ( !ssp_reset_invalidate_open_tokens( $con, (int)$person_id ) ) {
+    return null;
+  }
 
   $stmt = mysqli_prepare( $con, "
     INSERT INTO itsm_public_password_resets (personid, tokenhash, expiresat)
     VALUES (?, ?, ?)
   " );
   if ( !$stmt ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_create_prepare_failed', mysqli_error( $con ) );
     return null;
   }
 
   $person_id = (int)$person_id;
   mysqli_stmt_bind_param( $stmt, 'iss', $person_id, $token_hash, $expires_at );
   $ok = mysqli_stmt_execute( $stmt );
+  if ( !$ok ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_create_failed', mysqli_stmt_error( $stmt ) );
+  }
   mysqli_stmt_close( $stmt );
 
   if ( !$ok ) {
@@ -104,11 +106,16 @@ function ssp_reset_load_by_token( $con, $token ) {
     LIMIT 1
   " );
   if ( !$stmt ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_lookup_prepare_failed', mysqli_error( $con ) );
     return null;
   }
 
   mysqli_stmt_bind_param( $stmt, 's', $token_hash );
-  mysqli_stmt_execute( $stmt );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_log_trace( itsm_trace_id(), 'password_reset_token_lookup_failed', mysqli_stmt_error( $stmt ) );
+    mysqli_stmt_close( $stmt );
+    return null;
+  }
   $result = mysqli_stmt_get_result( $stmt );
   $row = mysqli_fetch_assoc( $result );
   mysqli_stmt_close( $stmt );
@@ -128,7 +135,7 @@ function ssp_reset_mark_used( $con, $reset_id ) {
 
   $reset_id = (int)$reset_id;
   mysqli_stmt_bind_param( $stmt, 'i', $reset_id );
-  $ok = mysqli_stmt_execute( $stmt );
+  $ok = mysqli_stmt_execute( $stmt ) && mysqli_stmt_affected_rows( $stmt ) === 1;
   mysqli_stmt_close( $stmt );
 
   return $ok;

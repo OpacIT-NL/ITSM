@@ -14,17 +14,21 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     $password = (string)( $_POST['password'] ?? '' );
     $password_confirm = (string)( $_POST['password_confirm'] ?? '' );
 
-    if ( strlen( $password ) < 8 ) {
-      $error = 'Gebruik een wachtwoord van minimaal 8 tekens.';
+    $password_policy_error = itsm_password_policy_error( $password );
+    if ( $password_policy_error !== '' ) {
+      $error = $password_policy_error;
     } elseif ( $password !== $password_confirm ) {
       $error = 'De wachtwoorden komen niet overeen.';
     } else {
       $password_hash = password_hash( $password, PASSWORD_DEFAULT );
+      mysqli_begin_transaction( $con );
       if ( ssp_reset_update_password( $con, (int)$reset['personid'], $password_hash ) && ssp_reset_mark_used( $con, (int)$reset['resetid'] ) ) {
+        mysqli_commit( $con );
         header( 'Location: login.php?reset_done=1' );
         exit();
       }
-      $error = 'Het wachtwoord kon niet worden gewijzigd. Probeer het opnieuw.';
+      mysqli_rollback( $con );
+      $error = itsm_error_reference( 'password_reset_update_failed', mysqli_error( $con ) );
     }
   }
 }
@@ -54,10 +58,10 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
   <form action="reset_password.php" method="post" class="login-form">
     <input type="hidden" name="token" value="<?= htmlspecialchars( $token ) ?>">
     <div class="input-group"> <i class="fas fa-lock"></i>
-      <input type="password" name="password" placeholder="<?= htmlspecialchars(t('Nieuw wachtwoord')) ?>" required minlength="8">
+      <input type="password" name="password" placeholder="<?= htmlspecialchars(t('Nieuw wachtwoord')) ?>" required minlength="12" maxlength="128" autocomplete="new-password">
     </div>
     <div class="input-group"> <i class="fas fa-lock"></i>
-      <input type="password" name="password_confirm" placeholder="<?= htmlspecialchars(t('Herhaal wachtwoord')) ?>" required minlength="8">
+      <input type="password" name="password_confirm" placeholder="<?= htmlspecialchars(t('Herhaal wachtwoord')) ?>" required minlength="12" maxlength="128" autocomplete="new-password">
     </div>
     <button type="submit" class="login-button"><?= htmlspecialchars(t('Wachtwoord wijzigen')) ?></button>
   </form>

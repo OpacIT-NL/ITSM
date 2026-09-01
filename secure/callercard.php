@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
@@ -17,7 +17,7 @@ if ( isset( $_SESSION['expires_at'] ) && time() > $_SESSION['expires_at'] ) {
 
 $logged_in_user = $_SESSION['name'];
 $operator_stmt = mysqli_prepare( $con, "
-    SELECT id, firstname, lastname, firstlineincidents, secondlineincidents, reqforchange, simplechange, extchange, persons
+    SELECT id, firstname, lastname, firstlineincidents, secondlineincidents, reqforchange, simplechange, extchange, persons, assets, isadmin
     FROM itsm_ob_operators
     WHERE username = ?
     LIMIT 1
@@ -31,16 +31,28 @@ mysqli_stmt_close( $operator_stmt );
 if ( !$operator_context ) {
   die( 'Behandelaar niet gevonden' );
 }
-if ( (int)$operator_context['firstlineincidents'] === 0 && (int)$operator_context['secondlineincidents'] === 0 ) {
+if (
+  (int)$operator_context['isadmin'] !== 1
+  && (
+    ( (int)$operator_context['firstlineincidents'] === 0 && (int)$operator_context['secondlineincidents'] === 0 )
+    || (int)$operator_context['persons'] !== 1
+  )
+) {
   header( 'Location: modules.php' );
   exit;
 }
+$can_view_changes = (int)$operator_context['isadmin'] === 1
+  || (int)$operator_context['reqforchange'] === 1
+  || (int)$operator_context['simplechange'] === 1
+  || (int)$operator_context['extchange'] === 1;
+$can_view_assets = (int)$operator_context['isadmin'] === 1 || (int)$operator_context['assets'] === 1;
 
 $reference_data = incident_load_reference_data( $con );
-$selected_customer_id = isset( $_REQUEST['customerid'] ) && is_numeric( $_REQUEST['customerid'] ) ? (int)$_REQUEST['customerid'] : 0;
-$selected_person_id = isset( $_REQUEST['personid'] ) && is_numeric( $_REQUEST['personid'] ) ? (int)$_REQUEST['personid'] : 0;
+$request_values = $_SERVER['REQUEST_METHOD'] === 'POST' ? $_POST : $_GET;
+$selected_customer_id = isset( $request_values['customerid'] ) && is_numeric( $request_values['customerid'] ) ? (int)$request_values['customerid'] : 0;
+$selected_person_id = isset( $request_values['personid'] ) && is_numeric( $request_values['personid'] ) ? (int)$request_values['personid'] : 0;
 $active_tab = $_GET['tab'] ?? 'incidents';
-$description = trim( (string)( $_REQUEST['description'] ?? '' ) );
+$description = trim( (string)( $request_values['description'] ?? '' ) );
 
 $selected_customer = $selected_customer_id > 0 ? incident_find_by_id( $reference_data['customers'], $selected_customer_id ) : null;
 $selected_person = $selected_person_id > 0 ? incident_find_by_id( $reference_data['persons'], $selected_person_id ) : null;
@@ -59,7 +71,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && $selected_customer && $selected_pe
   );
 
   $action = $_POST['caller_action'] ?? '';
-  if ( $action === 'new_firstline_incident' ) {
+  if ( $action === 'new_firstline_incident' && (int)$operator_context['firstlineincidents'] === 1 ) {
     header( 'Location: new_incident.php?mode=firstline&' . $query );
     exit;
   }
@@ -93,7 +105,8 @@ if ( $selected_customer && $selected_person ) {
   $incidents = mysqli_fetch_all( $incident_result, MYSQLI_ASSOC );
   mysqli_stmt_close( $incident_stmt );
 
-  $change_stmt = mysqli_prepare( $con, "
+  if ( $can_view_changes ) {
+    $change_stmt = mysqli_prepare( $con, "
       SELECT c.id, c.changenumber, c.title, c.requesttype, c.approvalstate, s.name AS status_name, c.updatedat
       FROM itsm_cm_changes c
       LEFT JOIN itsm_core_status s ON c.statusid = s.id
@@ -101,13 +114,15 @@ if ( $selected_customer && $selected_person ) {
       ORDER BY c.updatedat DESC, c.id DESC
       LIMIT 50
   " );
-  mysqli_stmt_bind_param( $change_stmt, "ii", $selected_customer_id, $selected_person_id );
-  mysqli_stmt_execute( $change_stmt );
-  $change_result = mysqli_stmt_get_result( $change_stmt );
-  $changes = mysqli_fetch_all( $change_result, MYSQLI_ASSOC );
-  mysqli_stmt_close( $change_stmt );
+    mysqli_stmt_bind_param( $change_stmt, "ii", $selected_customer_id, $selected_person_id );
+    mysqli_stmt_execute( $change_stmt );
+    $change_result = mysqli_stmt_get_result( $change_stmt );
+    $changes = mysqli_fetch_all( $change_result, MYSQLI_ASSOC );
+    mysqli_stmt_close( $change_stmt );
+  }
 
-  $asset_stmt = mysqli_prepare( $con, "
+  if ( $can_view_assets ) {
+    $asset_stmt = mysqli_prepare( $con, "
       SELECT a.id, a.objectid, t.type AS typename, s.name AS status_name, a.startdate, a.enddate
       FROM itsm_am_assets a
       LEFT JOIN itsm_am_types t ON a.type = t.id
@@ -116,11 +131,12 @@ if ( $selected_customer && $selected_person ) {
       ORDER BY a.objectid ASC, a.id ASC
       LIMIT 50
   " );
-  mysqli_stmt_bind_param( $asset_stmt, "i", $selected_person_id );
-  mysqli_stmt_execute( $asset_stmt );
-  $asset_result = mysqli_stmt_get_result( $asset_stmt );
-  $assets = mysqli_fetch_all( $asset_result, MYSQLI_ASSOC );
-  mysqli_stmt_close( $asset_stmt );
+    mysqli_stmt_bind_param( $asset_stmt, "i", $selected_person_id );
+    mysqli_stmt_execute( $asset_stmt );
+    $asset_result = mysqli_stmt_get_result( $asset_stmt );
+    $assets = mysqli_fetch_all( $asset_result, MYSQLI_ASSOC );
+    mysqli_stmt_close( $asset_stmt );
+  }
 }
 
 $customers_json = json_encode( $reference_data['customers'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP );

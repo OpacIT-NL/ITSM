@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
@@ -79,7 +79,7 @@ if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_
 }
 
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
-  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  task_delete_link( $con, (int)$_POST['delete_link_id'], 'change', $change_id );
   header( 'Location: edit_change.php?id=' . $change_id );
   exit;
 }
@@ -401,7 +401,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
       );
 
       if ( !mysqli_stmt_execute( $update_stmt ) ) {
-        $errors[] = 'Wijziging bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+        $errors[] = itsm_error_reference( 'change_update_failed', mysqli_stmt_error( $update_stmt ) );
       } else {
         form_presence_mark_saved( $con, 'change', $change_id, (int)$operator_context['id'] );
         task_log_add( $con, 'change', $change_id, 'updated', 'Wijziging opgeslagen.', (int)$operator_context['id'] );

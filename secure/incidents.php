@@ -1,10 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
 require_once( __DIR__ . '/include/pagination_helpers.php' );
+require_once( __DIR__ . '/include/task_helpers.php' );
+require_once( __DIR__ . '/include/task_log_helpers.php' );
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -25,6 +27,54 @@ $view = $_GET['view'] ?? 'open';
 $mode = incident_normalize_mode( $_GET['mode'] ?? '' );
 $major_target = isset( $_GET['major_target'] ) && is_numeric( $_GET['major_target'] ) ? (int)$_GET['major_target'] : 0;
 $problem_target = isset( $_GET['problem_target'] ) && is_numeric( $_GET['problem_target'] ) ? (int)$_GET['problem_target'] : 0;
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['link_major'] ) ) {
+  $incident_id = (int)( $_POST['incident_id'] ?? 0 );
+  $target_id = (int)( $_POST['major_target'] ?? 0 );
+  $stmt = mysqli_prepare( $con, "
+    UPDATE itsm_im_incidents source
+    INNER JOIN itsm_im_incidents target ON target.id = ? AND target.incidenttype = 'major'
+    SET source.majorincidentid = target.id
+    WHERE source.id = ? AND source.incidenttype <> 'major'
+  " );
+  mysqli_stmt_bind_param( $stmt, 'ii', $target_id, $incident_id );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_fail( 'major_incident_link_failed', mysqli_stmt_error( $stmt ) );
+  }
+  $linked = mysqli_stmt_affected_rows( $stmt ) > 0;
+  mysqli_stmt_close( $stmt );
+  if ( !$linked ) {
+    http_response_code( 404 );
+    exit( 'Niet gevonden.' );
+  }
+  header( 'Location: edit_incident.php?id=' . $target_id );
+  exit;
+}
+
+if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['link_problem'] ) ) {
+  $incident_id = (int)( $_POST['incident_id'] ?? 0 );
+  $target_id = (int)( $_POST['problem_target'] ?? 0 );
+  $security_operator = itsm_current_operator_security_context( $con );
+  itsm_require_operator_task_type_access( $security_operator, 'problem' );
+  $incident_stmt = mysqli_prepare( $con, "SELECT id FROM itsm_im_incidents WHERE id = ? LIMIT 1" );
+  mysqli_stmt_bind_param( $incident_stmt, 'i', $incident_id );
+  mysqli_stmt_execute( $incident_stmt );
+  $incident_row = mysqli_fetch_assoc( mysqli_stmt_get_result( $incident_stmt ) );
+  mysqli_stmt_close( $incident_stmt );
+  $problem_stmt = mysqli_prepare( $con, "SELECT id FROM itsm_pm_problems WHERE id = ? LIMIT 1" );
+  mysqli_stmt_bind_param( $problem_stmt, 'i', $target_id );
+  mysqli_stmt_execute( $problem_stmt );
+  $problem_row = mysqli_fetch_assoc( mysqli_stmt_get_result( $problem_stmt ) );
+  mysqli_stmt_close( $problem_stmt );
+  if ( !$incident_row || !$problem_row ) {
+    http_response_code( 404 );
+    exit( 'Niet gevonden.' );
+  }
+  task_create_link( $con, 'incident', $incident_id, 'Behoort bij problem', 'problem', $target_id, (int)$operator_context['id'] );
+  task_log_add( $con, 'incident', $incident_id, 'link_created', 'Incident gekoppeld aan problem #' . $target_id . '.', (int)$operator_context['id'] );
+  header( 'Location: edit_problem.php?id=' . $target_id );
+  exit;
+}
 $view_labels = [
   'open' => 'Open incidenten',
   'all' => 'Alle incidenten',
@@ -128,6 +178,9 @@ $result = mysqli_stmt_get_result( $stmt );
           <th style="text-align: start;">Status</th>
           <th style="text-align: start;">Groep</th>
           <th style="text-align: start;">Behandelaar</th>
+          <?php if ( $major_target > 0 || $problem_target > 0 ): ?>
+          <th style="text-align: start;">Actie</th>
+          <?php endif; ?>
         </tr>
       </thead>
       <tbody>
@@ -141,6 +194,20 @@ $result = mysqli_stmt_get_result( $stmt );
           <td><?= htmlspecialchars($row['status_name']) ?></td>
           <td><?= htmlspecialchars($row['groupname']) ?></td>
           <td><?= htmlspecialchars($row['operator_name']) ?></td>
+          <?php if ( $major_target > 0 || $problem_target > 0 ): ?>
+          <td>
+            <form method="post">
+              <input type="hidden" name="incident_id" value="<?= (int)$row['id'] ?>">
+              <?php if ( $major_target > 0 ): ?>
+              <input type="hidden" name="major_target" value="<?= $major_target ?>">
+              <button class="btn" type="submit" name="link_major" value="1">Koppelen</button>
+              <?php else: ?>
+              <input type="hidden" name="problem_target" value="<?= $problem_target ?>">
+              <button class="btn" type="submit" name="link_problem" value="1">Koppelen</button>
+              <?php endif; ?>
+            </form>
+          </td>
+          <?php endif; ?>
         </tr>
         <?php endwhile; ?>
       </tbody>

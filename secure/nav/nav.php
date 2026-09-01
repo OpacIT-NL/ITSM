@@ -13,7 +13,12 @@
 
 <!-- Top bar -->
 <div class="topbar">
-  <div class="topbar-right"> Ingelogde behandelaar: <?php echo $_SESSION['name'];?> | <a href="./logout.php">Logout <i class="fa-solid fa-right-from-bracket"></i></a> </div>
+  <div class="topbar-right">
+    Ingelogde behandelaar: <?= htmlspecialchars((string)($_SESSION['name'] ?? '')) ?> |
+    <form method="post" action="./logout.php" class="topbar-logout-form">
+      <button type="submit" class="topbar-logout-button">Logout <i class="fa-solid fa-right-from-bracket"></i></button>
+    </form>
+  </div>
 </div>
 
 <!-- Secure page tabs -->

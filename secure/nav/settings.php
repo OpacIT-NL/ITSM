@@ -6,7 +6,7 @@
   </center>
   <div class="modules-menu"> <a href="./set-general.php"> <?= htmlspecialchars(t('Algemene instellingen')) ?> </a>
     <a href="./set-update.php"> <?= htmlspecialchars(t('Update ITSM')) ?> </a>
-    <a href="./set-api-tokens.php"> <?= htmlspecialchars(t('API tokens')) ?> </a>
+    <a href="./set-timecodes.php"> <?= htmlspecialchars(t('Tijdcodes')) ?> </a>
     <center>
       <h3><?= htmlspecialchars(t('Module instellingen')) ?></h3>
     </center>

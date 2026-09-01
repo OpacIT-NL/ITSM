@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -496,7 +496,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   );
 
   if ( !$stmt->execute() ) {
-    die( "Update failed: " . $stmt->error );
+    itsm_fail( 'asset_update_failed', $stmt->error );
   }
 
   header( 'Location: assets.php?filtertype=' . $asset['type'] );

@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -60,7 +60,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   $update_stmt->bind_param( "si", $name, $id );
 
   if ( !$update_stmt->execute() ) {
-    die( "Update failed: " . $update_stmt->error );
+    itsm_fail( 'asset_field_update_failed', $update_stmt->error );
   }
 
   header( 'Location: edit_assettype.php?id=' . $field['type'] );

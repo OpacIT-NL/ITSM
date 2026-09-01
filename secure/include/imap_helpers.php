@@ -132,7 +132,10 @@ function imap_part_parameter_value( $part, $attribute_name ) {
   return '';
 }
 
-function imap_collect_attachments_recursive( $mailbox, $message_number, $part, $part_number = '' ) {
+function imap_collect_attachments_recursive( $mailbox, $message_number, $part, $part_number = '', &$attachment_state = null ) {
+  if ( $attachment_state === null ) {
+    $attachment_state = [ 'count' => 0, 'bytes' => 0 ];
+  }
   $attachments = [];
   $filename = imap_part_parameter_value( $part, 'filename' );
   if ( $filename === '' ) {
@@ -141,25 +144,40 @@ function imap_collect_attachments_recursive( $mailbox, $message_number, $part, $
 
   $disposition = strtoupper( (string)( $part->disposition ?? '' ) );
   $is_attachment = $filename !== '' || in_array( $disposition, [ 'ATTACHMENT', 'INLINE' ], true );
-  if ( $is_attachment && $filename !== '' ) {
+  if ( $is_attachment && $filename !== '' && $attachment_state['count'] < 10 ) {
+    $declared_size = (int)( $part->bytes ?? 0 );
+    if ( $declared_size > itsm_attachment_max_bytes() ) {
+      return [];
+    }
     $fetch_section = $part_number !== '' ? $part_number : '1';
     $body = imap_fetchbody( $mailbox, $message_number, $fetch_section );
     $content = imap_decode_body_part( $body, $part->encoding ?? 0 );
-    if ( $content !== false && $content !== '' ) {
+    $content_size = $content !== false ? strlen( $content ) : 0;
+    if (
+      $content !== false
+      && $content !== ''
+      && $content_size <= itsm_attachment_max_bytes()
+      && ( $attachment_state['bytes'] + $content_size ) <= ( 25 * 1024 * 1024 )
+    ) {
       $attachments[] = [
         'filename' => $filename,
         'major_type' => (int)( $part->type ?? 7 ),
         'subtype' => strtolower( (string)( $part->subtype ?? 'octet-stream' ) ),
         'content' => $content,
-        'filesize' => strlen( $content )
+        'filesize' => $content_size
       ];
+      $attachment_state['count']++;
+      $attachment_state['bytes'] += $content_size;
     }
   }
 
   if ( !empty( $part->parts ) && is_array( $part->parts ) ) {
     foreach ( $part->parts as $index => $child_part ) {
       $child_number = $part_number === '' ? (string)( $index + 1 ) : $part_number . '.' . ( $index + 1 );
-      $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $child_part, $child_number ) );
+      if ( $attachment_state['count'] >= 10 || $attachment_state['bytes'] >= ( 25 * 1024 * 1024 ) ) {
+        break;
+      }
+      $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $child_part, $child_number, $attachment_state ) );
     }
   }
 
@@ -172,13 +190,17 @@ function imap_fetch_attachments( $mailbox, $message_number ) {
     return [];
   }
 
+  $attachment_state = [ 'count' => 0, 'bytes' => 0 ];
   if ( empty( $structure->parts ) ) {
-    return imap_collect_attachments_recursive( $mailbox, $message_number, $structure, '' );
+    return imap_collect_attachments_recursive( $mailbox, $message_number, $structure, '', $attachment_state );
   }
 
   $attachments = [];
   foreach ( $structure->parts as $index => $part ) {
-    $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $part, (string)( $index + 1 ) ) );
+    if ( $attachment_state['count'] >= 10 || $attachment_state['bytes'] >= ( 25 * 1024 * 1024 ) ) {
+      break;
+    }
+    $attachments = array_merge( $attachments, imap_collect_attachments_recursive( $mailbox, $message_number, $part, (string)( $index + 1 ), $attachment_state ) );
   }
 
   return array_values( array_filter(
@@ -580,7 +602,8 @@ function imap_import_folder_rule( $con, $rule, $created_by, $limit = 25 ) {
       imap_setflag_full( $mailbox, (string)$message_number, '\\Seen' );
       $imported++;
     } catch ( Exception $exception ) {
-      $errors[] = 'Bericht ' . $uid . ' importeren mislukt: ' . $exception->getMessage();
+      $errors[] = 'Bericht ' . $uid . ' importeren mislukt. '
+        . itsm_error_reference( 'imap_message_import_failed', $exception->getMessage(), $exception );
     }
   }
 

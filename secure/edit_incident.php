@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
@@ -45,40 +45,6 @@ if ( !$incident ) {
   die( 'Incident niet gevonden' );
 }
 
-if ( isset( $_GET['set_major'] ) && is_numeric( $_GET['set_major'] ) && $incident['incidenttype'] !== 'major' ) {
-  $set_major_id = (int)$_GET['set_major'];
-  $major_stmt = mysqli_prepare( $con, "SELECT id FROM itsm_im_incidents WHERE id = ? AND incidenttype = 'major'" );
-  mysqli_stmt_bind_param( $major_stmt, "i", $set_major_id );
-  mysqli_stmt_execute( $major_stmt );
-  $major_result = mysqli_stmt_get_result( $major_stmt );
-  $major_row = mysqli_fetch_assoc( $major_result );
-  mysqli_stmt_close( $major_stmt );
-
-  if ( $major_row ) {
-    $link_stmt = mysqli_prepare( $con, "UPDATE itsm_im_incidents SET majorincidentid = ? WHERE id = ?" );
-    mysqli_stmt_bind_param( $link_stmt, "ii", $set_major_id, $incident_id );
-    mysqli_stmt_execute( $link_stmt );
-    header( 'Location: edit_incident.php?id=' . $set_major_id );
-    exit;
-  }
-}
-
-if ( isset( $_GET['set_problem'] ) && is_numeric( $_GET['set_problem'] ) ) {
-  $set_problem_id = (int)$_GET['set_problem'];
-  $problem_stmt = mysqli_prepare( $con, "SELECT id FROM itsm_pm_problems WHERE id = ?" );
-  mysqli_stmt_bind_param( $problem_stmt, "i", $set_problem_id );
-  mysqli_stmt_execute( $problem_stmt );
-  $problem_result = mysqli_stmt_get_result( $problem_stmt );
-  $problem_row = mysqli_fetch_assoc( $problem_result );
-  mysqli_stmt_close( $problem_stmt );
-  if ( $problem_row ) {
-    task_create_link( $con, 'incident', $incident_id, 'Behoort bij problem', 'problem', $set_problem_id, (int)$operator_context['id'] );
-    task_log_add( $con, 'incident', $incident_id, 'link_created', 'Incident gekoppeld aan problem #' . $set_problem_id . '.', (int)$operator_context['id'] );
-    header( 'Location: edit_problem.php?id=' . $set_problem_id );
-    exit;
-  }
-}
-
 $reference_data = incident_load_reference_data( $con );
 $errors = [];
 $mail_messages = $_SESSION['manual_mail_messages'] ?? [];
@@ -115,7 +81,7 @@ if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_
   exit;
 }
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
-  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  task_delete_link( $con, (int)$_POST['delete_link_id'], 'incident', $incident_id );
   header( 'Location: edit_incident.php?id=' . $incident_id );
   exit;
 }
@@ -344,7 +310,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
     );
 
     if ( !mysqli_stmt_execute( $update_stmt ) ) {
-      $errors[] = 'Incident bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+      $errors[] = itsm_error_reference( 'incident_update_failed', mysqli_stmt_error( $update_stmt ) );
     } else {
       form_presence_mark_saved( $con, 'incident', $incident_id, (int)$operator_context['id'] );
       task_log_add( $con, 'incident', $incident_id, 'updated', 'Incident opgeslagen.', (int)$operator_context['id'] );

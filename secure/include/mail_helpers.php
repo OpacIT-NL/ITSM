@@ -52,36 +52,58 @@ function mail_format_task_number( $row, $type ) {
   return '#' . ( $row['id'] ?? '' );
 }
 
-function mail_task_url( $type, $id ) {
-  $path = '/secure/index.php';
-  if ( $type === 'incident' ) {
-    $path = '/secure/edit_incident.php?id=' . (int)$id;
-  } elseif ( $type === 'change' ) {
-    $path = '/secure/edit_change.php?id=' . (int)$id;
-  } elseif ( $type === 'problem' ) {
-    $path = '/secure/edit_problem.php?id=' . (int)$id;
+function mail_application_base_url( $scope ) {
+  $scope = $scope === 'secure' ? 'secure' : 'public';
+  $environment_name = $scope === 'secure' ? 'ITSM_SECURE_BASE_URL' : 'ITSM_PUBLIC_BASE_URL';
+  $configured_url = trim( (string)getenv( $environment_name ) );
+  if ( $configured_url === '' ) {
+    $config_path = __DIR__ . '/../../../config/app.ini';
+    $config = @parse_ini_file( $config_path );
+    $configured_url = is_array( $config ) ? trim( (string)( $config[$scope . '_base_url'] ?? '' ) ) : '';
   }
 
-  $scheme = !empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
-  $host = $_SERVER['HTTP_HOST'] ?? '';
-  return $host !== '' ? $scheme . '://' . $host . $path : $path;
+  $parts = $configured_url !== '' ? parse_url( $configured_url ) : false;
+  if (
+    !is_array( $parts )
+    || strtolower( (string)( $parts['scheme'] ?? '' ) ) !== 'https'
+    || empty( $parts['host'] )
+    || isset( $parts['user'] )
+    || isset( $parts['pass'] )
+    || isset( $parts['query'] )
+    || isset( $parts['fragment'] )
+  ) {
+    throw new RuntimeException( 'Configure canonical HTTPS public_base_url and secure_base_url values in config/app.ini.' );
+  }
+
+  return rtrim( $configured_url, '/' );
+}
+
+function mail_task_url( $type, $id ) {
+  $path = '/index.php';
+  if ( $type === 'incident' ) {
+    $path = '/edit_incident.php?id=' . (int)$id;
+  } elseif ( $type === 'change' ) {
+    $path = '/edit_change.php?id=' . (int)$id;
+  } elseif ( $type === 'problem' ) {
+    $path = '/edit_problem.php?id=' . (int)$id;
+  }
+
+  return mail_application_base_url( 'secure' ) . $path;
 }
 
 function mail_task_public_url( $type, $id ) {
   $path = '';
   if ( $type === 'incident' ) {
-    $path = '/public/view_incident.php?id=' . (int)$id;
+    $path = '/view_incident.php?id=' . (int)$id;
   } elseif ( $type === 'change' ) {
-    $path = '/public/view_change.php?id=' . (int)$id;
+    $path = '/view_change.php?id=' . (int)$id;
   }
 
   if ( $path === '' ) {
     return '';
   }
 
-  $scheme = !empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
-  $host = $_SERVER['HTTP_HOST'] ?? '';
-  return $host !== '' ? $scheme . '://' . $host . $path : $path;
+  return mail_application_base_url( 'public' ) . $path;
 }
 
 function mail_message_id_domain( $from_email ) {
@@ -91,8 +113,9 @@ function mail_message_id_domain( $from_email ) {
     return $parts[1];
   }
 
-  $host = (string)( $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost' );
+  $host = (string)( $_SERVER['SERVER_NAME'] ?? 'localhost' );
   $host = preg_replace( '/:\d+$/', '', $host );
+  $host = preg_replace( '/[^a-zA-Z0-9.-]/', '', $host );
   return $host !== '' ? $host : 'localhost';
 }
 

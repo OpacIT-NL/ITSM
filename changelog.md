@@ -1,5 +1,15 @@
 # Changelog
 
+## Onuitgebracht
+
+### Beveiliging
+
+- De API en het beheer van API-tokens zijn tijdelijk uitgeschakeld in afwachting van een nieuw autorisatiemodel; bestaande tokens worden ingetrokken.
+- Centrale CSRF-bescherming, veilige sessiecookies en HTTP-beveiligingsheaders zijn toegevoegd.
+- Autorisatie voor zoeken, bijlagen, beheerdersrechten en taaklinks is aangescherpt.
+- Uploads worden op inhoud en extensie gevalideerd; actieve webbestanden worden geweigerd.
+- Interne fouten worden met een `trace_id` in de PHP/Apache errorlog vastgelegd zonder databasefouten aan gebruikers te tonen.
+
 ## v0.6.0
 
 ### Nieuw

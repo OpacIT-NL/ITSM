@@ -1,8 +1,9 @@
 <?php
 require_once( __DIR__ . '/../../include/session_helpers.php' );
+require_once( __DIR__ . '/../../include/upload_security.php' );
 
 function ssp_require_login( $con ) {
-  session_start();
+  itsm_secure_session_start();
 
   if ( !isset( $_SESSION['ssploggedin'], $_SESSION['id'] ) ) {
     header( 'Location: login.php' );
@@ -121,7 +122,8 @@ function ssp_render_header( $person, $active = 'dashboard' ) {
   echo '        <p>' . htmlspecialchars( t( 'ssp.logged_in_as', [ 'name' => trim( ($person['firstname'] ?? '') . ' ' . ($person['lastname'] ?? '') ) ] ) ) . "</p>\n";
   echo "      </div>\n";
   echo "      <div class=\"ssp-topbar-actions\">\n";
-  echo "        <a class=\"ssp-ghost-link\" href=\"logout.php\">Uitloggen <i class=\"fa-solid fa-right-from-bracket\"></i></a>\n";
+  echo "        <form method=\"post\" action=\"logout.php\" class=\"ssp-logout-form\">";
+  echo "<button class=\"ssp-ghost-link\" type=\"submit\">Uitloggen <i class=\"fa-solid fa-right-from-bracket\"></i></button></form>\n";
   echo "      </div>\n";
   echo "    </header>\n";
 }
@@ -473,12 +475,8 @@ function ssp_attachment_upload_errors( $field_name = 'attachment' ) {
     return [ 'Bijlage uploaden mislukt. Upload foutcode: ' . (int)$file['error'] ];
   }
 
-  $max_bytes = 10 * 1024 * 1024;
-  if ( (int)$file['size'] > $max_bytes ) {
-    return [ 'Bijlage is te groot. Maximaal 10 MB.' ];
-  }
-
-  return [];
+  $validation = itsm_uploaded_attachment_validation( $file );
+  return $validation['ok'] ? [] : [ $validation['error'] ];
 }
 
 function ssp_attachment_save_upload( $con, $task_type, $task_id, $person_id, $comment_type, $comment_id, $field_name = 'attachment' ) {
@@ -487,21 +485,18 @@ function ssp_attachment_save_upload( $con, $task_type, $task_id, $person_id, $co
   }
 
   $file = $_FILES[$field_name];
-  if ( (int)$file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file( $file['tmp_name'] ) ) {
+  $validation = itsm_uploaded_attachment_validation( $file );
+  if ( !$validation['ok'] ) {
     return 0;
   }
-
-  $content = file_get_contents( $file['tmp_name'] );
-  if ( $content === false ) {
-    return 0;
-  }
+  $content = $validation['content'];
 
   $task_id = (int)$task_id;
   $person_id = (int)$person_id;
   $comment_id = (int)$comment_id;
   $filename = basename( (string)$file['name'] );
-  $mimetype = (string)( $file['type'] ?? 'application/octet-stream' );
-  $filesize = (int)$file['size'];
+  $mimetype = $validation['mime'];
+  $filesize = strlen( $content );
   $uploaded_by = null;
   $internal_only = 0;
   $null_blob = null;
@@ -527,7 +522,9 @@ function ssp_attachment_save_upload( $con, $task_type, $task_id, $person_id, $co
     $internal_only
   );
   mysqli_stmt_send_long_data( $stmt, 7, $content );
-  mysqli_stmt_execute( $stmt );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_fail( 'portal_attachment_insert_failed', mysqli_stmt_error( $stmt ) );
+  }
   $id = mysqli_insert_id( $con );
   mysqli_stmt_close( $stmt );
 
@@ -589,7 +586,7 @@ function ssp_attachment_render_links( $attachments ) {
     $html .= '<i class="fa-solid fa-paperclip"></i> ' . htmlspecialchars( $attachment['filename'] );
     $html .= ' <span>(' . htmlspecialchars( ssp_attachment_format_filesize( $attachment['filesize'] ) ) . ')</span>';
     $html .= '</a>';
-    if ( strpos( (string)( $attachment['mimetype'] ?? '' ), 'image/' ) === 0 ) {
+    if ( itsm_attachment_mimetype_can_inline( $attachment['mimetype'] ?? '' ) ) {
       $html .= '<img class="ssp-inline-image" src="download_attachment.php?id=' . htmlspecialchars( (string)$attachment['id'] ) . '&amp;inline=1" alt="' . htmlspecialchars( $attachment['filename'] ) . '">';
     }
   }

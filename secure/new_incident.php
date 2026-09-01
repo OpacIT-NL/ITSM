@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/incident_helpers.php' );
@@ -208,7 +208,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     );
 
     if ( !mysqli_stmt_execute( $stmt ) ) {
-      $errors[] = 'Incident opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+      $errors[] = itsm_error_reference( 'incident_insert_failed', mysqli_stmt_error( $stmt ) );
     } else {
       $incident_id = mysqli_insert_id( $con );
       task_log_add( $con, 'incident', $incident_id, 'created', incident_mode_label( $mode ) . ' aangemaakt.', $created_by );

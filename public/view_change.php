@@ -67,7 +67,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = 'Commentaar opslaan mislukt: ' . mysqli_stmt_error( $comment_stmt );
+    $errors[] = itsm_error_reference( 'public_change_comment_insert_failed', mysqli_stmt_error( $comment_stmt ) );
     mysqli_stmt_close( $comment_stmt );
   }
 }

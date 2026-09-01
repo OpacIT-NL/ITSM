@@ -2,7 +2,9 @@
 
 date_default_timezone_set( 'Europe/Amsterdam' );
 require_once( __DIR__ . '/include/session_helpers.php' );
+require_once( __DIR__ . '/include/auth_security.php' );
 require_once( __DIR__ . '/lang/lang_helpers.php' );
+itsm_secure_session_start();
 
 function db_connect() {
 
@@ -11,15 +13,21 @@ function db_connect() {
 
   // Try and connect to the database, if a connection has not been established yet
   if ( !isset( $con ) ) {
-    // Load configuration as an array. Use the actual location of your configuration file
-    $config = parse_ini_file( __DIR__ . '/../config/sql.ini' );
-    $con = mysqli_connect( $config[ 'servername' ], $config[ 'username' ], $config[ 'password' ], $config[ 'dbname' ] );
+    $config_path = __DIR__ . '/../config/sql.ini';
+    $config = @parse_ini_file( $config_path );
+    if ( !is_array( $config ) || !isset( $config['servername'], $config['username'], $config['password'], $config['dbname'] ) ) {
+      itsm_fail( 'database_configuration_invalid', 'Unable to load required values from ' . $config_path );
+    }
+
+    mysqli_report( MYSQLI_REPORT_OFF );
+    $con = @mysqli_connect( $config['servername'], $config['username'], $config['password'], $config['dbname'] );
   }
 
-  // If connection was not successful, handle the error
-  if ( $con === false ) {
-    // Handle error - notify administrator, log to a file, show an error screen, etc.
-    return mysqli_connect_error();
+  if ( !( $con instanceof mysqli ) ) {
+    itsm_fail( 'database_connection_failed', mysqli_connect_error() );
+  }
+  if ( !mysqli_set_charset( $con, 'utf8mb4' ) ) {
+    itsm_fail( 'database_charset_failed', mysqli_error( $con ) );
   }
   return $con;
 }
@@ -117,7 +125,8 @@ function itsm_refresh_authenticated_session_timeout() {
     return;
   }
 
-  if ( basename( $_SERVER['SCRIPT_NAME'] ?? '' ) === 'authenticate.php' ) {
+  $script_name = basename( $_SERVER['SCRIPT_NAME'] ?? '' );
+  if ( $script_name === 'authenticate.php' ) {
     return;
   }
 
@@ -133,18 +142,19 @@ function itsm_refresh_authenticated_session_timeout() {
     exit;
   }
 
+  // Background presence heartbeats must not keep an otherwise idle session alive.
+  if ( $script_name === 'form_presence.php' ) {
+    return;
+  }
+
   $_SESSION['expires_at'] = time() + $timeout_seconds;
 }
 
 // Connect to the database
 $con = db_connect();
 
+itsm_validate_session_security_fingerprint( $con );
 itsm_refresh_authenticated_session_timeout();
 
 itsm_boot_language_system( $con instanceof mysqli ? $con : null );
-
-// Check connection
-if ( $con->connect_error ) {
-  die( "Connection failed: " . $con->connect_error );
-}
 ?>

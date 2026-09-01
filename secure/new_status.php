@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -55,7 +55,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Insert failed: " . mysqli_stmt_error( $stmt ) );
+    itsm_fail( 'status_insert_failed', mysqli_stmt_error( $stmt ) );
   }
 
   header( 'Location: set-ls-status.php' );

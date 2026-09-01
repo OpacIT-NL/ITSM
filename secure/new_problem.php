@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/problem_helpers.php' );
@@ -177,7 +177,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
     );
 
     if ( !mysqli_stmt_execute( $stmt ) ) {
-      $errors[] = 'Probleem opslaan mislukt: ' . mysqli_stmt_error( $stmt );
+      $errors[] = itsm_error_reference( 'problem_insert_failed', mysqli_stmt_error( $stmt ) );
     } else {
       $problem_id = mysqli_insert_id( $con );
       task_log_add( $con, 'problem', $problem_id, 'created', 'Problem aangemaakt.', $created_by );

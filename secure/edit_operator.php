@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -16,11 +16,11 @@ $logged_in_user = $_SESSION[ 'name' ];
 require_once( __DIR__ . '/../my.php' );
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT operators, isadmin FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare( $con, $sql2 );
 mysqli_stmt_bind_param( $result2, "s", $logged_in_user );
 mysqli_stmt_execute( $result2 );
-mysqli_stmt_bind_result( $result2, $operators );
+mysqli_stmt_bind_result( $result2, $operators, $current_isadmin );
 mysqli_stmt_fetch( $result2 );
 mysqli_stmt_close( $result2 );
 if ( $operators == 0 ) {
@@ -41,7 +41,32 @@ $boolFields = [
   'operators', 'buildings', 'customers', 'suppliers', 'groups', 'events', 'ubm',
   'reporting', 'isadmin'
 ];
+
+$stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ob_operators WHERE id = ? LIMIT 1" );
+mysqli_stmt_bind_param( $stmt, "i", $id );
+mysqli_stmt_execute( $stmt );
+$result = mysqli_stmt_get_result( $stmt );
+$operator = mysqli_fetch_assoc( $result );
+mysqli_stmt_close( $stmt );
+if ( !$operator ) {
+  http_response_code( 404 );
+  exit( 'Behandelaar niet gevonden.' );
+}
+if ( (int)$operator['isadmin'] === 1 && (int)$current_isadmin !== 1 ) {
+  http_response_code( 403 );
+  exit( 'Alleen een administrator kan een administrator bewerken.' );
+}
+
 if ( isset( $_POST[ 'delete' ] ) ) {
+  if ( (int)$operator['isadmin'] === 1 ) {
+    $admin_count_result = mysqli_query( $con, "SELECT COUNT(*) AS total FROM itsm_ob_operators WHERE isadmin = 1" );
+    $admin_count = $admin_count_result ? (int)( mysqli_fetch_assoc( $admin_count_result )['total'] ?? 0 ) : 0;
+    if ( $admin_count <= 1 ) {
+      http_response_code( 400 );
+      exit( 'De laatste administrator kan niet worden verwijderd.' );
+    }
+  }
+
   $delete_links_stmt = mysqli_prepare( $con, "DELETE FROM itsm_ob_opgrouplinks WHERE operatorid = ?" );
   mysqli_stmt_bind_param( $delete_links_stmt, "i", $id );
   mysqli_stmt_execute( $delete_links_stmt );
@@ -51,7 +76,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
   mysqli_stmt_bind_param( $stmt, "i", $id );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
+    itsm_fail( 'operator_delete_failed', mysqli_stmt_error( $stmt ) );
   }
 
   header( 'Location: operators.php' );
@@ -65,6 +90,24 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   $boolValues = [];
   foreach ( $boolFields as $field ) {
     $boolValues[ $field ] = isset( $_POST[ $field ] ) ? 1 : 0;
+  }
+  if ( (int)$current_isadmin !== 1 ) {
+    $boolValues['isadmin'] = (int)$operator['isadmin'];
+  }
+  if ( (int)$operator['isadmin'] === 1 && $boolValues['isadmin'] !== 1 ) {
+    $admin_count_result = mysqli_query( $con, "SELECT COUNT(*) AS total FROM itsm_ob_operators WHERE isadmin = 1" );
+    $admin_count = $admin_count_result ? (int)( mysqli_fetch_assoc( $admin_count_result )['total'] ?? 0 ) : 0;
+    if ( $admin_count <= 1 ) {
+      http_response_code( 400 );
+      exit( 'De laatste administrator kan niet worden gedegradeerd.' );
+    }
+  }
+  if ( !empty( $_POST['password'] ) ) {
+    $password_error = itsm_password_policy_error( $_POST['password'] );
+    if ( $password_error !== '' ) {
+      http_response_code( 400 );
+      exit( $password_error );
+    }
   }
 
   $preferred_language = trim( (string)( $_POST['preferredlanguage'] ?? '' ) );
@@ -131,12 +174,12 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Update failed: " . mysqli_stmt_error( $stmt ) );
+    itsm_fail( 'operator_update_failed', mysqli_stmt_error( $stmt ) );
   }
   mysqli_stmt_close( $stmt );
   // Only update password if a new one is entered
   if ( !empty( $_POST[ 'password' ] ) ) {
-    $hashed = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
+    $hashed = password_hash( (string)$_POST['password'], PASSWORD_DEFAULT );
 
     $stmt = mysqli_prepare( $con, "
         UPDATE itsm_ob_operators 
@@ -153,7 +196,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   $valid_group_ids = [];
   $groups_result = mysqli_query( $con, "SELECT id FROM itsm_ob_operatorgroups" );
   if ( !$groups_result ) {
-    die( "Group lookup failed: " . mysqli_error( $con ) );
+    itsm_fail( 'operator_group_lookup_failed', mysqli_error( $con ) );
   }
   while ( $group_row = mysqli_fetch_assoc( $groups_result ) ) {
     $valid_group_ids[] = (int)$group_row['id'];
@@ -183,24 +226,11 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
     mysqli_commit( $con );
   } catch ( Exception $e ) {
     mysqli_rollback( $con );
-    die( "Group update failed: " . $e->getMessage() );
+    itsm_fail( 'operator_group_update_failed', $e->getMessage(), 500, $e );
   }
 
   header( 'Location: operators.php' );
   exit;
-}
-
-// Fetch operator
-$stmt = mysqli_prepare( $con, "SELECT * FROM itsm_ob_operators WHERE id=?" );
-mysqli_stmt_bind_param( $stmt, "i", $id );
-mysqli_stmt_execute( $stmt );
-
-$result = mysqli_stmt_get_result( $stmt );
-$operator = mysqli_fetch_assoc( $result );
-
-
-if ( !$operator ) {
-  die( "Operator not found" );
 }
 
 $operator_groups_result = mysqli_query( $con, "SELECT id, groupname FROM itsm_ob_operatorgroups ORDER BY groupname ASC" );
@@ -279,9 +309,10 @@ mysqli_stmt_close( $linked_stmt );
         <h3>Rechten</h3>
         <div class=checkbox-grid>
           <?php foreach ($boolFields as $field): ?>
+          <?php if ( $field === 'isadmin' && (int)$current_isadmin !== 1 ) continue; ?>
           <label>
-            <input type="checkbox" name="<?= $field ?>" <?= $operator[$field] ? 'checked' : '' ?>>
-            <?= ucfirst($field) ?>
+            <input type="checkbox" name="<?= htmlspecialchars($field) ?>" <?= $operator[$field] ? 'checked' : '' ?>>
+            <?= htmlspecialchars(ucfirst($field)) ?>
           </label>
           <?php endforeach; ?>
         </div>
@@ -289,7 +320,7 @@ mysqli_stmt_close( $linked_stmt );
         <div class="form-group"> 
           <!-- Password (optional safe handling) -->
           <label><?= htmlspecialchars(t('Nieuw wachtwoord (laat leeg om niet te bewerken)')) ?>:
-            <input type="password" name="password">
+            <input type="password" name="password" minlength="12" maxlength="128" autocomplete="new-password">
           </label>
         </div>
         <br>

@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -41,7 +41,7 @@ if ( isset( $_POST[ 'delete' ] ) ) {
   mysqli_stmt_bind_param( $stmt, "i", $id );
 
   if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Delete failed: " . mysqli_stmt_error( $stmt ) );
+    itsm_fail( 'customer_delete_failed', mysqli_stmt_error( $stmt ) );
   }
 
   header( 'Location: customers.php' );
@@ -243,8 +243,8 @@ if ( !$result ) {
       <tbody>
         <?php while ($row5 = mysqli_fetch_assoc($result4)): ?>
         <tr>
-          <td><?= $name = $row5['firstname'] . ' ' . $row5['lastname']; ?></td>
-          <td class="tblaction"><a class="btn" href="edit_person.php?id=<?= $row5['id'] ?>"> Open Persoon </a></td>
+          <td><?= htmlspecialchars(trim((string)$row5['firstname'] . ' ' . (string)$row5['lastname'])) ?></td>
+          <td class="tblaction"><a class="btn" href="edit_person.php?id=<?= (int)$row5['id'] ?>"> Open Persoon </a></td>
         </tr>
         <?php endwhile; ?>
       </tbody>

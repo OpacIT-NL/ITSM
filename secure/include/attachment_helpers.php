@@ -1,4 +1,5 @@
 <?php
+require_once( __DIR__ . '/../../include/upload_security.php' );
 
 function attachment_task_label( $task_type ) {
   $labels = [
@@ -29,12 +30,8 @@ function attachment_upload_errors( $field_name = 'attachment' ) {
     return [ 'Bijlage uploaden mislukt. Upload foutcode: ' . (int)$file['error'] ];
   }
 
-  $max_bytes = 10 * 1024 * 1024;
-  if ( (int)$file['size'] > $max_bytes ) {
-    return [ 'Bijlage is te groot. Maximaal 10 MB.' ];
-  }
-
-  return [];
+  $validation = itsm_uploaded_attachment_validation( $file );
+  return $validation['ok'] ? [] : [ $validation['error'] ];
 }
 
 function attachment_save_upload( $con, $task_type, $task_id, $operator_id, $internal_only = 0, $comment_type = null, $comment_id = null, $field_name = 'attachment' ) {
@@ -43,12 +40,8 @@ function attachment_save_upload( $con, $task_type, $task_id, $operator_id, $inte
   }
 
   $file = $_FILES[$field_name];
-  if ( (int)$file['error'] !== UPLOAD_ERR_OK || !is_uploaded_file( $file['tmp_name'] ) ) {
-    return 0;
-  }
-
-  $content = file_get_contents( $file['tmp_name'] );
-  if ( $content === false ) {
+  $validation = itsm_uploaded_attachment_validation( $file );
+  if ( !$validation['ok'] ) {
     return 0;
   }
 
@@ -57,8 +50,8 @@ function attachment_save_upload( $con, $task_type, $task_id, $operator_id, $inte
     $task_type,
     $task_id,
     basename( (string)$file['name'] ),
-    (string)( $file['type'] ?? 'application/octet-stream' ),
-    $content,
+    $validation['mime'],
+    $validation['content'],
     $operator_id,
     null,
     $internal_only,
@@ -71,8 +64,12 @@ function attachment_save_binary( $con, $task_type, $task_id, $filename, $mimetyp
   $task_type = (string)$task_type;
   $task_id = (int)$task_id;
   $filename = basename( (string)$filename );
-  $mimetype = (string)$mimetype;
   $content = (string)$content;
+  $validation = itsm_validate_attachment_content( $filename, $content );
+  if ( !$validation['ok'] ) {
+    return 0;
+  }
+  $mimetype = $validation['mime'];
   $filesize = strlen( $content );
   $operator_id = $operator_id !== null && $operator_id !== '' ? (int)$operator_id : null;
   $person_id = $person_id !== null && $person_id !== '' ? (int)$person_id : null;
@@ -90,7 +87,7 @@ function attachment_save_binary( $con, $task_type, $task_id, $filename, $mimetyp
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   " );
   if ( !$stmt ) {
-    return 0;
+    itsm_fail( 'attachment_insert_prepare_failed', mysqli_error( $con ) );
   }
   mysqli_stmt_bind_param(
     $stmt,
@@ -108,9 +105,13 @@ function attachment_save_binary( $con, $task_type, $task_id, $filename, $mimetyp
     $internal_only
   );
   mysqli_stmt_send_long_data( $stmt, 7, $content );
-  mysqli_stmt_execute( $stmt );
+  if ( !mysqli_stmt_execute( $stmt ) ) {
+    itsm_fail( 'attachment_insert_failed', mysqli_stmt_error( $stmt ) );
+  }
+  $attachment_id = mysqli_insert_id( $con );
+  mysqli_stmt_close( $stmt );
 
-  return mysqli_insert_id( $con );
+  return $attachment_id;
 }
 
 function attachment_load_for_task( $con, $task_type, $task_id ) {
@@ -171,7 +172,7 @@ function attachment_render_links( $attachments ) {
     $html .= '<i class="fa-solid fa-paperclip"></i> ' . htmlspecialchars( $attachment['filename'] );
     $html .= ' <span>(' . htmlspecialchars( attachment_format_filesize( $attachment['filesize'] ) ) . ')</span>';
     $html .= '</a>';
-    if ( strpos( (string)( $attachment['mimetype'] ?? '' ), 'image/' ) === 0 ) {
+    if ( itsm_attachment_mimetype_can_inline( $attachment['mimetype'] ?? '' ) ) {
       $html .= '<img class="inline-task-image attachment-preview" src="download_attachment.php?id=' . htmlspecialchars( (string)$attachment['id'] ) . '&amp;inline=1" alt="' . htmlspecialchars( $attachment['filename'] ) . '">';
     }
   }

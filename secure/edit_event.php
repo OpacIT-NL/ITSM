@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/event_helpers.php' );
@@ -47,7 +47,7 @@ if ( $presence_error !== '' ) {
 }
 
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
-  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  task_delete_link( $con, (int)$_POST['delete_link_id'], 'event', $event_id );
   header( 'Location: edit_event.php?id=' . $event_id );
   exit;
 }
@@ -198,7 +198,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
         exit;
       }
 
-      $errors[] = 'Incident aanmaken vanuit event mislukt: ' . mysqli_stmt_error( $incident_stmt );
+      $errors[] = itsm_error_reference( 'event_incident_insert_failed', mysqli_stmt_error( $incident_stmt ) );
     } else {
       header( 'Location: edit_event.php?id=' . $event_id );
       exit;
@@ -260,6 +260,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'event', $event_id )
             <label>Omschrijving</label>
             <textarea name="description" required><?= htmlspecialchars($event['description']) ?></textarea>
           </div>
+          <?php $time_task_type='event';$time_task_id=$event_id;require(__DIR__.'/include/time_entry_widget.php'); ?>
           <?php attachment_render_upload_field(); ?>
           <?php if ( (int)$event['incidentid'] > 0 ): ?>
           <p class="info-note">Gekoppeld incident ID: <?= htmlspecialchars((string)$event['incidentid']) ?></p>

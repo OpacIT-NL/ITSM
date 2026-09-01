@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/ubm_helpers.php' );
@@ -71,7 +71,7 @@ if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_
   exit;
 }
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
-  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  task_delete_link( $con, (int)$_POST['delete_link_id'], 'ubm', $item_id );
   header( 'Location: edit_ubm_item.php?id=' . $item_id );
   exit;
 }
@@ -228,7 +228,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
       header( 'Location: edit_ubm_item.php?id=' . $item_id );
       exit;
     }
-    $errors[] = 'UBM-item bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+    $errors[] = itsm_error_reference( 'ubm_item_update_failed', mysqli_stmt_error( $update_stmt ) );
   }
 }
 
@@ -341,6 +341,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'ubm', $item_id ) );
               </select>
             </label>
           </div>
+          <?php $time_task_type='ubm';$time_task_id=$item_id;require(__DIR__.'/include/time_entry_widget.php'); ?>
         </div>
       </div>
     </div>

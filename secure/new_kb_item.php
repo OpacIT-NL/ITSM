@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/kb_helpers.php' );
@@ -70,7 +70,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
       exit;
     }
 
-    $errors[] = t('Kennisitem opslaan mislukt:') . ' ' . mysqli_stmt_error( $stmt );
+    $errors[] = itsm_error_reference( 'knowledge_item_insert_failed', mysqli_stmt_error( $stmt ) );
     mysqli_stmt_close( $stmt );
   }
 }

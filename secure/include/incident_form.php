@@ -231,6 +231,8 @@ $show_template_actions = empty( $form_values['template_used'] );
             </label>
           </div>
 
+          <?php if (isset($incident_id)): $time_task_type='incident'; $time_task_id=$incident_id; require(__DIR__.'/time_entry_widget.php'); endif; ?>
+
           <div class="form-group">
             <label class="incident-meta-label">Afgemeld</label>
             <label>

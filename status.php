@@ -1,3 +1,9 @@
+<?php
+require_once( __DIR__ . '/my.php' );
+require_once( __DIR__ . '/secure/include/news_helpers.php' );
+require_once( __DIR__ . '/version.php' );
+$status_items = news_fetch_items( $con, 'login' );
+?>
 <!doctype html>
 <html>
 <head>
@@ -6,10 +12,6 @@
 <title>Status</title>
 <link href="include/style.css" rel="stylesheet" type="text/css">
 </head>
-<?php require_once(__DIR__ . '/my.php'); ?>
-<?php require_once(__DIR__ . '/secure/include/news_helpers.php'); ?>
-<?php require_once(__DIR__ . '/version.php'); ?>
-<?php $status_items = news_fetch_items( $con, 'login' ); ?>
 <body class="login-page">
 <div class="login-container">
 	

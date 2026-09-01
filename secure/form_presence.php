@@ -1,6 +1,8 @@
 <?php
-session_start();
+require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 require_once( __DIR__ . '/../my.php' );
+require_once( __DIR__ . '/include/operator_security_helpers.php' );
 
 header( 'Content-Type: application/json' );
 
@@ -18,6 +20,13 @@ $allowed = [ 'incident', 'change', 'problem', 'event', 'changeactivity', 'ubm' ]
 if ( !in_array( $task_type, $allowed, true ) || $task_id <= 0 || $token === '' ) {
   http_response_code( 400 );
   echo json_encode( [ 'ok' => false, 'message' => 'Ongeldige presence-aanvraag.' ] );
+  exit;
+}
+
+$security_operator = itsm_current_operator_security_context( $con );
+if ( !itsm_operator_can_access_task_type( $security_operator, $task_type ) ) {
+  http_response_code( 404 );
+  echo json_encode( [ 'ok' => false, 'message' => 'Niet gevonden.' ] );
   exit;
 }
 

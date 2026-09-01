@@ -90,9 +90,9 @@
       return 'module-menu';
     }
     if ([
-      'incidents.php', 'changes.php', 'change_activities.php', 'problems.php', 'events.php', 'ubm_items.php', 'ubm_tree.php', 'assets.php', 'kb_items.php', 'news.php',
+      'incidents.php', 'changes.php', 'change_activities.php', 'problems.php', 'events.php', 'ubm_items.php', 'ubm_tree.php', 'assets.php', 'reporting.php', 'kb_items.php', 'news.php',
       'persons.php', 'persongroups.php', 'operators.php', 'operatorgroups.php', 'suppliers.php', 'buildings.php', 'customers.php',
-      'set-am-types.php', 'set-am-connections.php', 'set-am-config-templates.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php'
+      'set-am-types.php', 'set-am-connections.php', 'set-am-config-templates.php', 'set-ls-cat.php', 'set-ls-status.php', 'set-templates.php', 'set-mailrules.php', 'set-imaprules.php', 'set-priority.php', 'set-timecodes.php'
     ].includes(page)) {
       return 'result';
     }
@@ -197,6 +197,7 @@
     if (page === 'search.php') { return 'fa-solid fa-magnifying-glass'; }
     if (page === 'profile.php') { return 'fa-solid fa-user'; }
     if (page === 'callercard.php') { return 'fa-solid fa-globe'; }
+    if (page === 'reporting.php') { return 'fa-solid fa-chart-column'; }
     if (page === 'ob-menu.php') { return 'fa-solid fa-address-book'; }
     if (normalizedUrl.includes('incident') || page === 'im-menu.php' || page === 'im_menu.php') { return 'fa-solid fa-phone'; }
     if (normalizedUrl.includes('change') || page === 'cm-menu.php') { return 'fa-solid fa-pen'; }
@@ -208,7 +209,6 @@
     if (normalizedUrl.includes('news')) { return 'fa-solid fa-newspaper'; }
     if (page === 'set-general.php') { return 'fa-solid fa-sliders'; }
     if (page === 'set-update.php') { return 'fa-solid fa-cloud-arrow-down'; }
-    if (page === 'set-api-tokens.php') { return 'fa-solid fa-key'; }
     if (page === 'set-priority.php' || normalizedUrl.includes('priority')) { return 'fa-solid fa-arrow-up-wide-short'; }
     if (normalizedUrl.includes('template')) { return 'fa-solid fa-clipboard-list'; }
     if (page === 'set-mailrules.php') { return 'fa-solid fa-envelope'; }
@@ -748,6 +748,7 @@
     let stale = false;
     const heartbeat = () => {
       const body = new URLSearchParams();
+      body.set('_csrf_token', document.querySelector('meta[name="itsm-csrf-token"]')?.content || '');
       body.set('tasktype', target.tasktype);
       body.set('taskid', String(target.taskid));
       body.set('token', token);
@@ -793,6 +794,7 @@
       }
       presenceClosed = true;
       const body = new URLSearchParams();
+      body.set('_csrf_token', document.querySelector('meta[name="itsm-csrf-token"]')?.content || '');
       body.set('tasktype', target.tasktype);
       body.set('taskid', String(target.taskid));
       body.set('token', token);
@@ -869,9 +871,9 @@
   setupTicketViewMemory();
   setupFormPresence();
 
-  const logoutLink = document.querySelector('.topbar a[href*="logout.php"]');
-  if (logoutLink) {
-    logoutLink.addEventListener('click', () => {
+  const logoutForm = document.querySelector('.topbar form[action*="logout.php"]');
+  if (logoutForm) {
+    logoutForm.addEventListener('submit', () => {
       sessionStorage.removeItem(storageKey);
       sessionStorage.removeItem(activeTabKeyStorage);
       Object.keys(sessionStorage).forEach((key) => {

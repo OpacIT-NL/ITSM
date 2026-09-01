@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
@@ -223,7 +223,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   );
 
   if ( !$stmt->execute() ) {
-    die( "Insert failed: " . $stmt->error );
+    itsm_fail( 'asset_insert_failed', $stmt->error );
   }
 
   header( "Location: assets.php?filtertype=$type_id" );

@@ -1,12 +1,12 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 if ( !isset( $_SESSION[ 'operatorloggedin' ] ) ) {
   header( 'Location: login.php' );
   exit;
 }
-// Absolute expiration check
+// Sliding idle timeout check
 if ( isset( $_SESSION[ 'expires_at' ] ) && time() > $_SESSION[ 'expires_at' ] ) {
   itsm_destroy_session();
   header( "Location: login.php?expired=1" );
@@ -16,11 +16,11 @@ $logged_in_user = $_SESSION[ 'name' ];
 require_once( __DIR__ . '/../my.php' );
 
 // Authorization check
-$sql2 = "SELECT operators FROM itsm_ob_operators WHERE username = ?";
+$sql2 = "SELECT operators, isadmin FROM itsm_ob_operators WHERE username = ?";
 $result2 = mysqli_prepare( $con, $sql2 );
 mysqli_stmt_bind_param( $result2, "s", $logged_in_user );
 mysqli_stmt_execute( $result2 );
-mysqli_stmt_bind_result( $result2, $operators );
+mysqli_stmt_bind_result( $result2, $operators, $current_isadmin );
 mysqli_stmt_fetch( $result2 );
 mysqli_stmt_close( $result2 );
 if ( $operators == 0 ) {
@@ -49,6 +49,7 @@ $boolFields = [
   'reporting' => 'Rapportages',
   'isadmin' => 'Administrator'
 ];
+$form_error = '';
 
 if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
 
@@ -57,16 +58,17 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   foreach ( $boolFields as $field => $label ) {
     $boolValues[ $field ] = isset( $_POST[ $field ] ) ? 1 : 0;
   }
-
-  // Validate password
-  if ( empty( $_POST[ 'password' ] ) ) {
-    die( "Wachtwoord is verplicht!" );
+  if ( (int)$current_isadmin !== 1 ) {
+    $boolValues['isadmin'] = 0;
   }
 
-  $hashedPassword = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
+  $form_error = itsm_password_policy_error( $_POST['password'] ?? '' );
 
-  // Prepare insert
-  $stmt = mysqli_prepare( $con, "
+  if ( $form_error === '' ) {
+    $hashedPassword = password_hash( (string)$_POST['password'], PASSWORD_DEFAULT );
+
+    // Prepare insert
+    $stmt = mysqli_prepare( $con, "
         INSERT INTO itsm_ob_operators (
             firstname, lastname, email, phone, username, password,
             allowlogin, firstlineincidents, secondlineincidents, reqforchange,
@@ -77,44 +79,45 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
             ?,?,?,?,?,?,
             ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
         )
-    " );
+      " );
 
-  mysqli_stmt_bind_param(
-    $stmt,
-    "ssssssiiiiiiiiiiiiiiiiiii",
-    $_POST[ 'firstname' ],
-    $_POST[ 'lastname' ],
-    $_POST[ 'email' ],
-    $_POST[ 'phone' ],
-    $_POST[ 'username' ],
-    $hashedPassword,
-    $boolValues[ 'allowlogin' ],
-    $boolValues[ 'firstlineincidents' ],
-    $boolValues[ 'secondlineincidents' ],
-    $boolValues[ 'reqforchange' ],
-    $boolValues[ 'simplechange' ],
-    $boolValues[ 'extchange' ],
-    $boolValues[ 'problems' ],
-    $boolValues[ 'operations' ],
-    $boolValues[ 'assets' ],
-    $boolValues[ 'persons' ],
-    $boolValues[ 'operators' ],
-    $boolValues[ 'buildings' ],
-    $boolValues[ 'customers' ],
-    $boolValues[ 'suppliers' ],
-    $boolValues[ 'groups' ],
-    $boolValues[ 'events' ],
-    $boolValues[ 'ubm' ],
-    $boolValues[ 'reporting' ],
-    $boolValues[ 'isadmin' ]
-  );
+    mysqli_stmt_bind_param(
+      $stmt,
+      "ssssssiiiiiiiiiiiiiiiiiii",
+      $_POST[ 'firstname' ],
+      $_POST[ 'lastname' ],
+      $_POST[ 'email' ],
+      $_POST[ 'phone' ],
+      $_POST[ 'username' ],
+      $hashedPassword,
+      $boolValues[ 'allowlogin' ],
+      $boolValues[ 'firstlineincidents' ],
+      $boolValues[ 'secondlineincidents' ],
+      $boolValues[ 'reqforchange' ],
+      $boolValues[ 'simplechange' ],
+      $boolValues[ 'extchange' ],
+      $boolValues[ 'problems' ],
+      $boolValues[ 'operations' ],
+      $boolValues[ 'assets' ],
+      $boolValues[ 'persons' ],
+      $boolValues[ 'operators' ],
+      $boolValues[ 'buildings' ],
+      $boolValues[ 'customers' ],
+      $boolValues[ 'suppliers' ],
+      $boolValues[ 'groups' ],
+      $boolValues[ 'events' ],
+      $boolValues[ 'ubm' ],
+      $boolValues[ 'reporting' ],
+      $boolValues[ 'isadmin' ]
+    );
 
-  if ( !mysqli_stmt_execute( $stmt ) ) {
-    die( "Insert failed: " . mysqli_stmt_error( $stmt ) );
+    if ( !mysqli_stmt_execute( $stmt ) ) {
+      itsm_fail( 'operator_insert_failed', mysqli_stmt_error( $stmt ) );
+    }
+
+    header( 'Location: operators.php' );
+    exit;
   }
-
-  header( 'Location: operators.php' );
-  exit;
 }
 ?>
 <?php require_once(__DIR__ . '/nav/nav.php'); ?>
@@ -125,6 +128,9 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
   <div class="form-wrapper record-form-wrapper">
     <div class="form-card record-form-card">
       <form method="post" class="form-grid">
+        <?php if ( $form_error !== '' ): ?>
+        <p class="error"><?= htmlspecialchars( $form_error ) ?></p>
+        <?php endif; ?>
         
         <!-- Basic fields -->
         
@@ -161,7 +167,7 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         <br>
         <div class="form-group">
           <label>Wachtwoord:
-            <input type="password" name="password" required>
+            <input type="password" name="password" required minlength="12" maxlength="128" autocomplete="new-password">
           </label>
         </div>
         
@@ -170,9 +176,10 @@ if ( $_SERVER[ 'REQUEST_METHOD' ] === 'POST' ) {
         <h3>Rollen</h3>
         <div class=checkbox-grid>
           <?php foreach ($boolFields as $field => $label): ?>
+          <?php if ( $field === 'isadmin' && (int)$current_isadmin !== 1 ) continue; ?>
           <label>
-            <input type="checkbox" name="<?= $field ?>">
-            <?= $label ?>
+            <input type="checkbox" name="<?= htmlspecialchars($field) ?>" <?= !empty($_POST[$field]) ? 'checked' : '' ?>>
+            <?= htmlspecialchars($label) ?>
           </label>
           <?php endforeach; ?>
         </div>

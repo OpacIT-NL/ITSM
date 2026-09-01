@@ -1,0 +1,2 @@
+public_base_url = "https://itsm.example.com/public"
+secure_base_url = "https://itsm.example.com/secure"

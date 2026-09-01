@@ -1,6 +1,6 @@
 <?php
-session_start();
 require_once( __DIR__ . '/../include/session_helpers.php' );
+itsm_secure_session_start();
 
 require_once( __DIR__ . '/../my.php' );
 require_once( __DIR__ . '/include/change_helpers.php' );
@@ -109,7 +109,7 @@ if ( isset( $_POST['delete_comment_id'] ) && is_numeric( $_POST['delete_comment_
 }
 
 if ( isset( $_POST['delete_link_id'] ) && is_numeric( $_POST['delete_link_id'] ) ) {
-  task_delete_link( $con, (int)$_POST['delete_link_id'] );
+  task_delete_link( $con, (int)$_POST['delete_link_id'], 'changeactivity', $activity_id );
   header( 'Location: edit_change_activity.php?id=' . $activity_id );
   exit;
 }
@@ -211,7 +211,7 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && !isset( $_POST['add_task_link'] ) 
     );
 
     if ( !mysqli_stmt_execute( $update_stmt ) ) {
-      $errors[] = 'Wijzigingsactiviteit bijwerken mislukt: ' . mysqli_stmt_error( $update_stmt );
+      $errors[] = itsm_error_reference( 'change_activity_update_failed', mysqli_stmt_error( $update_stmt ) );
     } else {
       attachment_save_upload( $con, 'changeactivity', $activity_id, (int)$operator_context['id'], 0 );
       form_presence_mark_saved( $con, 'changeactivity', $activity_id, (int)$operator_context['id'] );
@@ -414,6 +414,7 @@ $task_logs_html = task_log_render_tab( task_log_load( $con, 'changeactivity', $a
                 </select>
               </label>
             </div>
+            <?php $time_task_type='changeactivity';$time_task_id=$activity_id;require(__DIR__.'/include/time_entry_widget.php'); ?>
           </div>
         </div>
       </div>

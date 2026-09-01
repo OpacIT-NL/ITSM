@@ -2,7 +2,7 @@
 
 # Installation
 ## Requirements:
-- PHP
+- PHP 8.2 or newer with mysqli, fileinfo, OpenSSL and mbstring
 - Apache
 - MySQL
 
@@ -10,7 +10,13 @@
 
 1. Place the release zip in your webroot and extract it.
 
-2. Create a config folder and within that a sql.ini, imap.ini and smtp.ini file in the folder above the webroot for ITSM.
+2. Create a config folder and within that an app.ini, sql.ini, imap.ini and smtp.ini file in the folder above the webroot for ITSM.
+
+app.ini
+```
+public_base_url = "https://itsm.example.com/public"
+secure_base_url = "https://itsm.example.com/secure"
+```
 
 sql.ini
 ```
@@ -48,6 +54,7 @@ folder above webroot, like /var/www
 
 /var/www
 |-config/
+  |-app.ini
   |-sql.ini
   |-smtp.ini
   |-imap.ini
@@ -73,6 +80,10 @@ INSERT INTO `itsm_ob_operators` (`id`, `lastname`, `firstname`, `email`, `phone`
 ```
 
 6. ITSM is now installed and should be ready to run. 
+
+## Error tracing
+
+Internal errors are written as JSON to PHP's server error logger, which is the Apache error log when PHP runs through Apache. Users only see a `trace_id`. Search the configured Apache/PHP error log for that exact ID to find the context, database error and stack trace.
 
 ## First login
 
